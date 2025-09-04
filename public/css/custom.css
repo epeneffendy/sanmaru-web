@@ -1,0 +1,38 @@
+.checkbox-primary input[type="checkbox"]:checked+label::before {
+    background-color: #266c34;
+    border-color: #266c34;
+}
+
+.btn-default {
+    background-color: #266c34;
+    color: #fff;
+}
+
+.btn-default:hover {
+    background-color: #06270a;
+    color: #fff;
+}
+
+.login-form .footer-links a {
+    color: #ddd;
+    padding: 10px 5px;
+}
+
+.login-form .footer-links a:hover {
+    color: #fff;
+    padding: 10px 5px;
+}
+
+#top {
+    height: 60px;
+    background: #266c34;
+    color: #fff;
+    width: 100%;
+    position: fixed;
+    z-index: 900;
+    top: 0;
+}
+
+.fixed-panel {
+    position: fixed;
+}

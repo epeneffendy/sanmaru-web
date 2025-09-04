@@ -1,0 +1,381 @@
+<?php
+namespace App\Helpers;
+
+use App\Models\PPDBUser;
+use App\Models\Classes;
+use App\Models\Unit;
+
+class InputCollectionHelper
+{
+    public static function additionalData(Unit $unit = null, Classes $class = null)
+    {
+        if (!$unit && $class) {
+            $unit = $class->unit;
+        }
+
+        switch (@$unit->name) {
+            case 'SMA-SURABAYA':
+                $inputs = collect([
+                    'nama_siswa' => ['required'],
+                    'nama_panggilan' => ['required'],
+                    'jumlah_saudara_kandung' => ['required'],
+                    'nama_saudara_se_sekolah' => ['required'], /// Nama Adik / Kakak / Saudara yang sekolah di santa Maria Surabaya (Nama + Unit)
+                    'bahasa' => ['required', 'in:Bahasa Indonesia,Bahasa Inggris'], // label (Bahasa Sehari-hari)
+                    'alamat_sesuai_kk' => ['required'],
+                    'alamat_tempat_tinggal' => ['required'],
+                    'tinggal_dengan' => ['required'], // label (Bertempat Tinggal pada)
+                    'jarak_tempat_tinggal' => ['required'], // Jarak Tempat Tinggal ke Sekolah
+                    'waktu_tempuh' => ['required'], /// Waktu Tempuh Berangkat ke Sekolah
+                    // 'npwp' => ['required'], /// NPWP Orang Tua atau Wali
+                    'no_akta_kelahiran' => ['required'], /// No. Registrasi Akta Kelahiran
+                    'penanggungjawab_biaya' => ['required'], /// Penanggungjawab Biaya Pendidikan
+                    'asal_sekolah' => ['required'], /// Asal Sekolah
+                    'alamat_asal_sekolah' => ['required'], /// Alamat Asal Sekolah
+                    'kecamatan_asal_sekolah' => ['required'],
+                    'kota_asal_sekolah' => ['required'], /// Kota Asal Sekolah
+                    'provinsi_asal_sekolah' => ['required'],
+                    'nomor_telepon_asal_sekolah' => ['required'], /// Nomor Telpon Asal Sekolah
+                    'nisn' => ['required'], /// NISN (Nomor Induk Siswa Nasional)
+                    'tahun_lulus' => ['required'], /// Tahun Lulus
+                    'nomor_seri_shun' => ['required'], /// Nomor Seri SHUN
+                    'nomor_seri_ijazah' => ['required'], /// Nomor Seri Ijazah
+                    'nomor_ujian_nasional' => ['required'], /// Nomor Ujian Nasional
+                    'tinggi' => ['required'], // Tinggi Badan
+                    'berat' => ['required'], // Berat Badan
+                    'golongan_darah' => ['required'], // Golongan Darah
+                    'pernah_dirawat' => ['required'], /// Pernah dirawat dirumah sakit?
+                    'kapan_dirawat' => ['required_if:pernah_dirawat,ya'], /// Kapan ?
+                    'penyakit' => ['required'], /// Penyakit yang diderita
+                    'alergi' => ['required'], /// Jenis Alergi yang diderita
+                    'kontak_darurat_keluarga' => ['required'], /// Keluarga yang bisa dihubungi bila dalam keadaan darurat
+                    'prestasi_akademik' => ['nullable'], /// Prestasi Akademik
+                    'prestasi_nonakademik' => ['nullable'], /// Prestasi Non Akademik
+                    'prestasi_lainnya' => ['nullable'], /// Prestasi Non Lainnya
+                    'potensi_dan_bakat_sains' => ['nullable'], /// Potensi dan bakat Sains
+                    'potensi_dan_bakat_seni' => ['nullable'], /// Potensi dan bakat Seni
+                    'potensi_dan_bakat_olahraga' => ['nullable'], /// Potensi dan bakat Olah Raga
+                    'potensi_dan_bakat_lainnya' => ['nullable'] /// Potensi dan bakat Lainnya
+                ]);
+                break;
+            case 'SD-SURABAYA':
+                $inputs = collect([
+                    'nama_siswa' => ['required'],
+                    'nama_panggilan' => ['required'],
+                    'anak_ke' => ['required'],
+                    'jumlah_saudara_kandung' => ['required'],
+                    'jumlah_saudara_tiri' => ['required'],
+                    'status_orangtua' => ['nullable'],
+                    'bahasa' => ['required'],
+                    'alamat_sesuai_kk' => ['required'],
+                    'alamat_tempat_tinggal' => ['required'],
+                    'tinggal_dengan' => ['required'],
+                    'jarak_tempat_tinggal' => ['required'],
+                    'golongan_darah' => ['required'],
+                    'penyakit' => ['required'],
+                    'kelainan' => ['required'],
+                    'tinggi' => ['required'],
+                    'berat' => ['required'],
+
+                    'asal_sekolah' => ['required'], /// Asal Sekolah
+                    'kecamatan_asal_sekolah' => ['required'], /// Kecamatan Sekolah
+                    'kelurahan_asal_sekolah' => ['required'], /// Kelurahan Asal Sekolah
+                    'kota_asal_sekolah' => ['required'], /// Kota Asal Sekolah
+                    'provinsi_asal_sekolah' => ['required'], /// Provinsi Asal Sekolah
+                    'transportasi_ke_sekolah' => ['required'], /// Transportasi Sekolah
+                    // 'npwp' => ['required'], /// 
+NPWP Orang Tua atau Wali
+                    'nik_ayah' => ['required'], /// NIK Orang Tua
+                    'nik_ibu' => ['required'], /// NIK Orang Tua
+                    'no_akta_kelahiran' => ['required'], /// No. Registrasi Akta Kelahiran
+                ]);
+                break;
+            case 'SMP-SURABAYA':
+                $inputs = collect([
+                    'nama_siswa' => ['required'],
+                    'nama_panggilan' => ['required'],
+                    'anak_ke' => ['required'],
+                    'jumlah_saudara_kandung' => ['required'],
+                    'jumlah_saudara_tiri' => ['required'],
+                    'status_orangtua' => ['nullable'],
+                    'bahasa' => ['required'],
+                    'alamat_sesuai_kk' => ['required'],
+                    'alamat_tempat_tinggal' => ['required'],
+                    'tinggal_dengan' => ['required'],
+                    'jarak_tempat_tinggal' => ['required'],
+                    'golongan_darah' => ['required'],
+                    'penyakit' => ['required'],
+                    'kelainan' => ['required'],
+                    'tinggi' => ['required'],
+                    'berat' => ['required'],
+                    // 'npwp' => ['required'], /// NPWP Oraang Tua atau Wali
+
+                    'asal_sekolah' => ['required'], /// Asal Sekolah
+                    'kota_asal_sekolah' => ['required'], /// Kota Asal Sekolah
+                ]);
+                break;
+            case 'SD-SIDOARJO':
+                $inputs = collect([
+                    'nama_siswa' => ['required'],
+                    'nama_panggilan' => ['required'],
+                    'anak_ke' => ['required'],
+                    'jumlah_saudara_kandung' => ['required'],
+                    'jumlah_saudara_tiri' => ['required'],
+                    'status_orangtua' => ['nullable'],
+                    'bahasa' => ['required'],
+                    'alamat_sesuai_kk' => ['required'],
+                    'alamat_tempat_tinggal' => ['required'],
+                    'tinggal_dengan' => ['required'],
+                    'jarak_tempat_tinggal' => ['required'],
+                    'golongan_darah' => ['required'],
+                    'penyakit' => ['required'],
+                    'kelainan' => ['required'],
+                    'tinggi' => ['required'],
+                    'berat' => ['required'],
+                    // 'npwp' => ['required'], /// NPWP Orang Tua atau Wali
+
+                    'asal_sekolah' => ['required'], /// Asal Sekolah
+                    'alamat_asal_sekolah' => ['required'], /// Alamat Asal Sekolah
+                    'kecamatan_asal_sekolah' => ['required'], /// Kecamatan Sekolah
+                    'kabupaten_asal_sekolah' => ['required'], /// Kota Asal Sekolah
+                ]);
+                break;
+            default:
+                $inputs = collect([
+                    'nama_siswa' => ['required'],
+                    'nama_panggilan' => ['required'],
+                    'anak_ke' => ['required'],
+                    'jumlah_saudara_kandung' => ['required'],
+                    'jumlah_saudara_tiri' => ['required'],
+                    'status_orangtua' => ['nullable'],
+                    'bahasa' => ['required'],
+                    'alamat_sesuai_kk' => ['required'],
+                    'alamat_tempat_tinggal' => ['required'],
+                    'tinggal_dengan' => ['required'],
+                    'jarak_tempat_tinggal' => ['required'],
+                    'golongan_darah' => ['required'],
+                    'penyakit' => ['required'],
+                    'kelainan' => ['required'],
+                    'tinggi' => ['required'],
+                    'berat' => ['required'],
+                    // 'npwp' => ['required'], /// NPWP Orang Tua atau Wali
+                ]);
+        }
+
+        return $inputs;
+    }
+
+    public static function uploads(Unit $unit = null, Classes $class = null, PPDBUser $ppdb = null)
+    {
+        if (!$unit && $class) {
+            $unit = $class->unit;
+        }
+
+        if (!$unit && $ppdb) {
+            $unit = $ppdb->unit;
+        }
+
+        switch (@$unit->name) {
+            case 'SMA-SURABAYA':
+                $inputs = collect([
+                    'payment_form' => [
+                        'nama' => 'Bukti Bayar Formulir',
+                        'validation' => 'required'
+                    ],
+                    'birth_certificate' => [
+                        'nama' => 'Akta Kelahiran',
+                        'validation' => 'required',
+                    ],
+                    'family_card' => [
+                        'nama' => 'Kartu Keluarga',
+                        'validation' => 'required',
+                    ],
+                    'baptismal_certificate' => [
+                        'nama' => 'Surat Permandian (bagi agama Katolik/Kristen)',
+                        'validation' => 'nullable'
+                    ],
+                    'report_cards' => [
+                        'nama' => 'Rapor SMP Semester 1 - 4 (Multiple Upload)',
+                        'validation' => 'required',
+                    ],
+                    'photo' => [
+                        'nama' => 'Pas Foto 3x4cm background merah',
+                        'validation' => 'required',
+                    ],
+                    'angket_peminatan' => [
+                        'nama' => 'Angket Pilihan Minat Mata Pelajaran',
+                        'deskripsi' => 'Silakan unduh Formulir Angket Pilihan Minat Mata Pelajaran berikut dan unggah kembali jika sudah dilengkapi',
+                        'validation' => 'required',
+                    ],
+                    // 'rekomendasi_bk' => [
+                    //     'nama' => 'Rekomendasi BK',
+                    //     'validation' => 'nullable'
+                    // ],
+                    'statement_letter' => [
+                        'nama' => 'Surat Pernyataan',
+                        'validation' => 'required'
+                    ],
+                    // 'nilai_raport' => [
+                    //     'nama' => 'Nilai Raport',
+                    //     'validation' => 'link|nullable'
+                    // ]
+                ]);
+                break;
+            case 'SMP-SURABAYA':
+            case 'SMP-SIDOARJO':
+                $inputs = collect([
+                    'payment_form' => [
+                        'nama' => 'Bukti Bayar Formulir',
+                        'validation' => 'required'
+                    ],
+                    'birth_certificate' => [
+                        'nama' => 'Akta Kelahiran',
+                        'validation' => 'required',
+                    ],
+                    'photo' => [
+                        'nama' => 'Foto 3x4 Berwarna',
+                        'validation' => 'required',
+                    ],
+                    'family_card' => [
+                        'nama' => 'Kartu Keluarga',
+                        'validation' => 'required',
+                    ],
+                    'report_cards' => [
+                        'nama' => 'Raport (multiple Upload)',
+                        'validation' => 'required'
+                    ],
+                    'award_photo' => [
+                        'nama' => 'Piagam Penghargaan',
+                        'validation' => 'nullable'
+                    ],
+                    'baptismal_certificate' => [
+                        'nama' => 'Surat Baptis',
+                        'validation' => 'nullable'
+                    ],
+                    'statement_letter' => [
+                        'nama' => 'Surat Pernyataan',
+                        'validation' => 'required'
+                    ]
+                ]);
+                break;
+            case 'SD-SURABAYA':
+                $inputs = collect([
+                    'payment_form' => [
+                        'nama' => 'Bukti Bayar Formulir',
+                        'validation' => 'required'
+                    ],
+                    'birth_certificate' => [
+                        'nama' => 'Akta Kelahiran',
+                        'validation' => 'required',
+                    ],
+                    'photo' => [
+                        'nama' => 'Foto 3x4 Berwarna',
+                        'validation' => 'required',
+                    ],
+                    'parent_identity_card' => [
+                        'nama' => 'KTP Orang Tua (Salah satu)',
+                        'validation' => 'required',
+                    ],
+                    'family_card' => [
+                        'nama' => 'Kartu Keluarga',
+                        'validation' => 'required',
+                    ],
+                    'marriage_certificate' => [
+                        'nama' => 'Akta Pernikahan Orang tua',
+                        'validation' => 'required',
+                    ],
+                    'baptismal_certificate' => [
+                        'nama' => 'Surat Baptis',
+                        'validation' => 'nullable'
+                    ],
+                    'statement_letter' => [
+                        'nama' => 'Surat Pernyataan',
+                        'validation' => 'required'
+                    ]
+                ]);
+                break;
+            case 'KB-SIDOARJO':
+            case 'TK-SIDOARJO':
+                $inputs = collect([
+                    'payment_form' => [
+                        'nama' => 'Bukti Bayar Formulir',
+                        'validation' => 'required'
+                    ],
+                    'birth_certificate' => [
+                        'nama' => 'Akta Kelahiran',
+                        'validation' => 'required',
+                    ],
+                    'photo' => [
+                        'nama' => 'Foto 3x4 Berwarna',
+                        'validation' => 'required',
+                    ],
+                    'baptismal_certificate' => [
+                        'nama' => 'Surat Baptis',
+                        'validation' => 'nullable'
+                    ],
+                    'family_card' => [
+                        'nama' => 'Kartu Keluarga',
+                        'validation' => 'required',
+                    ],
+                    'kartu_golongan_darah' => [
+                        'nama' => 'Kartu Golongan darah',
+                        'validation' => 'nullable'
+                    ],
+                    'kms' => [
+                        'nama' => 'Kartu Menuju sehat (KMS)',
+                        'validation' => 'nullable'
+                    ],
+                    'statement_letter' => [
+                        'nama' => 'Surat Pernyataan',
+                        'validation' => 'required'
+                    ]
+                ]);
+                break;
+            case 'SD-SIDOARJO':
+            default:
+                $inputs = collect([
+                    'payment_form' => [
+                        'nama' => 'Bukti Bayar Formulir',
+                        'validation' => 'required'
+                    ],
+                    'birth_certificate' => [
+                        'nama' => 'Akta Kelahiran',
+                        'validation' => 'required',
+                    ],
+                    'photo' => [
+                        'nama' => 'Foto 3x4 Berwarna',
+                        'validation' => 'required',
+                    ],
+                    'family_card' => [
+                        'nama' => 'Kartu Keluarga',
+                        'validation' => 'required',
+                    ],
+                    'baptismal_certificate' => [
+                        'nama' => 'Surat Baptis',
+                        'validation' => 'nullable'
+                    ],
+                    'statement_letter' => [
+                        'nama' => 'Surat Pernyataan',
+                        'validation' => 'required'
+                    ]
+                ]);
+                break;
+        }
+
+        //custom
+        // if ($ppdb && @$unit->name === 'SMP-SIDOARJO' && $ppdb->period->name == 'JALUR KHUSUS 2022/2023') {
+        //     $inputs->put('rekomendasi_bk', [
+        //         'nama' => 'Rekomendasi BK',
+        //         'validation' => 'nullable'
+        //     ]);
+        // }
+
+        $inputs = $inputs->merge([
+            'custom_form' => [
+                'nama' => 'Custom Form',
+                'validation' => 'link|nullable'
+            ]
+        ]);
+
+        return $inputs;
+    }
+}

@@ -1,0 +1,633 @@
+@media only screen and (min-width: 300px) and (max-width: 768px) {
+    body {
+        font-family: 'Raleway', sans-serif;
+        font-weight: 500;
+    }
+    .body-mobile {
+        position: relative;
+        margin-top: 76px;
+        min-height: 100%;
+        padding-top: 1rem;
+        padding-right: 1rem;
+        padding-left: 1rem;
+        padding-bottom: 70px;
+        background: white;
+        border-radius: 20px 20px 0px 0px;
+        z-index: 1000;
+        /* overflow-y: scroll; */
+    }
+    .landing-body-mobile {
+        position: relative;
+        min-height: 100%;
+        padding-right: 1rem;
+        padding-left: 1rem;
+        padding-bottom: 70px;
+        background: white;
+        border-radius: 20px 20px 0px 0px;
+        z-index: 1000;
+    }
+    .wrapper-desktop, .wrapper-content-desktop {
+        display: none !important;
+    }
+    .wrapper-mobile, .wrapper-content-mobile {
+        display: block !important;
+        height: 100%;
+    }
+    .nav-mobile {
+        display: block !important;
+        background: linear-gradient(225deg, #489F59 0%, #266C34 100%);
+        /* padding: 1.2rem 1.5rem; */
+        padding-right: 2rem;
+        padding-left: 2rem;
+        padding-top: 1.5rem;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        z-index: 999;
+    }
+    .nav-mobile-container {
+        height: 76px;
+    }
+    .body-mobile *::before, .body-mobile *::after, .nav-mobile *::before, .nav-mobile *::after, .bottom-navbar-mobile *::after, .bottom-navbar-mobile *::before, .informasi-ppdb-item *::before, .informasi-ppdb-item *::after, .notifikasi-ppdb-item *::before, .notifikasi-ppdb-item *::after, .product-index *::before, .product-index *::after, .product-show *::before, .product-show *::after {
+        display: none;
+    }
+    .bottom-navbar-mobile {
+        display: block !important;
+        background: #FFFFFF;
+        box-shadow: 0px 4px 24px rgba(0, 0, 0, 0.25);
+        border-radius: 20px 20px 0px 0px;
+        position: fixed;
+        bottom: 0;
+        padding: 1.5rem 3rem;
+        z-index: 1001;
+    }
+    .bottom-navbar-item.active .icon-normal {
+        display: none;
+    }
+    .bottom-navbar-item.active .icon-active {
+        display: block;
+    }
+    .bottom-navbar-item .icon-active {
+        display: none;
+    }
+
+    .tab-bar{
+        display: none;
+    }
+    /* .bottom-navbar-mobile .icon-normal{
+        display: block;
+    } */
+    hr {
+        margin: 10px 0;
+    }
+    p {
+        margin-bottom: 10px;
+    }
+    h5 {
+        margin-bottom: 0 !important;
+        font-size: 20px !important;
+    }
+    .text-body-title {
+        font-style: normal;
+        font-weight: bold;
+        font-size: 15px !important;
+        line-height: 20px;
+        /* identical to box height, or 133% */
+        /* text-align: center; */
+        color: #BDD6C3;
+    }
+    .text-body {
+        font-weight: 500 !important;
+        font-size: 15px !important;
+        line-height: 20px !important;
+        /* identical to box height, or 133% */
+        color: #000000;
+    }
+    .text-description {
+        font-style: normal;
+        font-weight: 500;
+        font-size: 12px;
+        line-height: 14px;
+    }
+    .text-bold {
+        font-weight: 700;
+    }
+    .text-extra-bold {
+        font-weight: 800 !important;
+    }
+    .text-tanggal {
+        font-weight: 500;
+        font-size: 12px;
+        line-height: 14px;
+    }
+    .text-primary-green {
+        color: #266C34 !important;
+    }
+    .text-navy {
+        color: #000C38 !important;
+    }
+    .text-grey {
+        color: #979797 !important;
+    }
+    .text-black {
+        color: #1D1D1D;
+    }
+    .btn {
+        margin: .5rem 0;
+        min-width: 250px;
+        max-width: fit-content;
+    }
+    .btn-green {
+        color: white;
+        font-family: 'Raleway', sans-serif;
+        background: linear-gradient(225deg, #489F59 0%, #266C34 100%);
+        border-radius: 50px;
+        font-size: 12px;
+        border-radius: 15px;
+        padding: .25rem .8rem;
+        min-width: 85px;
+        width: fit-content;
+    }
+    .btn-grey {
+        color: white;
+        background: linear-gradient(225deg, #979797 0%, #515151 100%);
+        border-radius: 50px;
+    }
+    .btn-red {
+        color: white;
+        background: linear-gradient(225deg, #eb4034 0%, #c2160a 100%);
+        border-radius: 50px;
+        font-size: 12px;
+        border-radius: 15px;
+        padding: .25rem .8rem;
+        min-width: 85px;
+        width: fit-content;
+    }
+    .btn-sm-mobile {
+        min-width: 150px;
+        font-size: 12px;
+    }
+    .span-name {
+        text-transform: uppercase;
+    }
+    .content-left {
+        display: none;
+    }
+    .content-top {
+        padding: 28px 28px 0 28px !important;
+        overflow-y: auto !important;
+    }
+    .header-form {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .header-form p {
+        text-align: center;
+        color: black;
+        margin-bottom: .5rem;
+    }
+    .header-form span {
+        font-size: 30px;
+    }
+    .logo-serviam-top {
+        align-self: center;
+        padding-bottom: 1rem;
+    }
+    .flip {
+        transform: rotate(-180deg) !important;
+    }
+    .head-left {
+        transform: rotate(90deg);
+    }
+    .modal-backdrop {
+        z-index: 999;
+    }
+    .modal-body {
+        flex: none;
+    }
+    .modal-footer {
+        justify-content: center;
+    }
+    /* STATUS */
+    .status-ppdb {
+        margin-top: 2rem;
+    }
+    .status-container {
+        display: flex;
+        flex-direction: row;
+        justify-content: start;
+    }
+    .status-indicator {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .status-circle {
+        margin: .25rem 0;
+        width: 11px;
+        height: 11px;
+        border-radius: 100%;
+        background: #DBD2C4;
+    }
+    .status-circle-green {
+        background: #86BD2D;
+    }
+    .status-circle-red {
+        background: #ED473A;
+    }
+    .status-line {
+        min-height: 39px;
+        max-height: fit-content;
+        width: 2px;
+        background: #DBD2C4;
+    }
+    .status-description {
+        margin-left: 1rem;
+    }
+    .status-detail {
+        margin-bottom: .5rem;
+    }
+    .status-tab {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        border-radius: 15px;
+        padding: .25rem .8rem;
+        width: fit-content;
+        color: white;
+        margin-right: .5rem;
+    }
+    .status-tab-green {
+        background: #86BD2D;
+    }
+    .status-tab-green span {
+        color: white;
+    }
+    .status-tab-red {
+        background: #ED473A;
+    }
+    .status-tab-grey {
+        background: #C4C4C4;
+    }
+    .status-tab-yellow {
+        background: #FFD600;
+    }
+    .status-tab-green .green {
+        display: block;
+    }
+    .status-tab-green .check-green {
+        display: none;
+    }
+    .status-tab-red .red {
+        display: block;
+    }
+    .status-tab-grey .grey {
+        display: block;
+    }
+    .status-tab-yellow .grey {
+        display: block;
+    }
+    .status-tab span {
+        margin-left: .5rem;
+    }
+    .status-tab img {
+        display: none;
+        width: 10px;
+    }
+    .status-tab-edit {
+        position: absolute;
+        z-index: 1;
+        top: 0;
+    }
+    .btn-detail {
+        /* margin-left: .5rem; */
+        color: white;
+        text-decoration: none;
+    }
+    /* INFORMASI PPDB */
+    .informasi-ppdb-item {
+        border: 2px solid #E6EAE7;
+        box-sizing: border-box;
+        border-radius: 10px;
+        padding-top: 13px;
+        margin-bottom: 1rem;
+    }
+    /* NOTIFIKASI PPDB */
+    .notifikasi-circle {
+        display: none;
+        width: 11px;
+        height: 11px;
+        border-radius: 100%;
+        background: #86BD2D;
+    }
+    .unread h5 {
+        color: #000C38 !important;
+    }
+    .unread .notifikasi-circle {
+        display: block;
+    }
+    /* DATA SISWA */
+    .table-header {
+        font-weight: bold;
+        font-size: 13px;
+        line-height: 20px;
+        text-align: center;
+        /* identical to box height, or 154% */
+        color: #266C34;
+        margin-bottom: 0;
+    }
+    .table-header-row {
+        border-bottom: 2px solid #E6EAE7;
+        padding: .5rem 0;
+    }
+    .table-row {
+        padding: .5rem 0;
+    }
+    .table-row .col-4 {
+        display: block;
+    }
+    .table-row-text {
+        font-weight: 500;
+        font-size: 12px;
+        line-height: 14px;
+        color: #000C38;
+    }
+    .data-siswa-table {
+        border: 2px solid #E6EAE7;
+        box-sizing: border-box;
+        border-radius: 10px;
+    }
+    .custom-file-input {
+        opacity: 0;
+        border: none !important;
+        padding: 0 !important;
+    }
+    .custom-file-input:hover {
+        cursor: pointer;
+    }
+    .custom-file-label {
+        display: none;
+    }
+    .btn-download {
+        border-radius: 50px;
+        background-color: #007bff;
+        color: white;
+        font-size: 12px;
+        min-width: auto !important;
+        margin: 0;
+        margin-bottom: .5rem;
+    }
+    .btn-register {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    ul.btn-below {
+        text-align: center;
+    }
+    /* PROFILE SISWA */
+    .profile-siswa-ppdb {
+        padding-bottom: 76px;
+    }
+    .profile-picture-ppdb {
+        width: 96px;
+        height: 96px;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        margin: 1rem 0;
+    }
+    .card-outline {
+        border: 2px solid #E6EAE7;
+        box-sizing: border-box;
+        border-radius: 10px;
+        padding: 1rem;
+    }
+    /* NEW PASSWORD */
+    .form-control {
+        border: 2px solid #E6EAE7;
+        border-radius: 10px;
+    }
+    .new-password {
+        height: 100vh;
+    }
+    .form-password {
+        box-sizing: border-box;
+        width: 100%;
+        text-align: center;
+    }
+    .form-password::placeholder {
+        text-align: center;
+    }
+    /* PRODUCT */
+    .card-product {
+        filter: drop-shadow(0px 2px 10px rgba(0, 0, 0, 0.12));
+        border-radius: 8px;
+        background: white;
+        height: auto;
+        width: auto;
+        margin: auto;
+    }
+    .detail {
+        border: 2px solid #E6EAE7;
+        border-top: none;
+        border-left: none;
+        border-right: none;
+        padding: 17px 0;
+        margin: 20px 0 20px;
+    }
+    .card-product .product-thumbnail {
+        width: 100%;
+        height: 156px;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        border-radius: 8px 8px 0 0;
+    }
+    .product-caption {
+        padding: .8rem;
+    }
+    .caption-title {
+        font-weight: 700;
+        font-size: 13px;
+        line-height: 20px;
+        /* identical to box height, or 154% */
+        color: #06270A;
+    }
+    .caption-price {
+        font-size: 12px;
+        line-height: 14px;
+        /* identical to box height */
+        color: #189D49;
+    }
+    .dropdown {
+        margin: .5rem 0;
+    }
+    .dropdown:hover {
+        cursor: pointer;
+    }
+    .dropdown-placeholder {
+        font-size: 14px;
+        line-height: 16px;
+        color: #89998B;
+        padding-left: .5rem;
+    }
+    .dropdown-children {
+        display: none;
+        position: absolute;
+        z-index: 1001;
+        background: white;
+        border: 2px solid #E6EAE7;
+        border-radius: 10px;
+        margin-top: .5rem;
+        width: 100%;
+    }
+    .dropdown-item {
+        padding: .5rem 1rem;
+    }
+    body#ppdb .modal-header {
+        display: block;
+        background: #FFFFFF;
+        box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.12);
+    }
+    .modal-dialog {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    .modal-content {
+        height: auto;
+        min-height: 100%;
+        border-radius: 0;
+    }
+    .modal-dialog-pembayaran {
+        height: auto;
+    }
+    .modal-dialog-pembayaran .modal-content {
+        border-radius: 10px;
+        margin: 1rem;
+        text-align: center;
+    }
+    .container-desktop {
+        padding: 0 !important;
+    }
+    .container-button-back h2 {
+        display: none;
+    }
+    .container-button-back #mobile {
+        display: block !important;
+    }
+    .container-footer {
+        flex-direction: column;
+    }
+    .additional {
+        background: #FFFFFF;
+        box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.12);
+        border-radius: 6px;
+        text-align: center;
+    }
+    .container-subtotal {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+    .additional-voucher {
+        margin: 10px 0;
+        position: relative;
+        padding: 15px;
+    }
+    .additional-voucher .col-sm-2 {
+        display: flex;
+        justify-content: center;
+    }
+    .additional a, .additional p {
+        font-family: Roboto;
+        font-style: normal;
+        font-weight: 700 !important;
+        font-size: 14px;
+        line-height: 16px;
+        text-align: center !important;
+        color: #189D49 !important;
+        padding: 18px 0;
+        display: block;
+        text-decoration: none;
+        opacity: 1 !important;
+    }
+    .container-subtotal {
+        padding-top: 2rem;
+        border-top: 1px solid #e9e9e9;
+        align-items: center !important;
+        width: 100%;
+    }
+    .container-btn-tambah a span {
+        display: inline-block;
+        background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 5H9V9H5V11H9V15H11V11H15V9H11V5ZM10 0C4.5 0 0 4.5 0 10C0 15.5 4.5 20 10 20C15.5 20 20 15.5 20 10C20 4.5 15.5 0 10 0ZM10 18C5.6 18 2 14.4 2 10C2 5.6 5.6 2 10 2C14.4 2 18 5.6 18 10C18 14.4 14.4 18 10 18Z' fill='%23189D49'/%3E%3C/svg%3E%0A");
+        width: 20px;
+        height: 20px;
+        vertical-align: middle;
+        margin-right: 10px;
+    }
+    .pemesanan-item img {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+    }
+    /* .product-show{ */
+    /* padding-bottom: 76px; */
+    /* } */
+    /* BIAYA PENGEMBANGAN */
+    .container-biaya{
+        padding:0;
+    }
+    
+    .btn-biaya {
+        border: 1px solid #979797;
+        box-sizing: border-box;
+        border-radius: 16px;
+        width: 100%;
+        padding: 2rem 0;
+        margin: 0.5rem 0;
+    }
+    .card-green {
+        background-color: #E7F3EA;
+        border-radius: 10px;
+        padding: 1rem 0;
+        font-weight: 600;
+        font-size: 18px;
+        line-height: 21px;
+        text-align: center;
+        /* black */
+        color: #141414;
+    }
+    .row-button-biaya{
+        display: flex;
+        flex-direction: column;
+    }
+    .biaya-header{
+        display: none;
+    }
+    .upload-image-desktop {
+        display: none;
+    }
+    .upload-image-mobile {
+        display: block;
+    }
+    .nav-back{
+        display: block;
+    }
+    
+    .ol-number {
+        list-style: decimal;
+        margin-left: 1rem;
+    }
+    .ol-number li {
+        padding-left: 1rem;
+        color: #000000;
+    }
+}

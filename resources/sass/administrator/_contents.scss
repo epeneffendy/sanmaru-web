@@ -1,0 +1,81 @@
+body#admin {
+  background: #3B8C4B;
+  color: #37363e;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 200;
+  height: 100vh;
+  margin: 0;
+
+
+  .centered-middle {
+    position: absolute;
+    width: 50%;
+    height: 32%;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    .subtitle {
+      color: #fff;
+      padding: 25px;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: .1rem;
+      text-decoration: none;
+      text-transform: uppercase;
+    }
+
+  }
+
+  .btn-borderless {
+    color: #fff;
+    background: none transparent;
+    border: none;
+
+    &:hover {
+      background: none transparent;
+      border: none;
+    }
+  }
+
+  .checkbox-primary input[type="checkbox"]:checked + label::before {
+    background-color: #266c34;
+    border-color: #266c34;
+  }
+
+  .checkbox {
+    color: #266c34;
+  }
+
+  .btn-default {
+    background-color: #266c34;
+    color: #fff;
+  }
+
+  .btn-default:hover {
+    background-color: #06270a;
+    color: #fff;
+  }
+
+  .login-form .footer-links a {
+    color: #ddd;
+    padding: 10px 5px;
+  }
+
+  .login-form .footer-links a:hover {
+    color: #fff;
+    padding: 10px 5px;
+  }
+
+  #top {
+    height: 60px;
+    background: #266c34;
+    color: #fff;
+    width: 100%;
+    position: fixed;
+    z-index: 900;
+    top: 0;
+  }
+}

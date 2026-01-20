@@ -99,8 +99,7 @@
                             <h2 class="text-black">Selamat datang,</h2>
                             <p class="text-subtitle-3">
                                 Terima kasih sudah melakukan registrasi PPDB, untuk melanjutkan silahkan upload file
-                                bukti pembayaran registrasi
-                            </p>
+4                            </p>
                             <a href="#" class="btn-green" data-toggle="modal" data-target="#buktiModal"><img
                                     src="{{asset('frontend-ppdb-online/img/Icon/upload.png')}}"
                                     alt=""><span>Upload</span></a>
@@ -185,14 +184,16 @@
                                     <div class="col-6 d-flex align-items-center">
                                         @if ($user['payment_option'] == 'BCA')
                                             <div
-                                                class="status-tab status-tab-{{ @$user->isStatusCompleteWhitoutBca ? 'green' : 'red'}}-full">
+                                                class="status-tab status-tab-{{ @$user->isDataCompleteWhitoutBca ? 'green' : 'red'}}-full">
+{{--                                                class="status-tab status-tab-{{ @$user->isStatusCompleteWhitoutBca ? 'green' : 'red'}}-full">--}}
                                                 <img class="green"
                                                      src="{{asset('frontend-ppdb-online/img/Icon/Tab/check.png')}}"
                                                      alt="">
                                                 <img class="red"
                                                      src="{{asset('frontend-ppdb-online/img/Icon/Tab/cross.png')}}"
                                                      alt="">
-                                                <span>{{ @$user->isStatusCompleteWhitoutBca ? 'Lengkap' : 'Belum lengkap' }}</span>
+                                                <span>{{ @$user->isDataCompleteWhitoutBca ? 'Lengkap' : 'Belum lengkap' }}</span>
+{{--                                                <span>{{ @$user->isStatusCompleteWhitoutBca ? 'Lengkap' : 'Belum lengkap' }}</span>--}}
                                             </div>
                                         @else
                                             <div
@@ -537,15 +538,16 @@
                                     <p class="text-body status-detail">Seleksi Administrasi</p>
                                     @if($user->payment_option == 'BCA')
                                         <div class="d-flex align-items-center">
-                                            <div
-                                                class="status-tab status-tab-{{ @$user->isStatusCompleteWhitoutBca ? 'green' : 'red' }}">
+                                            <div class="status-tab status-tab-{{ @$user->isDataCompleteWhitoutBca ? 'green' : 'red' }}">
+{{--                                            <div class="status-tab status-tab-{{ @$user->isStatusCompleteWhitoutBca ? 'green' : 'red' }}">--}}
                                                 <img class="green"
                                                      src="{{asset('frontend-ppdb-online/img/Icon/Tab/check.png')}}"
                                                      alt="">
                                                 <img class="red"
                                                      src="{{asset('frontend-ppdb-online/img/Icon/Tab/cross.png')}}"
                                                      alt="">
-                                                <span>{{ @$user->isStatusCompleteWhitoutBca ? 'Lengkap' : 'Belum lengkap' }}</span>
+                                                <span>{{ @$user->isDataCompleteWhitoutBca ? 'Lengkap' : 'Belum lengkap' }}</span>
+{{--                                                <span>{{ @$user->isStatusCompleteWhitoutBca ? 'Lengkap' : 'Belum lengkap' }}</span>--}}
                                             </div>
                                             <div class="status-tab status-tab-grey">
                                                 <a href="{{route('ppdb.data-siswa-ppdb')}}"

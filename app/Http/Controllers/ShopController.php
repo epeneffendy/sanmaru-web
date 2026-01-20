@@ -4,18 +4,34 @@ namespace App\Http\Controllers;
 
 use App\Enums\ProductTypeEnum;
 use App\Helpers\ProductHelper;
+use App\Http\Requests\ComplaintOrderRequest;
 use App\Models\Cart;
 use App\Models\CartDetail;
+use App\Models\ComplaintCategory;
+use App\Models\ComplaintOrders;
+use App\Models\ComplaintPeriode;
+use App\Models\PPDBUser;
 use App\Models\Product;
 use App\Models\ProductFitting;
 use App\Models\ProductOrder;
+use App\Models\ProductOrderComplaint;
+use App\Models\ProductOrderDetail;
 use App\Models\ProductUserFitting;
+use App\Models\User;
 use App\Models\Voucher;
+use App\Models\VoucherUsage;
 use App\Services\CartService;
+use App\Services\ComplaintOrderService;
+use App\Services\ProductOrderComplaintService;
+use App\Services\ProductOrderService;
+use App\Services\VoucherService;
 use App\Traits\ImageHandler;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Validation\ValidationException;
 
 class ShopController extends Controller
 {
@@ -52,16 +68,34 @@ class ShopController extends Controller
     public function embedProduct(Request $request)
     {
         $this->fillDataVarible();
+
         $fittings = ProductFitting::where('unit_id', $this->class->unit_id)->with('users')->get();
         $products = ProductHelper::suitableProducts($this->student, ProductTypeEnum::SERAGAM, [
             'q' => $request->search
         ]);
 
+        $orders = ProductOrder::where('status', ProductOrder::STATUS_NEW_ORDER)
+            ->whereNull('payment_image')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        foreach ($orders as $order) {
+            if (Carbon::now()->format('Y-m-d H:i:s') > $order->getExpiredAtAttribute()->toDateTimeString()) {
+                $order->status = ProductOrder::STATUS_CANCEL;
+                $order->save();
+                if ($order->voucher !== NULL) {
+                    VoucherUsage::where('product_order_id', $order->id)
+                        ->where('voucher_id', json_decode($order->voucher, TRUE)['id'])
+                        ->delete();
+                }
+            }
+        }
+
         $data = [
             'products' => $products,
             'fittings' => $fittings,
             'user_fittings' => ProductUserFitting::where('user_id', $this->user->id)->whereIn('fitting_id', $fittings->pluck('id'))->get(),
-            'nav' => ['parent' => 'product', 'child'=>'Product'],
+            'nav' => ['parent' => 'product', 'child' => 'Product'],
         ];
 
         return view('student-dashboard.shop.student-embed-product', $data);
@@ -78,7 +112,7 @@ class ShopController extends Controller
             })->with('details')->firstOrFail(),
             'fittings' => $fittings,
             'user_fittings' => ProductUserFitting::where('user_id', $this->user->id)->whereIn('fitting_id', $fittings->pluck('id'))->get(),
-            'nav' => ['parent' => 'product', 'child'=>'Product'],
+            'nav' => ['parent' => 'product', 'child' => 'Product'],
         ];
 
         return view('student-dashboard.shop.detail', $data);
@@ -103,28 +137,43 @@ class ShopController extends Controller
     public function getOrder($id)
     {
         $this->fillDataVarible();
+        $now = Carbon::now()->format('Y-m-d');
 
         $order = ProductOrder::where([
             'id' => $id,
             'user_id' => $this->user->id
         ])->with('productOrderDetails', 'productOrderDetails.productDetail', 'productOrderDetails.product')->firstOrFail();
 
+        $periodComplaint = ComplaintPeriode::where('type', 'siswa')->first();
+        $is_complaint = false;
+        if ($periodComplaint->status == 'all') {
+            $is_complaint = true;
+        } else {
+            if (($now >= $periodComplaint->date_start) && ($now <= $periodComplaint->date_end)) {
+                $is_complaint = true;
+            }
+        }
+
         $data = [
             'order' => $order,
             'user' => $this->student,
+            'is_complaint' => $is_complaint,
+            'periodComplaint' => $periodComplaint,
             'nav' => ['parent' => 'product', 'child' => 'Pesanan']
         ];
 
         return view('student-dashboard.shop.order', $data);
     }
 
-    public function embedProductCart()
+    public function embedProductCart(VoucherService $voucherService)
     {
         $this->fillDataVarible();
 
         $fittings = ProductFitting::where('unit_id', $this->class->unit_id)->with('users')->get();
         $vouchers = Voucher::eligible($this->user->toArray());
         $cart = Cart::where('user_id', $this->user->id)->with('details', 'details.product', 'details.product.details', 'details.product_detail')->first();
+        $orders = $this->checkOrders($this->user->id);
+
         if (!$cart) {
             $cart = (new CartService())->create($this->user->id);
         }
@@ -165,16 +214,25 @@ class ShopController extends Controller
                 $cartVoucherProducts = Product::select('id', 'name')->whereIn('id', $rule)->get();
             }
         }
-        $details = CartDetail::where('cart_id', $cart->id)->whereHas('product', function($query) {
+        $details = CartDetail::where('cart_id', $cart->id)->whereHas('product', function ($query) {
             $query->byType(ProductTypeEnum::SERAGAM);
         })->get();
+
+        $getVoucher = [];
+
+        foreach ($vouchers as $ind => $voucher) {
+            $getVoucher[$ind] = $voucherService->getVoucher($voucher);
+        }
+
         $data = [
             'cart' => $cart,
             'details' => $details,
             'fittings' => $fittings,
-            'vouchers' => $vouchers,
+            'vouchers' => $getVoucher,
             'isCartVoucherFulfilled' => $isCartVoucherFulfilled,
             'cartVoucherProducts' => $cartVoucherProducts,
+            'orders' => $orders['orders'],
+            'no_invoice' => $orders['no_invoice'],
             'user_fittings' => ProductUserFitting::where('user_id', $this->user->id)->whereIn('fitting_id', $fittings->pluck('id'))->get(),
             'nav' => ['parent' => 'product', 'child' => 'Keranjang Belanja']
         ];
@@ -217,20 +275,32 @@ class ShopController extends Controller
 
     public function postCart(Request $request, CartService $cartService)
     {
-        $this->fillDataVarible();
+        $user = $request->session()->get('user');
+        DB::beginTransaction();
+        try {
+            $params = $request->validate([
+                'products' => 'required',
+                'products.*.qty' => ['required', 'numeric', 'min:1'],
+                'products.*.price' => ['required', 'numeric'],
+                'products.*.id' => ['required', 'exists:cart_details,id'],
+                'products.*.include' => ['required', 'in:true,false'],
+                'products.*.note' => ['nullable', 'string'],
+            ]);
 
-        $params = $request->validate([
-            'products' => 'required',
-            'products.*.qty' => ['required', 'numeric', 'min:1'],
-            'products.*.price' => ['required', 'numeric'],
-            'products.*.id' => ['required', 'exists:cart_details,id'],
-            'products.*.include' => ['required', 'in:true,false'],
-            'products.*.note' => ['nullable', 'string'],
-        ]);
+            if ($order = $cartService->store($params, $user)) {
+                DB::commit();
+                return Response::json([
+                    'status' => 'success',
+                    'order' => $order->id
+                ]);
+            }
 
-        if ($order = $cartService->store($params, $this->user->toArray())) {
+//            $this->fillDataVarible();
+
+        } catch (ValidationException $e) {
+            DB::rollBack();
             return Response::json([
-                'status' => 'success',
+                'status' => 'false',
                 'order' => $order->id
             ]);
         }
@@ -353,4 +423,156 @@ class ShopController extends Controller
 
         return view('student-dashboard.shop.detail-payment', $data);
     }
+
+    public function checkOrders($user_id)
+    {
+        $orders = ProductOrder::where(['status' => 'new_order', 'user_id' => $user_id])->get();
+
+        $no_invoice = '';
+        if (count($orders) > 0) {
+            foreach ($orders as $order) {
+                $no_invoice .= $order->invoice_no . ', ';
+            }
+            $no_invoice = substr($no_invoice, 0, -2);
+        }
+
+        return ['orders' => count($orders), 'no_invoice' => $no_invoice];
+    }
+
+    public function postCancelOrder(Request $request, ProductOrderService $productOrderService)
+    {
+        $user = $request->session()->get('user');
+
+        $params = $request->validate([
+            'product_order_id' => 'required|exists:product_orders,id',
+            'payment_cancel_reason' => 'required|string'
+        ]);
+
+        if ($productOrderService->cancel($params, $user, 2)) {
+            return Response::json(['status' => 'success']);
+        }
+    }
+
+    public function complaint(Request $request)
+    {
+        $productOrder = ProductOrder::whereId($request->id)->first();
+
+        $historyComplaint = ComplaintOrders::where('product_order_id', $productOrder->id)->orderBy('id','desc')->get();
+
+        $products = [];
+        foreach ($productOrder->productOrderDetails as $item) {
+            $products[$item->id] = $item->product->name . ' (Size : '. $item->productDetail->size.')';
+        }
+
+        $complaintCategory = ComplaintCategory::where('status', 1)->get();
+
+        $data = [
+            'productOrder' => $productOrder,
+            'products' => $products,
+            'historyComplaint' => $historyComplaint,
+            'complaintCategory' => $complaintCategory
+        ];
+        return view('student-dashboard.shop.complaint', $data);
+    }
+
+    public function fetchProductOrder(Request $request)
+    {
+        $productOrderDetail = ProductOrderDetail::whereId($request->id)->first();
+
+        $html = '<div style="margin-left: 2em" class="text-title-3 font-italic text-black">Qty : ' . $productOrderDetail->quantity . '</div>';
+        $html .= '<div style="margin-left: 2em" class="text-title-3 font-italic text-black">Size : ' . $productOrderDetail->productDetail->size . '</div>';
+        $html .= '<div style="margin-left: 2em" class="text-title-3 font-italic text-black">Note : ' . $productOrderDetail->note . '</div><br><br>';
+
+        return $html;
+    }
+
+    public function complaintStore(ComplaintOrderRequest $request, ProductOrderComplaintService $productOrderComplaintService)
+    {
+        DB::beginTransaction();
+        try {
+            $validate = $request->validated();
+
+            $productOrderDetail = ProductOrderDetail::whereId($request->product_id)->first();
+
+            if (isset($productOrderDetail)) {
+                $dataCompaint = ComplaintOrders::where([
+                    'product_order_id'=>$request->product_order_id,
+                    'product_order_detail_id' =>$request->product_id
+                ])->first();
+
+                $is_complaint = false;
+                if (empty($dataCompaint)) {
+                    $is_complaint = true;
+                }else{
+                    if($dataCompaint->status == 'cancel'){
+                        $is_complaint = true;
+                    }
+                }
+
+                if ($is_complaint) {
+                    $payload = [
+                        'product_order_id' => $productOrderDetail->product_order_id,
+                        'product_id' => $productOrderDetail->product_id,
+                        'product_detail_id' => $productOrderDetail->product_detail_id,
+                        'user_id' => Auth::id(),
+                        'type'=>'siswa'
+                    ];
+
+                    $store = $productOrderComplaintService->store($request->all(), $payload);
+
+                    if ($store['success'] == true) {
+                        DB::commit();
+                        return redirect()->route('embed-product.complaint', ['id' => $productOrderDetail->product_order_id])->with(['message' => 'Komplain sudah terkirim, silahkan tunggu konfirmasi admin', 'success' => true]);
+                    } else {
+                        DB::rollBack();
+                        return redirect()->route('embed-product.complaint', ['id' => $productOrderDetail->product_order_id])->with(['message' => $store['message'], 'success' => false])->withErrors(new \Illuminate\Support\MessageBag());
+                    }
+
+                } else {
+                    return redirect()->route('embed-product.complaint', ['id' => $productOrderDetail->product_order_id])->with(['message' => 'Anda telah mengajukan komplain untuk product ini!', 'success' => false])->withErrors(new \Illuminate\Support\MessageBag());
+                }
+            }
+        } catch (Exception $e) {
+            DB::rollBack();
+//            return redirect()->route('admin.product-acceptance.index')->with('errors', collect(['Gagal ditambahkan']));
+        }
+    }
+
+    public function cancelComplaint(Request $request, ComplaintOrderService $complaintOrderService)
+    {
+        $data = ComplaintOrders::whereId($request->id)->first();
+
+        $update = $complaintOrderService->changeStatus($request->id, ComplaintOrders::STATUS_CANCEL, '');
+        return redirect()->route('embed-product.complaint', ['id' => $data->productOrderDetail->product_order_id]);
+    }
+
+    public function showComplaintPdf(Request $request, $id)
+    {
+        $this->fillDataVarible();
+
+        $complaintOrder = ComplaintOrders::where([
+            'id' => $id,
+        ])->firstOrFail();
+
+        $productOrder = ProductOrder::where([
+            'id'=>$complaintOrder->product_order_id
+        ])->firstOrFail();
+
+        $orderDetail = ProductOrderDetail::where('id',$complaintOrder->product_order_detail_id)->firstOrFail();
+        $user = User::where('id',Auth::user()->id)->first();
+
+        $data = [
+            'complaintOrder' => $complaintOrder,
+            'productOrder'=>$productOrder,
+            'orderDetail'=>$orderDetail,
+            'user' => $user,
+        ];
+
+//        return view('student-dashboard.shop.pdf_complaint', $data);
+
+        $pdf = \PDF::loadView('student-dashboard.shop.pdf_complaint', $data);
+        $date_complaint = Carbon::parse($complaintOrder->created_at)->format('Ymd');
+        return $pdf->download("detail-complaint-".$date_complaint."-".$complaintOrder->user->name.".pdf");
+    }
+
 }

@@ -1,7 +1,9 @@
 <?php
+
 namespace App\Services;
 
 use Auth;
+use Illuminate\Support\Facades\DB;
 use Request;
 use App\Lib\DbTrx;
 use Carbon\Carbon;
@@ -75,9 +77,9 @@ class ProductOrderService
             }
         }
         if (array_key_exists('unit', $params) && $params['unit']) {
-            $productOrders->whereHas('user.ppdb', function($query) use($params) {
+            $productOrders->whereHas('user.ppdb', function ($query) use ($params) {
                 $query->where('unit_id', $params['unit']);
-            })->orWhereHas('user.student.class', function($query) use($params) {
+            })->orWhereHas('user.student.class', function ($query) use ($params) {
                 $query->where('unit_id', $params['unit']);
             });
         }
@@ -96,13 +98,18 @@ class ProductOrderService
         if (array_key_exists('type_voucher', $params) && $params['type_voucher']) {
             $productOrders->where('voucher', 'like', '%' . $params['type_voucher'] . '%');
         }
+
+        if (array_key_exists('type_user', $params) && $params['type_user']) {
+            $productOrders->where('user_type', '=',  $params['type_user']);
+        }
+
         if ($related) {
             $productOrders->with($related);
         }
 
-        if (!empty($type)){
+        if (!empty($type)) {
             $productOrders->whereHas('productOrderDetails.product.category', function ($query) use ($params, $type) {
-                $query->where(['type'=>$type]);
+                $query->where(['type' => $type]);
             });
         }
 
@@ -128,24 +135,24 @@ class ProductOrderService
         ];
 
         $productOrder = ProductOrder::query()
-        ->with([
-            'productOrderDetails',
-            'productOrderDetails.productDetail',
-            'user' => function ($query) {
-                return $query->select('id', 'type', 'email');
-            },
-            'user.ppdb' => function ($query) {
-                return $query->select('id', 'name', 'user_id', 'register_number', 'unit_id');
-            },
-            'user.ppdb.unit' => function ($query) {
-                return $query->select('id', 'name');
-            },
-            'user.student',
-            'user.student.class',
-            'user.student.class.unit' => function ($query) {
-                return $query->select('id', 'name');
-            },
-        ]);
+            ->with([
+                'productOrderDetails',
+                'productOrderDetails.productDetail',
+                'user' => function ($query) {
+                    return $query->select('id', 'type', 'email');
+                },
+                'user.ppdb' => function ($query) {
+                    return $query->select('id', 'name', 'user_id', 'register_number', 'unit_id');
+                },
+                'user.ppdb.unit' => function ($query) {
+                    return $query->select('id', 'name');
+                },
+                'user.student',
+                'user.student.class',
+                'user.student.class.unit' => function ($query) {
+                    return $query->select('id', 'name');
+                },
+            ]);
 
 
         $productOrder = $productOrder->whereHas('user', function ($query) {
@@ -160,7 +167,7 @@ class ProductOrderService
                     $query = $query->where(request()->input('scope'), 'like', '%' . request()->input('search') . '%');
                 }
                 if (request()->input('period')) {
-                    $query = $query->whereRaw("LEFT(`ppdb_users`.`register_number`, 2) = '". substr(request()->input('period'), -2)."'");
+                    $query = $query->whereRaw("LEFT(`ppdb_users`.`register_number`, 2) = '" . substr(request()->input('period'), -2) . "'");
                 }
                 return $query;
             })->orWhereHas('student', function ($query) {
@@ -176,7 +183,7 @@ class ProductOrderService
                         //disable
                         $query = $query->whereRaw("0 = 1");
                     } else {
-                        $query = $query->where(request()->input('scope'), 'like', '%'. request()->input('search') .'%');
+                        $query = $query->where(request()->input('scope'), 'like', '%' . request()->input('search') . '%');
                     }
                 }
                 if (request()->input('period')) {
@@ -244,16 +251,16 @@ class ProductOrderService
         }
 
 
-        if (isset($params['type_tab'])){
+        if (isset($params['type_tab'])) {
             $params['payment_type'] = '08';
             unset($params['order_amount']);
             unset($params['total_payment']);
-            if ($params['type_tab'] == 'kantin'){
+            if ($params['type_tab'] == 'kantin') {
                 $params['payment_type'] = '12';
             }
 
             $price = $this->totalPrice($params['price']);
-            if (isset($price)){
+            if (isset($price)) {
                 $params['order_amount'] = $price['order_amount'];
                 $params['total_payment'] = $price['total_payment'];
             }
@@ -274,12 +281,12 @@ class ProductOrderService
     public function generateEditableData($id, $nav)
     {
         $productOrder = ProductOrder::where(function ($q) {
-            return $q->whereHas('user.ppdb.unit', function($query) {
+            return $q->whereHas('user.ppdb.unit', function ($query) {
                 $query->byUserRole();
             })->orWhereHas('user.student.class.unit', function ($query) {
                 $query->byUserRole();
             });
-        })->with('productOrderDetails','productOrderDetails.productDetail')->findOrFail($id);
+        })->with('productOrderDetails', 'productOrderDetails.productDetail')->findOrFail($id);
 
         return [
             'method' => 'edit',
@@ -295,7 +302,7 @@ class ProductOrderService
     public function update($id, $params)
     {
         $productOrder = ProductOrder::where(function ($q) {
-            return $q->whereHas('user.ppdb.unit', function($query) {
+            return $q->whereHas('user.ppdb.unit', function ($query) {
                 $query->byUserRole();
             })->orWhereHas('user.student.class.unit', function ($query) {
                 $query->byUserRole();
@@ -311,14 +318,14 @@ class ProductOrderService
     public function delete($id)
     {
         $productOrder = ProductOrder::where(function ($q) {
-            return $q->whereHas('user.ppdb.unit', function($query) {
+            return $q->whereHas('user.ppdb.unit', function ($query) {
                 $query->byUserRole();
             })->orWhereHas('user.student.class.unit', function ($query) {
                 $query->byUserRole();
             });
         })->with('productOrderDetails')->findOrFail($id);
 
-        $productOrder->productOrderDetails->each(function($productOrderDetail) {
+        $productOrder->productOrderDetails->each(function ($productOrderDetail) {
             $productOrderDetail->delete();
         });
 
@@ -328,17 +335,17 @@ class ProductOrderService
     public function cancel($params, $user, $type)
     {
         $productOrder = ProductOrder::where(function ($q) {
-                                return $q->whereHas('user.ppdb.unit', function($query) {
-                                    $query->byUserRole();
-                                })->orWhereHas('user.student.class.unit', function ($query) {
-                                    $query->byUserRole();
-                                });
-                            })->where('id', $params['product_order_id'])
-                            // ->where('user_id', $user['id'])
-                            ->where('status', ProductOrder::STATUS_NEW_ORDER)
-                            ->firstOrFail();
+            return $q->whereHas('user.ppdb.unit', function ($query) {
+                $query->byUserRole();
+            })->orWhereHas('user.student.class.unit', function ($query) {
+                $query->byUserRole();
+            });
+        })->where('id', $params['product_order_id'])
+            // ->where('user_id', $user['id'])
+            ->where('status', ProductOrder::STATUS_NEW_ORDER)
+            ->firstOrFail();
 
-        if ($type == 1){
+        if ($type == 1) {
             if ($productOrder && $productOrder->update(['status' => ProductOrder::STATUS_CANCEL])) {
                 if ($productOrder->voucher) {
                     VoucherUsage::where('product_order_id', $productOrder->id)
@@ -348,7 +355,7 @@ class ProductOrderService
 
                 return true;
             }
-        }else{
+        } else {
             if ($productOrder && $productOrder->update([
                     'status' => ProductOrder::STATUS_CANCEL,
                     'payment_cancel_reason' => $params['payment_cancel_reason'],
@@ -371,7 +378,7 @@ class ProductOrderService
     public function confirmPayment($id, $user)
     {
         $productOrder = ProductOrder::where(function ($q) {
-            return $q->whereHas('user.ppdb.unit', function($query) {
+            return $q->whereHas('user.ppdb.unit', function ($query) {
                 $query->byUserRole();
             })->orWhereHas('user.student.class.unit', function ($query) {
                 $query->byUserRole();
@@ -400,9 +407,9 @@ class ProductOrderService
                 $query->byUserRole();
             });
         })->where('id', $id)
-        //->where('user_id', $user['id'])
-        ->where('status', ProductOrder::STATUS_NEW_ORDER)
-        ->firstOrFail();
+            //->where('user_id', $user['id'])
+            ->where('status', ProductOrder::STATUS_NEW_ORDER)
+            ->firstOrFail();
 
         $productOrder->payment_image = NULL;
         $productOrder->save();
@@ -437,7 +444,7 @@ class ProductOrderService
     {
         $productOrders = ProductOrder::whereIn('id', array_keys($input['product_orders']))->get();
 
-        DbTrx::useTrx(function() use ($productOrders, $input) {
+        DbTrx::useTrx(function () use ($productOrders, $input) {
             foreach ($productOrders as $order) {
                 $order->status = ProductOrder::STATUS_CONFIRMED;
                 $order->payment_confirmed_date = date('Y-m-d H:i:s');
@@ -452,9 +459,9 @@ class ProductOrderService
 
     public function massSendPaymentConfirmedMails()
     {
-        $orders = ProductOrder::where(function($query) {
+        $orders = ProductOrder::where(function ($query) {
             $query->where('payment_confirmed_mail_sent', false)->orWhereNull('payment_confirmed_mail_sent');
-        })->where('status', ProductOrder::STATUS_CONFIRMED)->whereHas('user.ppdb.unit', function($query) {
+        })->where('status', ProductOrder::STATUS_CONFIRMED)->whereHas('user.ppdb.unit', function ($query) {
             $query->byUserRole();
         })->get();
 
@@ -636,7 +643,7 @@ class ProductOrderService
     public function getStudentList($unitId = null)
     {
         $studentList = collect();
-        $students = Student::with('user','class','class.unit')->whereHas('class.unit', function ($query) use ($unitId) {
+        $students = Student::with('user', 'class', 'class.unit')->whereHas('class.unit', function ($query) use ($unitId) {
             $query = $query->byUserRole();
             if ($unitId)
                 $query = $query->where('unit_id', $unitId);
@@ -659,15 +666,15 @@ class ProductOrderService
     private function getStudentVoucher($userId)
     {
         $user = User::where('id', $userId)
-                    ->where(function ($query) {
-                        $query->whereHas('ppdb.unit')->orWhereHas('student.class.unit');
-                    })
-                    ->with('ppdb', 'ppdb.unit', 'student', 'student.class', 'student.class.unit')
-                    ->first();
+            ->where(function ($query) {
+                $query->whereHas('ppdb.unit')->orWhereHas('student.class.unit');
+            })
+            ->with('ppdb', 'ppdb.unit', 'student', 'student.class', 'student.class.unit')
+            ->first();
 
         $collect = collect();
 
-        if (! is_null($user)) {
+        if (!is_null($user)) {
             $user = $user->toArray();
             $vouchers = Voucher::eligible($user)->each(function ($voucher) use ($collect) {
                 $disc_percent = 0;
@@ -685,10 +692,10 @@ class ProductOrderService
                     'discount_fixed' => $disc_fixed,
                     'usage_limit' => min(1, $voucher->usage_limit),
                     'note' => ($voucher->type == Voucher::TYPE_FREE)
-                                ? "Produk gratis"
-                                : (($voucher->type == Voucher::TYPE_DISC_FIXED)
-                                    ? "Potongan harga Rp. {$voucher->rule}"
-                                    : "Potongan {$voucher->rule} %")
+                        ? "Produk gratis"
+                        : (($voucher->type == Voucher::TYPE_DISC_FIXED)
+                            ? "Potongan harga Rp. {$voucher->rule}"
+                            : "Potongan {$voucher->rule} %")
                 ]);
             });
         }
@@ -720,17 +727,17 @@ class ProductOrderService
     {
         $emailService = new EmailService();
         $user = User::where(function ($query) {
-                $query->whereHas('ppdb.unit')->orWhereHas('student.class.unit');
-            })
+            $query->whereHas('ppdb.unit')->orWhereHas('student.class.unit');
+        })
             ->with('ppdb', 'ppdb.unit', 'student', 'student.class', 'student.class.unit')
             ->where('id', $params['user_id'])->first();
 
         if (isset($params['voucher_code']) && $params['voucher_code']) {
             $vouchers = Voucher::eligible($user->toArray());
 
-            if ($vouchers && $eligible = $vouchers->filter(function($data) use ($params) {
-                return trim(strtolower($data->code)) === trim(strtolower($params['voucher_code']));
-            })->first()) {
+            if ($vouchers && $eligible = $vouchers->filter(function ($data) use ($params) {
+                    return trim(strtolower($data->code)) === trim(strtolower($params['voucher_code']));
+                })->first()) {
                 $eligible = $eligible->only(['id', 'code', 'rule', 'note', 'type', 'usage_limit']);
                 $params['voucher'] = json_encode($eligible);
             }
@@ -773,36 +780,36 @@ class ProductOrderService
             'orderDetails.productOrder.user.student.class',
             'orderDetails.productOrder.user.student.class.unit',
         ])
-        ->whereHas('orderDetails.productOrder', function ($qOrder) use ($params) {
-            $qOrder->whereNotIn('status', [
-                ProductOrder::STATUS_NEW_ORDER,
-                ProductOrder::STATUS_CANCEL,
-            ]);
+            ->whereHas('orderDetails.productOrder', function ($qOrder) use ($params) {
+                $qOrder->whereNotIn('status', [
+                    ProductOrder::STATUS_NEW_ORDER,
+                    ProductOrder::STATUS_CANCEL,
+                ]);
 
-            $qOrder->where('payment_type', '!=', ProductOrderPaymentTypeEnum::KANTIN);
+                $qOrder->where('payment_type', '!=', ProductOrderPaymentTypeEnum::KANTIN);
 
-            if (array_key_exists('date_range', $params) && $params['date_range']) {
-                $dateStart = Carbon::parse(trim(explode('-', $params['date_range'])[0]));
-                $dateEnd = Carbon::parse(trim(explode('-', $params['date_range'])[1]))->endOfDay();
-                $qOrder->where('created_at', '>=', $dateStart)->where('created_at', '<=', $dateEnd);
-            }
+                if (array_key_exists('date_range', $params) && $params['date_range']) {
+                    $dateStart = Carbon::parse(trim(explode('-', $params['date_range'])[0]));
+                    $dateEnd = Carbon::parse(trim(explode('-', $params['date_range'])[1]))->endOfDay();
+                    $qOrder->where('created_at', '>=', $dateStart)->where('created_at', '<=', $dateEnd);
+                }
 
-            if (array_key_exists('unit', $params) && $params['unit']) {
-                $qOrder->where(function ($q) use ($params) {
-                    $q->whereHas('user.ppdb', function($query) use($params) {
-                        $query->where('unit_id', $params['unit']);
-                    })->orWhereHas('user.student.class', function($query) use($params) {
-                        $query->where('unit_id', $params['unit']);
+                if (array_key_exists('unit', $params) && $params['unit']) {
+                    $qOrder->where(function ($q) use ($params) {
+                        $q->whereHas('user.ppdb', function ($query) use ($params) {
+                            $query->where('unit_id', $params['unit']);
+                        })->orWhereHas('user.student.class', function ($query) use ($params) {
+                            $query->where('unit_id', $params['unit']);
+                        });
                     });
-                });
-            }
+                }
 
-            if (array_key_exists('status_student', $params) && $params['status_student']) {
-                $qOrder->whereHas('user', function($query) use($params) {
-                    $query->where('type', $params['status_student']);
-                });
-            }
-        });
+                if (array_key_exists('status_student', $params) && $params['status_student']) {
+                    $qOrder->whereHas('user', function ($query) use ($params) {
+                        $query->where('type', $params['status_student']);
+                    });
+                }
+            });
 
         $pages = $query->get();
 
@@ -906,14 +913,15 @@ class ProductOrderService
             'nav' => $nav,
             'collections' => $collections,
             'activeTab' => $request->active_tab ?? 'seragam',
-            'params' => $request->only(['page', 'search', 'scope', 'status', 'unit', 'year', 'date_range', 'pickup_status', 'type_voucher']),
+            'user'=> Auth::user(),
+            'params' => $request->only(['page', 'search', 'scope', 'status', 'unit', 'year', 'date_range', 'pickup_status', 'type_voucher','type_user']),
         ];
     }
 
     public function totalPrice($prices)
     {
         $total = 0;
-        foreach ($prices as $price){
+        foreach ($prices as $price) {
             $total += $price;
         }
 
@@ -921,6 +929,91 @@ class ProductOrderService
         $params['total_payment'] = $total;
 
         return $params;
+    }
+
+    public function getSummaryPurchaseOrderByUnit(array $params = [])
+    {
+        $orders = DB::table('product_orders')
+            ->select('units.name as unit_name', 'products.name as product_name', 'product_details.size', 'product_orders.status as payment_status', 'product_orders.pickup_status', DB::raw('sum(product_order_details.quantity) AS qty'))
+            ->join('ppdb_users', 'ppdb_users.user_id', '=', 'product_orders.user_id')
+            ->join('units', 'units.id', '=', 'ppdb_users.unit_id')
+            ->join('product_order_details', 'product_order_details.product_order_id', '=', 'product_orders.id')
+            ->join('product_details', 'product_details.id', '=', 'product_order_details.product_detail_id')
+            ->join('products', 'products.id', '=', 'product_details.product_id')
+            ->where('product_orders.payment_type','=','08');
+
+
+        if (array_key_exists('unit', $params) && $params['unit']) {
+            if ($params['unit'] != 'all') {
+                $orders->where('ppdb_users.unit_id','=',$params['unit']);
+            }
+        }
+
+        if (array_key_exists('payment_status', $params) && $params['payment_status']) {
+            if ($params['payment_status'] != 'all') {
+                $orders->where('product_orders.status','=',$params['payment_status']);
+            }
+        }
+
+
+        if (array_key_exists('pickup_status', $params) && $params['pickup_status']) {
+            if ($params['pickup_status'] != 'all') {
+                $orders->where('product_orders.pickup_status','=',$params['pickup_status']);
+            }
+        }
+
+        if (array_key_exists('date_range', $params) && $params['date_range']) {
+            $dateStart = Carbon::parse(trim(explode('-', $params['date_range'])[0]));
+            $dateEnd = Carbon::parse(trim(explode('-', $params['date_range'])[1]))->endOfDay();
+            $orders->where('product_orders.created_at', '>=', $dateStart)->where('product_orders.created_at', '<=', $dateEnd);
+        }
+
+        $orders = $orders->groupBy(['ppdb_users.unit_id','products.name','product_details.size','product_orders.status','product_orders.pickup_status'])->get();
+
+        return $orders;
+
+    }
+
+    public function getSummaryPurchaseOrderBySiswa(array $params = [])
+    {
+        $orders = DB::table('product_orders')
+            ->select('ppdb_users.name','units.name as unit_name', 'products.name as product_name', 'product_details.size', 'product_orders.status as payment_status', 'product_orders.pickup_status', DB::raw('sum(product_order_details.quantity) AS qty'))
+            ->join('ppdb_users', 'ppdb_users.user_id', '=', 'product_orders.user_id')
+            ->join('units', 'units.id', '=', 'ppdb_users.unit_id')
+            ->join('product_order_details', 'product_order_details.product_order_id', '=', 'product_orders.id')
+            ->join('product_details', 'product_details.id', '=', 'product_order_details.product_detail_id')
+            ->join('products', 'products.id', '=', 'product_details.product_id')
+            ->where('product_orders.payment_type','=','08');
+
+
+        if (array_key_exists('unit', $params) && $params['unit']) {
+            if ($params['unit'] != 'all') {
+                $orders->where('ppdb_users.unit_id','=',$params['unit']);
+            }
+        }
+
+        if (array_key_exists('payment_status', $params) && $params['payment_status']) {
+            if ($params['payment_status'] != 'all') {
+                $orders->where('product_orders.status','=',$params['payment_status']);
+            }
+        }
+
+
+        if (array_key_exists('pickup_status', $params) && $params['pickup_status']) {
+            if ($params['pickup_status'] != 'all') {
+                $orders->where('product_orders.pickup_status','=',$params['pickup_status']);
+            }
+        }
+
+        if (array_key_exists('date_range', $params) && $params['date_range']) {
+            $dateStart = Carbon::parse(trim(explode('-', $params['date_range'])[0]));
+            $dateEnd = Carbon::parse(trim(explode('-', $params['date_range'])[1]))->endOfDay();
+            $orders->where('product_orders.created_at', '>=', $dateStart)->where('product_orders.created_at', '<=', $dateEnd);
+        }
+
+        $orders = $orders->groupBy(['ppdb_users.unit_id','products.name','product_details.size','product_orders.status','product_orders.pickup_status','ppdb_users.name'])->get();
+
+        return $orders;
     }
 
 }

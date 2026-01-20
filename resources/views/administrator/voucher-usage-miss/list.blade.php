@@ -20,6 +20,13 @@
                     <div class="panel-title">
                         Laporan Penggunaan Voucher
                     </div>
+
+                    <div class="button-collection" style="margin: 15px 0">
+                        <a href="{{ route('admin.voucher.export-usage-miss', request()->except('page')) }}" download
+                           class="btn btn-success btn-sm"><i
+                                class="fa fa-file-excel-o"></i> Export</a>
+                    </div>
+
                     <div class="panel panel-primary">
                         <div class="panel-heading">Filter</div>
                         <div class="panel-body">
@@ -96,10 +103,10 @@
                                                 elseif ($order->user->ppdb)
                                                     $name = $order->user->ppdb->name;
                                                 else
-                                                    $name = $order->user->username;
+
                                             @endphp
                                             <b class="d-block">{{ $name }}</b>
-                                            <small class="d-block text-muted">email: {{$order->user->email}}</small>    
+                                            <small class="d-block text-muted">email: {{$order->user->email}}</small>
                                         </td>
                                         <td>{{ json_decode($order->voucher, TRUE)['code'] }}</td>
                                         <td>

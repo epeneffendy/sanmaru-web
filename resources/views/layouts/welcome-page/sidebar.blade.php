@@ -54,13 +54,13 @@
                         <span class="text-title-2 text-white">Shop</span>
                     </a>
                 </div>
-                <div class="row">
-                    <a href="{{ str_replace(request()->getHost(), $routeService->getKantinSubdomain(), route('kantin.index')) }}" class="sidebar-menu-item {{ isset($nav) ? ($nav['parent']=='kantin'?'active':'') : '' }}" target="_blank">
-                        <img class="icon-normal" src="{{asset('frontend-ppdb-online/img/Icon/Cart-Normal.png')}}" alt="">
-                        <img class="icon-active" src="{{asset('frontend-ppdb-online/img/Icon/Cart-Active.png')}}" alt="">
-                        <span class="text-title-2 text-white">Kantin</span>
-                    </a>
-                </div>
+{{--                <div class="row">--}}
+{{--                    <a href="{{ str_replace(request()->getHost(), $routeService->getKantinSubdomain(), route('kantin.index')) }}" class="sidebar-menu-item {{ isset($nav) ? ($nav['parent']=='kantin'?'active':'') : '' }}" target="_blank">--}}
+{{--                        <img class="icon-normal" src="{{asset('frontend-ppdb-online/img/Icon/Cart-Normal.png')}}" alt="">--}}
+{{--                        <img class="icon-active" src="{{asset('frontend-ppdb-online/img/Icon/Cart-Active.png')}}" alt="">--}}
+{{--                        <span class="text-title-2 text-white">Kantin</span>--}}
+{{--                    </a>--}}
+{{--                </div>--}}
                 <div class="row">
                     <a href="{{ route('profile') }}" class="sidebar-menu-item {{ isset($nav) ? ($nav['parent']=='profile'?'active':'') : '' }}">
                         <img class="icon-normal" src="{{asset('frontend-ppdb-online/img/Icon/Profile-Normal.png')}}" alt="">

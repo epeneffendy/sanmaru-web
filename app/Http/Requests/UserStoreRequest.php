@@ -29,6 +29,7 @@ class UserStoreRequest extends FormRequest
     {
         return [
             'username' => ['required', 'string', 'max:255', "unique:users,username,{$this->id}"],
+            'user_account' => ['required', 'user_account', 'string', 'max:255'],
             'type' => ['required', 'in:admin,guru,siswa,vendor,admin_ppdb,ppdb,author,editor,shop,super_admin,ksp,pegawai'],
             'status' => ['required', 'in:active,inactive'],
             'email' => ['required', 'email', 'string', 'max:255'],

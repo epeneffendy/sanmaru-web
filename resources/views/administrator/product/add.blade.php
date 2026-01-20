@@ -60,7 +60,7 @@
                                             </div>
                                             <div class="form-group col-sm-1">
                                                 <label class="form-label small">Stock</label>
-                                                <input type="number" min="0" class="form-control form-control-line text-right">
+                                                <input type="number" min="0" value="0" class="form-control form-control-line text-right" disabled>
                                             </div>
                                             <div class="form-group col-sm-2">
                                                 <label class="form-label small">Vendor Price Siswa</label>
@@ -370,7 +370,7 @@
         $('.button-add-details').on('click', function(e) {
             e.preventDefault();
             var _parent = $(this).parent().parent('.form-group');
-
+            console.log(_parent)
             if (!doValidation(_parent)) {
                 return;
             }
@@ -381,6 +381,9 @@
                 _html = $(_html).find('.form-group:nth-child('+ (index+2) +') .form-label').html(_val).end()[0].outerHTML;
                 _html = $(_html).find('.form-group:nth-child('+ (index+2) +') input').val(_val).end()[0].outerHTML;
                 $(element).val('');
+                if(index == 1){
+                    $(element).val(0);
+                }
             });
 
             $('.product-details').append(_html);
@@ -431,6 +434,7 @@
             var valid = true;
             $(detailElement).find('input:not([type=hidden])').each(function (index, element){
                 $(element).closest('.form-group').removeClass('has-error');
+                console.log($(element).val());
                 if ( (!$(element).val()) ||
                     ($(element).attr('data-validation') === 'number' && !validation.isNumber($(element).val()))
                 ) {

@@ -13,6 +13,7 @@ use App\Models\VoucherUsage;
 use App\Models\ProductDetail;
 use App\Mail\OrderConfirmation;
 use App\Models\ProductOrderDetail;
+use Response;
 
 class CartService
 {
@@ -37,23 +38,31 @@ class CartService
         ])->firstOrFail();
 
         if ($params['qty'] > $productDetail->stock ) {
-            return false;
-        }
+            return ([
+                'status' => false,
+                'message' => 'Stock tidak mencukupi, '. $productDetail->stock .' yang tersedia!',
+            ]);
+        }else{
+            $detail = CartDetail::firstOrNew([
+                'cart_id' => $cart->id,
+                'product_id' => $params['id'],
+                'product_detail_id' => $params['detail_id'],
+                'note' => $params['note']
+            ]);
+            $detail->quantity = $detail->quantity ? $detail->quantity + $params['qty'] : $params['qty'];
+            if ($user['type'] == 'ppdb') {
+                $detail->total_price = $detail->quantity * $productDetail->price_ppdb;
+            } else {
+                $detail->total_price = $detail->quantity * $productDetail->price_siswa;
+            }
 
-        $detail = CartDetail::firstOrNew([
-            'cart_id' => $cart->id,
-            'product_id' => $params['id'],
-            'product_detail_id' => $params['detail_id'],
-            'note' => $params['note']
-        ]);
-        $detail->quantity = $detail->quantity ? $detail->quantity + $params['qty'] : $params['qty'];
-        if ($user['type'] == 'ppdb') {
-            $detail->total_price = $detail->quantity * $productDetail->price_ppdb;
-        } else {
-            $detail->total_price = $detail->quantity * $productDetail->price_siswa;
-        }
+            $detail->save();
 
-        return $detail->save();
+            return ([
+                'status' => true,
+                'message' => 'Product berhasil ditambahkan dikeranjang',
+            ]);
+        }
     }
 
     public function delete($params, $user)
@@ -92,6 +101,7 @@ class CartService
     public function store($params, $user)
     {
         $emailService = new EmailService();
+
         $coll = collect($params['products'])->sort()->filter(function($product) {
             return $product['include'] === 'true';
         });
@@ -104,6 +114,7 @@ class CartService
         $payment_type = $coll->pluck('payment_type')->all();
 
         $bank_account = $va_account = '';
+
         if ($payment_type[0] == '08'){
             $ppdb = PPDBUser::where('user_id', $user['id'])->firstOrFail();
             $bank_account = \App\Helpers\PriceHelper::paymentInfo($ppdb->unit, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL)['bank'];

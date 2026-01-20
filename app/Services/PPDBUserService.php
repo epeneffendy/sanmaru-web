@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use TaylorNetwork\UsernameGenerator\Generator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -143,6 +145,18 @@ class PPDBUserService
         }
 
         $statusVoucher = PriceHelper::getFreeVouchersOlahRagaProductStatus($ppdb);
+
+        $dateNow = Carbon::now();
+        //update verificator
+        if(empty($ppdb->verification_development_statement)){
+            $verificator = [
+                'username'=>Auth::user()->username,
+                'verification_time'=>$dateNow->toDateTimeString()
+            ];
+            $ppdb->verification_development_statement = json_encode($verificator);
+            $ppdb->save();
+        }
+
         if ($statusVoucher) {
             //got free voucher for olah raga
             $voucher = (new VoucherService)->generateFreeVouchersForOlahRagaProduct($ppdb, false);
@@ -165,6 +179,9 @@ class PPDBUserService
             DB::beginTransaction();
             DB::connection('mysql_erp')->beginTransaction();
             $ppdbUser = PPDBUser::where('id', $id)->byUserRole()->where('status', PPDBUser::STATUS_SUBMITTED)->doesntHave('student')->firstOrFail();
+
+            $unit_code = str_pad($params['unit_id'],2,"0",STR_PAD_LEFT);
+
             if ($this->generateStudent($ppdbUser, $params)) {
                 $this->transferDevelopmentFinance($ppdbUser);
                 $user = $ppdbUser->user;
@@ -173,8 +190,10 @@ class PPDBUserService
 
                 // change type user to student
                 // so user ppdb can login to dashboard student sanmaru
+                $user->user_account = $params['nis'].'.'.$unit_code;
                 $user->type = User::STUDENT;
                 $user->save();
+
                 DB::commit();
                 DB::connection('mysql_erp')->commit();
                 $template = (new RegistrantConfirmed($user, $ppdbUser));

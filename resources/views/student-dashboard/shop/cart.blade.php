@@ -1,4 +1,128 @@
 @extends('layouts.welcome-page.main')
+
+@push('styles')
+    <style>
+
+        .voucher-container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 250px;
+            overflow: hidden;
+            position: relative;
+            margin-right: 1em;
+        }
+
+        .voucher-header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .cashback-label {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .cashback-amount {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .cashback-detail {
+            font-size: 15px;
+            opacity: 0.9;
+        }
+
+        .voucher-body {
+            padding: 20px;
+        }
+
+        .voucher-info {
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            margin-bottom: 12px;
+            align-items: flex-start;
+        }
+
+        .info-icon {
+            margin-right: 10px;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .info-text {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .voucher-code {
+            background-color: #f9f9f9;
+            border: 1px dashed #ccc;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .code-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .code-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            letter-spacing: 1px;
+        }
+
+        .voucher-status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+
+        .status-claimed {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .voucher-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 30px;
+            background-color: #f5f5f5;
+            border-radius: 50%;
+            top: 115px;
+            z-index: 10;
+        }
+
+        .dotted-line {
+            height: 1px;
+            background-image: linear-gradient(to right, #ccc 50%, transparent 50%);
+            background-size: 8px 1px;
+            background-repeat: repeat-x;
+            margin: 0 20px;
+        }
+    </style>
+@endpush
+
 @section('content')
     <div class="container container-desktop">
         {{-- <div class="row nav"> --}}
@@ -29,6 +153,7 @@
                     products[{{ $detail->id }}].size = '{{ $detail->product_detail->size }}';
                     products[{{ $detail->id }}].product_id = {{ $detail->product_detail->product_id }};
                     products[{{ $detail->id }}].include = true;
+                    products[{{ $detail->id }}].payment_type = '08';
                     products[{{ $detail->id }}].note = '{{ $detail->note }}';
                 </script>
                 <div class="row item">
@@ -101,12 +226,33 @@
         <div class="row">
             @if (count($vouchers) > 0)
                 @foreach($vouchers as $item)
-                    <span class="btn btn-green btn-voucher-detail voucher-button {{ $voucher ? 'hide' : NULL }}"
-                          id="btn-voucher-detail" data-id="{{$item->id}}"
-                          data-code="{{$item->code}}" {{ $voucher ? 'hide' : NULL }}>{{$item->code}}</span>
+
+
+                    <div class="voucher-container">
+                        <div class="voucher-header">
+                            <div class="cashback-label">{{$item['type_voucher']}}</div>
+                            <div class="cashback-amount">{{ ($item['type_voucher'] != 'Product Gratis') ? $item['desc_free'] : ''  }}</div>
+                            <div class="cashback-detail">{{ ($item['type_voucher'] == 'Product Gratis') ? $item['desc_free'] : ''  }}</div>
+                        </div>
+                        <div class="dotted-line"></div>
+                        <div class="voucher-body">
+                            <div class="voucher-code">
+                                <div class="code-label">KODE VOUCHER</div>
+                                <div class="code-value">{{$item['code']}}</div>
+                            </div>
+
+                            <div class="voucher-status status-claimed">
+                                <span class="btn btn-voucher-detail voucher-button {{ $voucher ? 'hide' : NULL }}"
+                                      id="btn-voucher-detail" data-id="{{$item['id']}}"
+                                      data-code="{{$item['code']}}" {{ $voucher ? 'hide' : NULL }}>Gunakan</span>
+                            </div>
+
+                        </div>
+                    </div>
                 @endforeach
             @endif
         </div>
+
         <br>
         <div class="container-footer">
             @php ($voucher = @json_decode($cart->voucher, TRUE))
@@ -140,6 +286,9 @@
                             style="text-decoration: line-through black; {{ $cart->discount_total > 0 && $cart->grand_total > 0 ? 'NULL' : 'display: none' }}">{{ \App\Helpers\PriceHelper::rupiah($cart->grand_total) }}</h3>
                         <h3 id="grand_total_with_discount"
                             class="text-primary-green">{{ \App\Helpers\PriceHelper::rupiah($cart->grand_total_after_discount) }}</h3>
+                        <input type="hidden" id="grand_total_with_discount_validate" value="{{ $cart->grand_total_after_discount }}">
+                        <input type="hidden" id="grand_total_without_discount_validate" value="{{ $cart->grand_total }}">
+                        <input type="hidden" id="total_discount_validate" value="{{ $cart->grand_total - $cart->grand_total_after_discount }}">
                     </div>
                     <button type="button" class="btn btn-green" id="button-beli">Beli Sekarang</button>
 
@@ -321,8 +470,30 @@
             return;
         }
 
+        let grand_total_with_discount_validate = $('#grand_total_with_discount_validate').val();
+        if(grand_total_with_discount_validate == 0){
+            swal(
+                'Gagal!',
+                'Pastikan Total pembayaran tidak boleh Rp. 0!',
+                'warning'
+            );
+
+            return;
+        }
+
+        @if($orders > 0)
+        swal({
+            title: 'Anda masih memiliki tagihan aktif!',
+            text: 'Tagihan No Invoice {{$no_invoice}}, Silahkan Lunasi atau Batalkan Pembayaran!',
+            icon: "warning",
+        }).then((result) => {
+            window.location.href = '{{ route('ppdb.embed-product.order-list') }}';
+        });
+        return;
+        @endif
+
         @if ((count($vouchers) > 0) && (!$voucher))
-           swal({
+        swal({
             title: 'Andah memiliki voucher yang belum digunakan!',
             text: "Mohon pilih voucher yang tersedia pada kolom voucher",
             icon: "warning",
@@ -345,6 +516,7 @@
             dangerMode: false,
         }).then((result) => {
             if (result) {
+                $("#button-beli").attr('disabled', true);
                 $.post('{{ route('embed-product.post-cart') }}', {
                     _token: '{{ csrf_token() }}',
                     products: productsFinalized
@@ -354,15 +526,13 @@
                     } else {
                         swal(
                             'Gagal!',
-                            'Memproses pesanan anda. Silahkan coba kembali',
+                            'Pesanan anda gagal!. Silahkan coba kembali',
                             'error'
                         );
                     }
                 });
             }
-        }
-        )
-        ;
+        });
     });
 
     function calculateGrandTotal() {

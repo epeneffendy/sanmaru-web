@@ -111,7 +111,7 @@
                     <div class="pilihan-ukuran">
                         <ul>
                         @forelse ($product->details as $detail)
-                            <li {!! $detail->stock == 0 ? 'class="disabled"' : NULL !!} data-product-id="{{ $product->id }}" data-id="{{ $detail->id }}" data-price="{{ $detail->price_ppdb }}" data-stock="{{ $detail->stock }}">{{ $detail->size }}</li>
+                            <li {!! $detail->stock < 5 ? 'class="disabled"' : NULL !!} data-product-id="{{ $product->id }}" data-id="{{ $detail->id }}" data-price="{{ $detail->price_ppdb }}" data-stock="{{ $detail->stock }}">{{ $detail->size }}</li>
                         @empty
                             tidak ada ukuran
                         @endforelse
@@ -227,12 +227,13 @@
                 qty: product_qty,
                 note: $('#note').val(),
             }, function(data, status) {
-                if (data.status === 'success') {
+                console.log(data.status)
+                if (data.status) {
                     window.location.href = "{{ route('ppdb.embed-product.cart') }}";
                 } else {
                     swal(
                         'Gagal!',
-                        'Menambahkan produk kedalam keranjang gagal. Silahkan coba kembali',
+                        data.message,
                         'error'
                     );
                 }

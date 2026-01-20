@@ -2,6 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\PPDBUserTemplateExport;
+use App\Helpers\Helper;
+use App\Http\Requests\PPDBImportRequest;
+use App\Imports\PPDBImport;
+use App\Services\UnitService;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use App\Http\Requests\StudentAcceptanceRequest;
 use App\Http\Requests\NotificationRequest;
@@ -23,6 +28,7 @@ use App\Models\Stage;
 use App\Models\Unit;
 use App\Models\User;
 use App\Lib\DbTrx;
+use Illuminate\Support\MessageBag;
 
 class PPDBController extends Controller
 {
@@ -37,7 +43,7 @@ class PPDBController extends Controller
 
         if ($request->input('search')) {
             if ($request->input('scope') == 'register_number') {
-                $data = $data->where('register_number', 'like', '%'.$request->input('search').'%');
+                $data = $data->where('register_number', 'like', '%' . $request->input('search') . '%');
             } else {
                 $data = $data->where('name', 'like', '%' . $request->input('search') . '%');
             }
@@ -62,10 +68,10 @@ class PPDBController extends Controller
         if ($request->input('status')) {
             // get Data
             $data = $data->notAccepted()
-                    ->byUserRole()
-                    ->with(['unit', 'user', 'parents', 'order'])
-                    ->orderBy('register_number', 'desc')
-                    ->get();
+                ->byUserRole()
+                ->with(['unit', 'user', 'parents', 'order'])
+                ->orderBy('register_number', 'desc')
+                ->get();
 
             $collection = [];
 
@@ -79,7 +85,7 @@ class PPDBController extends Controller
                         if ($value->isEmailVerified) {
                             array_push($verifiedEmail, $value);
                         } else {
-                                array_push($unverifiedEmail, $value);
+                            array_push($unverifiedEmail, $value);
                         }
                     }
 
@@ -181,7 +187,7 @@ class PPDBController extends Controller
             $data = $collection;
 
             // Make Pagination Manually
-            $total=count($data);
+            $total = count($data);
             $per_page = 15;
             $current_page = $request->input("page") ?? 1;
 
@@ -189,7 +195,7 @@ class PPDBController extends Controller
 
             $data = array_slice($data, $starting_point, $per_page, true);
 
-            $data= new Paginator($data, $total, $per_page, $current_page, [
+            $data = new Paginator($data, $total, $per_page, $current_page, [
                 'path' => $request->url(),
                 'query' => $request->query(),
             ]);
@@ -197,10 +203,10 @@ class PPDBController extends Controller
         } else {
 
             $data = $data->notAccepted()
-                    ->byUserRole()
-                    ->with(['unit', 'user', 'parents', 'order'])
-                    ->orderBy('register_number', 'desc')
-                    ->paginate();
+                ->byUserRole()
+                ->with(['unit', 'user', 'parents', 'order'])
+                ->orderBy('register_number', 'desc')
+                ->paginate();
 
         }
 
@@ -258,11 +264,11 @@ class PPDBController extends Controller
                 $unit_id = $request->input('unit_id');
                 $period_id = $request->input('periode');
                 $data = (new \App\Services\UserService())->generateRegisterNumber(null, $unit_id, $period_id, true);
-            break;
+                break;
             case 'check':
                 $registerNumber = $request->input('register_number');
                 $data = PPDBUser::select('register_number')->where('register_number', $registerNumber)->first();
-            break;
+                break;
         }
 
         return response()->json($data);
@@ -270,11 +276,12 @@ class PPDBController extends Controller
 
     public function insert(
         PPDBAdminRequest $request,
-        UserService $userService,
-        EmailService $emailService,
-        ParentService $parentService,
-        PPDBUserService $ppdbUserService
-    ) {
+        UserService      $userService,
+        EmailService     $emailService,
+        ParentService    $parentService,
+        PPDBUserService  $ppdbUserService
+    )
+    {
         $input = $request->validated();
         if (!isset($input['send_confirmation'])) {
             $emailService = null;
@@ -313,10 +320,11 @@ class PPDBController extends Controller
 
     public function update(
         PPDBAdminRequest $request,
-        $id,
-        PPDBUserService $ppdbUserService,
-        ParentService $parentService
-    ) {
+                         $id,
+        PPDBUserService  $ppdbUserService,
+        ParentService    $parentService
+    )
+    {
         $input = $request->validated();
 
         DbTrx::useTrx(
@@ -371,11 +379,11 @@ class PPDBController extends Controller
         $params = $request->validated();
 
         if ($ppdbUserService->confirm($id, $params)) {
-            return response()->json(['message'=>'Berhasil dikonfirmasi'],200);
-        }else{
-            return response()->json(['message'=>'Gagal dikonfirmasi'],500);
+            return response()->json(['message' => 'Berhasil dikonfirmasi'], 200);
+        } else {
+            return response()->json(['message' => 'Gagal dikonfirmasi'], 500);
         }
-            //return redirect()->route('admin.ppdb.index')->with('message', 'Berhasil dikonfirmasi');
+        //return redirect()->route('admin.ppdb.index')->with('message', 'Berhasil dikonfirmasi');
         //return redirect()->route('admin.ppdb.index')->with('errors', 'Gagal dikonfirmasi');
     }
 
@@ -419,9 +427,9 @@ class PPDBController extends Controller
         $resetDevelopmentPayment = $ppdbUser->resetDevelopmentPaymentMethod();
         if ($resetDevelopmentPayment) {
             $notificationsService->create($request->validated());
-             return redirect()->route('admin.ppdb.index')->with('message', 'Berhasil direset');
+            return redirect()->route('admin.ppdb.index')->with('message', 'Berhasil direset');
         } else {
-             return redirect()->route('admin.ppdb.index')->with('error', 'Terjadi Kesalahan pada Server');
+            return redirect()->route('admin.ppdb.index')->with('error', 'Terjadi Kesalahan pada Server');
         }
 
     }
@@ -459,7 +467,7 @@ class PPDBController extends Controller
             try {
                 $isoTime = date('o-m-d') . 'T' . date('H:i:s') . date('P');
                 $token = $paymentBCAService->getAccessToken($isoTime);
-                if($token != null){
+                if ($token != null) {
                     $result = $paymentBCAService->inquiryStatus($params, $token, $isoTime);
                     if ($result->responseCode == '2002600') {
                         if ($result->virtualAccountData->paymentFlagStatus == '00') {
@@ -503,13 +511,13 @@ class PPDBController extends Controller
                                     'Error cek status pembayaran : [' . $result->responseCode . '] ' . $result->responseMessage
                                 ])
                             );
-                    }    
-                }else{
+                    }
+                } else {
                     return redirect()
-                            ->back()
-                            ->with('message', 'Cek status berhasil, belum ada pembayaran untuk siswa' . $ppdbUser->name);
+                        ->back()
+                        ->with('message', 'Cek status berhasil, belum ada pembayaran untuk siswa' . $ppdbUser->name);
                 }
-                
+
             } catch (\Exception $e) {
                 return redirect()
                     ->back()
@@ -527,6 +535,53 @@ class PPDBController extends Controller
                     'Data PPDB tidak ditemukan'
                 ]);
         }
+    }
+
+    public function downloadTemplate(Request $request, UnitService $unitService)
+    {
+        $ppdbExport = new PPDBUserTemplateExport($request->all());
+
+        $unit = Unit::whereId($request->unit)->first();
+
+        $title = "Download Template Siswa PPDB " . $unit->name . '-' . $request->school_year . '_' . date('Y-m-d H:i:s') . ".xlsx";
+
+        if ($request->has('template-only')) {
+            $ppdbExport->setTemplate(true);
+            $title = "Laporan Klaim Voucher.xlsx";
+        }
+
+        return $ppdbExport->download($title);
+    }
+
+
+    public function import(PPDBImportRequest $request, UserService $userService, PPDBUserService $PPDBUserService){
+
+        ini_set('max_execution_time', '60');
+        $sessionFlash = [];
+        $input = $request->validated();
+
+        $ppdbImport = new PPDBImport($userService, $PPDBUserService);
+
+
+        $ppdbImport->import($input['file']);
+        $reports = $ppdbImport->getReport();
+
+        $sessionFlash = [
+            'message' => count($reports['success']) . ' data berhasil diimport',
+        ];
+
+        if (isset($reports['failure']) && count($reports['failure'])) {
+            $sessionFlash['errors'] = new MessageBag([
+                'errors' => [
+                    count($reports['failure']) . ' data gagal diimport<br/>' . implode('<br/>', $reports['failure'])
+                ]
+            ]);
+        }
+        // BANDAID SOLUTION FOR https://aimsis.atlassian.net/browse/AIMSIS-10509
+        // RESOLVE IN THE FUTURE IMMEDIATELY
+        ini_set('max_execution_time', '30');
+
+        return redirect()->route('admin.ppdb.index')->with($sessionFlash);
     }
 
 }

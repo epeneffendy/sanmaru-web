@@ -16,7 +16,7 @@ class ShopRole
      */
     public function handle($request, Closure $next)
     {
-        if (!in_array(Auth::user()->type, ['shop', 'admin', 'super_admin', 'ksp'])) {
+        if (!in_array(Auth::user()->type, ['shop', 'admin', 'super_admin', 'ksp','admin_ppdb'])) {
             return redirect(route('admin.dashboard.index'));
         }
 

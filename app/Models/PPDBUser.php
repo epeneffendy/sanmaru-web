@@ -80,6 +80,7 @@ class PPDBUser extends Authenticatable
         'parent_identity_card',
         'development_statement',
         'development_fee_option',
+        'verification_development_statement',
 
         //not mandatory
         'additional_info',
@@ -840,6 +841,7 @@ class PPDBUser extends Authenticatable
         $this->setAdditionalData('total_angsuran', null);
         $this->setAdditionalData('development_fee_option', null);
         $this->attributes['development_statement'] = null;
+        $this->attributes['verification_development_statement'] = null;
 
         $stage = $this->stages()->filter(function ($stage) {
             return $stage->is_opening_development_feature;
@@ -849,6 +851,7 @@ class PPDBUser extends Authenticatable
             if ($userStage) {
                 $userStage->passed = 3;
                 $userStage->save();
+
             }
         }
         (new VoucherService)->removeGeneratedFreeVouchersForOlahRagaProduct($this);

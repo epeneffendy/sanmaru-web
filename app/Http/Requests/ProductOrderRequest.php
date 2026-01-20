@@ -39,6 +39,7 @@ class ProductOrderRequest extends FormRequest
     {
         $rules = [
             'user_id' => 'required',
+            'user_type' => 'nullable',
             'product_id' => 'required|array',
             'product_id.*' => 'numeric',
             'product_detail_id' => 'required',
@@ -58,9 +59,9 @@ class ProductOrderRequest extends FormRequest
         ];
 
         if($this->isMethod('patch'))
-            $rules['product_order_detail_id'] = 'required'; 
+            $rules['product_order_detail_id'] = 'required';
         else {
-            $rules['product_order_detail_id'] = 'nullable'; 
+            $rules['product_order_detail_id'] = 'nullable';
             $rules['invoice_no'] = 'nullable';
         }
         $rules['payment_type'] = 'nullable';

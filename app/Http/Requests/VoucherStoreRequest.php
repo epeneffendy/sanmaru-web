@@ -60,6 +60,9 @@ class VoucherStoreRequest extends FormRequest
             'rule' => 'string|required',
             'note' => 'nullable|string',
             'year' => 'nullable|integer',
+            'target_siswa' => 'nullable|string',
+            'period_id' => 'nullable|integer',
+            'unit_student' => 'nullable|integer',
         ];
     }
 

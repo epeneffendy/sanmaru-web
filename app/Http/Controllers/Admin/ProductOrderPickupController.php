@@ -32,6 +32,7 @@ class ProductOrderPickupController extends Controller
 
     public function index(Request $request, ProductOrderPickupService $productOrderPickupService)
     {
+
         $related = [
             'user',
             'user.student',
@@ -43,6 +44,7 @@ class ProductOrderPickupController extends Controller
             'productOrderDetails.productDetail',
         ];
         $params = $request->all();
+
         $productOrders = collect();
         foreach (ProductTypeEnum::getValues() as $type) {
             $params['type'] = $type;
@@ -54,7 +56,7 @@ class ProductOrderPickupController extends Controller
             'units' => Unit::byUserRole()->get(),
             'years' => $productOrderPickupService->getAvailableYears(),
             'product_orders' => $productOrders,
-            'params' => $request->only(['student_name', 'payment_mail_confirmation', 'pickup_status', 'unit', 'year' ,'page' ])
+            'params' => $request->only(['student_name', 'payment_mail_confirmation', 'pickup_status', 'unit', 'year' ,'page','date_range','type_user' ])
         ];
 
     	return view('administrator.product-order-pickup.list', $data);

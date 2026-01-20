@@ -23,13 +23,26 @@ class DashboardController extends Controller
 
     public function index()
     {
-        $units = Unit::with(['ppdbUsers' => function($query) {
+        $units = Unit::with(['ppdbUsers' => function ($query) {
             $query->select('unit_id', 'id', 'status', 'payment_form');
         }])->orderBy('unit_code', 'ASC')->get();
 
+        $products = Product::select(['products.name', 'products.type_name', 'product_details.stock'])
+            ->join('product_details', 'product_details.product_id', '=', 'products.id')
+            ->where('product_details.stock', '<', 20)
+            ->where('type_name', '!=', 'Kantin')
+            ->where('products.deleted_at', '=', null)
+            ->groupBY('name', 'type_name')->get();
+
+        $stock_product = [];
+        foreach ($products as $ind => $item) {
+            $stock_product[$ind] = $item->name . '  Sisa Stock ' . $item->stock;
+        }
+
         $params = [
             'data' => $units,
-            'nav' => $this->page
+            'nav' => $this->page,
+            'stock' => $stock_product
         ];
 
         return view('administrator/dashboard', $params);
@@ -46,7 +59,7 @@ class DashboardController extends Controller
         // $startWeekDate = Carbon::parse($date)->subWeek();
         // $endWeekDate = Carbon::parse($date);
 
-        // // last Week 
+        // // last Week
         // $startLastWeekDate = Carbon::parse($date)->subDays(14);
         // $endLastWeekDate = Carbon::parse($date)->subDays(8);
 
@@ -94,7 +107,7 @@ class DashboardController extends Controller
         //         $datas[$key]['new_users'] = isset($datas[$key]['new_users']) ? $datas[$key]['new_users'] + $analytic[6] : $analytic[6];
         //         $datas[$key]['old_users'] = $datas[$key]['users'] - $datas[$key]['new_users'];
 
-        //         $datas[$key]['device_category'][$analytic[2]] = isset($datas[$key]['device_category'][$analytic[2]]) ? $datas[$key]['device_category'][$analytic[2]] + $analytic[5] : $analytic[5]; 
+        //         $datas[$key]['device_category'][$analytic[2]] = isset($datas[$key]['device_category'][$analytic[2]]) ? $datas[$key]['device_category'][$analytic[2]] + $analytic[5] : $analytic[5];
         //     }
 
         //     $datas['referrer'][$analytic[0]][$analytic[3]] = isset($datas['referrer'][$analytic[0]][$analytic[3]]) ? $datas['referrer'][$analytic[0]][$analytic[3]] + $analytic[5] : $analytic[5];
@@ -102,40 +115,40 @@ class DashboardController extends Controller
         //     $datas['channel'][$analytic[4]][$analytic[3]] = isset($datas['channel'][$analytic[4]][$analytic[3]]) ? $datas['channel'][$analytic[4]][$analytic[3]] + $analytic[5] : $analytic[5];
         // }
 
-        return view('administrator/dashboard-analytics', 
-        // array_merge($datas, 
-        [
-            'nav' => [
-                "parent" => "konten",
-                "child" => "dashboard-analytic"
-            ],
-            // 'date' => $endDate
-        ]
+        return view('administrator/dashboard-analytics',
+            // array_merge($datas,
+            [
+                'nav' => [
+                    "parent" => "konten",
+                    "child" => "dashboard-analytic"
+                ],
+                // 'date' => $endDate
+            ]
         // )
         );
     }
 
     public function order(Request $request)
     {
-        $orders = ProductOrder::where('status', '<>', ProductOrder::STATUS_CANCEL)->with('productOrderDetails','productOrderDetails.productDetail');
-        $outOfStockProducts = Product::select('*')->whereHas('details', function($query) {
+        $orders = ProductOrder::where('status', '<>', ProductOrder::STATUS_CANCEL)->with('productOrderDetails', 'productOrderDetails.productDetail');
+        $outOfStockProducts = Product::select('*')->whereHas('details', function ($query) {
             return $query->where('stock', 0);
         });
-        $soldProducts = Product::select('id')->whereRaw('id in (select product_order_details.product_id from product_orders JOIN product_order_details on product_order_details.product_order_id = product_orders.id WHERE product_orders.status <> "'. ProductOrder::STATUS_CANCEL .'")');
+        $soldProducts = Product::select('id')->whereRaw('id in (select product_order_details.product_id from product_orders JOIN product_order_details on product_order_details.product_order_id = product_orders.id WHERE product_orders.status <> "' . ProductOrder::STATUS_CANCEL . '")');
 
-        $orders = $orders->whereHas('productOrderDetails.product.productUnits', function($query) use ($request) {
+        $orders = $orders->whereHas('productOrderDetails.product.productUnits', function ($query) use ($request) {
             $query->byUserRole();
             if ($request->input('unit_id')) {
                 $query->where('unit_id', $request->input('unit_id'));
             }
         });
-        $outOfStockProducts = $outOfStockProducts->whereHas('productUnits', function($query) use ($request) {
+        $outOfStockProducts = $outOfStockProducts->whereHas('productUnits', function ($query) use ($request) {
             $query->byUserRole();
             if ($request->input('unit_id')) {
                 $query->where('unit_id', $request->input('unit_id'));
             }
         });
-        $soldProducts = $soldProducts->whereHas('productUnits', function($query) use ($request) {
+        $soldProducts = $soldProducts->whereHas('productUnits', function ($query) use ($request) {
             $query->byUserRole();
             if ($request->input('unit_id')) {
                 $query->where('unit_id', $request->input('unit_id'));
@@ -145,15 +158,15 @@ class DashboardController extends Controller
         $orders = $orders->get();
         $outOfStockProducts = $outOfStockProducts->count('id');
         $soldProducts = $soldProducts->count('id');
-        $products = Product::whereHas('productUnits', function($query) {
+        $products = Product::whereHas('productUnits', function ($query) {
             $query->byUserRole();
         })->with([
             'details',
             'productUnits.unit' => function ($query) {
-                $query->select('id','present_color');
+                $query->select('id', 'present_color');
             },
         ])
-        ->get();
+            ->get();
 
         $params = [
             'orders' => $orders,

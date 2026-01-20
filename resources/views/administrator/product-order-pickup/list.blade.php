@@ -40,10 +40,12 @@
                         <div role="tabpanel" style="margin-bottom: 10px">
                             <ul class="nav nav-tabs nav-justified tabcolor5-bg" role="tablist">
                                 @foreach ($product_orders as $tab => $data)
-                                <li role="presentation" class="">
-                                    <a href="#{{ $tab }}" aria-controls="{{$tab}}" data-toggle="tab" aria-expanded="false">{{ strtoupper($tab)
-                                        }}</a>
-                                </li>
+                                    @if($tab == 'seragam')
+{{--                                        <li role="presentation" class="">--}}
+{{--                                            <a href="#{{ $tab }}" aria-controls="{{$tab}}" data-toggle="tab" aria-expanded="false">{{ strtoupper($tab)--}}
+{{--                                                }}</a>--}}
+{{--                                        </li>--}}
+                                    @endif
                                 @endforeach
                             </ul>
                         </div>
@@ -89,7 +91,11 @@
     </style>
 @endpush
 @push('scripts')
+    <script src="{{asset('js/moment/moment.min.js')}}"></script>
+    <script src="{{asset('js/date-range-picker/daterangepicker.js')}}"></script>
     <script>
+        $('.date-range-field').daterangepicker();
+
         var url = document.location.toString();
         var activeTab = `{{ $product_orders->keys()->first() ?? NULL }}`;
         var urlProductOrderPickup = "{{ url('administrator/product-order-pickup/pickup/') }}";

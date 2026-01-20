@@ -27,9 +27,11 @@ class ProductOrder extends Model
     const PAYMENT_STATUS_CONFIRMED = 'payment_confirmed';
 
     const MAX_EXPIRED_DAYS = 1;
+    const MAX_EXPIRED_DAYS_ORDER = 2;
 
     protected $fillable = [
         'user_id',
+        'user_type',
         'invoice_no',
         'transaction_no',
         'voucher',
@@ -478,6 +480,7 @@ class ProductOrder extends Model
 
     public function syncPayment($product_order_id)
     {
+
         $order_amount = $this->productOrderDetails->sum('total_price');
         $discount = $this->discount_total;
 

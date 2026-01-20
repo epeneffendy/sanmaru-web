@@ -28,8 +28,8 @@ class ProductHelper
 
         if ($model instanceof Student) {
             $unit = ($model->class) ? $model->class->unit : null;
+            $gender = $model->user->ppdb->gender;
         }
-
 
         $products = Product::published()->with(['productUnits', 'details'])
                         ->byType($type)
@@ -65,6 +65,19 @@ class ProductHelper
 
         if ($model && $model instanceof PPDBUser) {
             switch($model->gender) {
+                case 'male':
+                    $collect->pull('female');
+                break;
+                case 'female':
+                    $collect->pull('male');
+                break;
+                default:
+                break;
+            }
+        }
+
+        if ($model && $model instanceof Student) {
+            switch($model->user->ppdb->gender) {
                 case 'male':
                     $collect->pull('female');
                 break;

@@ -48,6 +48,9 @@ class Voucher extends Model
         'note',
         'usage_type',
         'year',
+        'target_siswa',
+        'period_id',
+        'unit_student',
     ];
 
     public function usages()
@@ -229,6 +232,7 @@ class Voucher extends Model
 
             return $return;
         }
+
         if ($this->user_id) {
             $users = User::whereIn('id', $this->user_id)->with(['ppdb', 'student'])->get();
             $return = '';
@@ -254,6 +258,7 @@ class Voucher extends Model
 
         if ($vouchers) {
             if ($coll = $vouchers->filter(function($voucher) use ($user) {
+
                 //self cumulative
                 if ($voucher->user_id && in_array($user['id'], $voucher->user_id) && $voucher->usage_type === self::USAGE_CUMULATIVE) {
                     return true;
@@ -262,6 +267,12 @@ class Voucher extends Model
                 //unit cumulative
                 if ($user['type'] == User::PPDB && isset($user['ppdb'])) {
                     if ($voucher->unit_id && in_array($user['ppdb']['unit_id'], $voucher->unit_id) && $voucher->usage_type === self::USAGE_CUMULATIVE) {
+                        return true;
+                    }
+                }
+
+                if ($user['type'] == User::STUDENT && isset($user['student'])) {
+                    if ($voucher->unit_id && in_array($user['student']['class']['unit_id'], $voucher->unit_id) && $voucher->usage_type === self::USAGE_CUMULATIVE) {
                         return true;
                     }
                 }

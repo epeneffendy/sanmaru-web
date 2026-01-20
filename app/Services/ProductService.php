@@ -354,9 +354,9 @@ class ProductService
         $status = [
             'status' => $product->save(),
         ];
-        if ($syncDetailsStatus['errorOccurred']) {
-            $status['errors']['syncDetails'] = $syncDetailsStatus;
-        }
+        // if ($syncDetailsStatus['errorOccurred']) {
+        //     $status['errors']['syncDetails'] = $syncDetailsStatus;
+        // }
         return $status;
     }
 
@@ -428,5 +428,13 @@ class ProductService
             'params' => request()->except(['page']),
             'activityLogs' => $activityLogs,
         ];
+    }
+
+    public function getUniform()
+    {
+        $product = Product::with(['type' => function ($query){
+           $query->where('type','=','seragam');
+        }])->where('status','=', Product::STATUS_PUBLISHED)->get();
+        return $product;
     }
 }

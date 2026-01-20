@@ -1,7 +1,10 @@
 <div class="button-collection" style="margin: 15px 0">
-    <a href="{{ route('admin.product-order.export', request()->except('page')) }}" class="btn btn-success btn-sm"><i class="fa fa-file-excel-o"></i> Export</a>
-    <a href="{{ route('admin.product-order.export-list') }}" class="btn btn-success btn-sm"><i class="fa fa-list"></i> Daftar Export Data</a>
+    @if($user->type != 'admin_ppdb')
+        <a href="{{ route('admin.product-order.export', request()->except('page')) }}" class="btn btn-success btn-sm"><i class="fa fa-file-excel-o"></i> Export</a>
+        <a href="{{ route('admin.product-order.export-list') }}" class="btn btn-success btn-sm"><i class="fa fa-list"></i> Daftar Export Data</a>
+    @endif
     <a href="{{ route('admin.product-order.report.index') }}" class="btn btn-success btn-sm"><i class="fa fa-bar-chart"></i> Summary</a>
+    <a href="{{ route('admin.product-order.report.purchase-report') }}" class="btn btn-success btn-sm"><i class="fa fa-bar-chart"></i> Laporan Pembelian</a>
 </div>
 <div class="panel panel-primary">
     <div class="panel-heading">
@@ -88,6 +91,14 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="form-group col-md-2">
+                    <label for="type_user" class="form-label">Siswa</label>
+                    <select name="type_user" id="type_user" class="form-control input-sm">
+                        <option value="">== SEMUA ==</option>
+                        <option value="siswa" {{ @$params['type_user'] == 'siswa' ? 'selected' : NULL }} >Siswa Reguler</option>
+                        <option value="ppdb" {{ @$params['type_user'] == 'ppdb' ? 'selected' : NULL }}>Siswa PPDB</option>
+                    </select>
+                </div>
             </div>
             <div class="row">
                 <div class="col-md-12">
@@ -133,7 +144,7 @@
                     @endif
                 </td>
                 <td>{{ @$value->user->unit_name }}</td>
-                <td>{{ @$value->productOrderDetails->count() }} pesanan<br/><label class="label label-info">{{ \App\Helpers\PriceHelper::rupiah(@$value->grand_total) }}</label></td>
+                <td>{{ @$value->productOrderDetails->count() }} pesanan<br/><label class="label label-info">{{ \App\Helpers\PriceHelper::rupiah(@$value->order_amount) }}</label></td>
                 <td>{{ \App\Helpers\Helper::tanggalJam(@$value->created_at) }}</td>
                 <td>
                     <div class="row">
@@ -183,8 +194,10 @@
 {{ $product_orders->appends(request()->except('page'))->links() }}
 
 <div class="btn-group padding-t-10 pull-right">
-    <a href="{{ route('admin.product-order.add') }}" class="btn btn-success">
-        <icon class="icon-plus"> Tambah Data</icon>
-    </a>
+    @if($user->type != 'admin_ppdb')
+        <a href="{{ route('admin.product-order.add') }}" class="btn btn-success">
+            <icon class="icon-plus"> Tambah Data</icon>
+        </a>
+    @endif
     {{--<a href="{{route('user.export')}}" class="btn btn-primary"><icon class="icon-save"> Export</icon></a>--}}
 </div>

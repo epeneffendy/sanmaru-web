@@ -39,16 +39,46 @@ class AuthController extends Controller
     {
         $data = User::where(['username' => $request->username, 'type' => [User::STUDENT], 'status' => 'active'])
         ->with('student', 'ppdb')->first();
+
+        $is_verfif_login = false;
+        if(empty($data)){
+            $data = User::where(['user_account' => $request->username, 'type' => [User::STUDENT], 'status' => 'active'])
+                ->with('student', 'ppdb')->first();
+            if(!empty($data)){
+                if (Auth::guard('siswa')->attempt(['user_account' => $request->username, 'password' => $request->password, 'type' => [User::STUDENT], 'status' => 'active'])) {
+                    $is_verfif_login = true;
+                }
+            }
+        }else{
+            if (Auth::guard('siswa')->attempt(['username' => $request->username, 'password' => $request->password, 'type' => [User::STUDENT], 'status' => 'active'])) {
+                $is_verfif_login = true;
+            }
+        }
+
         if (empty($data->student->nis) && empty($data->student->register_number)) {
             $request->session()->flash('status', __('messages.failed.login_register_nis'));
 
             return back()->withInput();
         }
-        if (Auth::guard('siswa')->attempt(['username' => $request->username, 'password' => $request->password, 'type' => [User::STUDENT], 'status' => 'active'])) {
+
+
+        // if (Auth::guard('siswa')->attempt(['username' => $request->username, 'password' => $request->password, 'type' => [User::STUDENT], 'status' => 'active'])) {
+        if($is_verfif_login){
             // Authentication passed...
-            $user = Auth::guard('siswa')->user();
+//            $user = Auth::guard('siswa')->user();
+            $user = User::where('username', $data['username'])
+                ->where('status', 'active')
+                ->with('student','student.class','student.class.unit','ppdb', 'ppdb.unit', 'ppdb.period')
+                ->where('type', 'siswa')
+                ->first();
+
             $user->last_login_date = date('Y-m-d H:i:s');
             $user->save();
+
+            session([
+                'register-ppdb' => 'true',
+                'user' => $user->toArray(),
+            ]);
 
             return redirect()->route('welcome');
         } else {

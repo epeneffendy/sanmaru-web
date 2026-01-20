@@ -111,7 +111,7 @@
                     <div class="pilihan-ukuran">
                         <ul>
                         @forelse ($product->details as $detail)
-                            <li {!! $detail->stock == 0 ? 'class="disabled"' : NULL !!} data-product-id="{{ $product->id }}" data-id="{{ $detail->id }}" data-price="{{ $detail->price_siswa }}" data-stock="{{ $detail->stock }}">{{ $detail->size }}</li>
+                            <li {!! $detail->stock < 5 ? 'class="disabled"' : NULL !!} data-product-id="{{ $product->id }}" data-id="{{ $detail->id }}" data-price="{{ $detail->price_siswa }}" data-stock="{{ $detail->stock }}">{{ $detail->size }}</li>
                         @empty
                             tidak ada ukuran
                         @endforelse

@@ -49,4 +49,10 @@ class ProductAcceptanceService
 
 
     }
+
+    public function getById($id)
+    {
+        $data = ProductAcceptance::whereId($id)->first();
+        return $data;
+    }
 }

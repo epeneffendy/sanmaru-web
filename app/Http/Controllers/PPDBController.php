@@ -2,8 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ComplaintOrderRequest;
+use App\Http\Requests\PPDBImportRequest;
+use App\Models\ComplaintCategory;
+use App\Models\ComplaintOrders;
+use App\Models\ComplaintPeriode;
+use App\Models\ProductOrderDetail;
 use App\Models\Stage;
+use App\Models\UniformDeadline;
+use App\Models\User;
+use App\Models\VoucherUsage;
+use App\Services\ComplaintOrderService;
 use App\Services\PPDBUserService;
+use App\Services\ProductOrderComplaintService;
+use App\Services\VoucherService;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use App\Http\Requests\NewPasswordRequest;
@@ -33,9 +45,9 @@ use App\Models\Notification;
 use App\Services\NotificationService;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
-use Response;
-use Auth;
-use DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Redirect;
 
 class PPDBController extends Controller
@@ -402,7 +414,7 @@ class PPDBController extends Controller
         // dd($cities);
     }
 
-    public function formStudentSubmit(Request $request)
+    public function formStudentSubmit(Request $request, PPDBUserService $ppdbUserService)
     {
         $input = $request->all();
         $user = $request->session()->get('user');
@@ -460,9 +472,22 @@ class PPDBController extends Controller
             }
 
             if ($user) {
+                //cek gender
+                $ppdb = PPDBUser::where('user_id', $user['id'])->firstOrFail();
+
+                $new_generate_voucher = false;
+                if($ppdb->gender != $input['gender']){
+                    (new VoucherService)->removeGeneratedFreeVouchersForOlahRagaProduct($ppdb);
+                    $new_generate_voucher = true;
+                }
+
                 PPDBUser::where('user_id', $user['id'])
                     ->firstOrFail()
                     ->update($update);
+
+                if($new_generate_voucher){
+                    $ppdbUserService->confirmDevelopmentStatement($ppdb->id);
+                }
             }
 
         } catch (\Exception $e) {
@@ -855,6 +880,7 @@ class PPDBController extends Controller
 
     public function downloadDevelopmentStatement(string $type = 'lunas')
     {
+
         if (request()->input('type')) {
             $type = request()->input('type');
         }
@@ -905,7 +931,18 @@ class PPDBController extends Controller
         }
 
         // Hardcoded
-        $uniformPaymentDeadline = strtolower($ppdb->unit->city) != 'pacet' ? ', dimulai pada 02 Januari  2025 sd. Mei 2025' : '';
+        $deadline = UniformDeadline::where([
+            'unit_id' => $ppdb->unit_id,
+            'status' => 1
+        ])->first();
+        $uniform_deadline = date('Y') .' - '. (date('Y') + 1);
+        $school_year = '';
+        if ($deadline){
+            $uniform_deadline = $deadline->uniform_payment_deadline;
+            $school_year = $deadline->school_year .' - '. ($deadline->school_year + 1);
+        }
+
+        $uniformPaymentDeadline = strtolower($ppdb->unit->city) != 'pacet' ? ', '. $uniform_deadline : '';
 
         $templateProcessor->setValues([
             'register_number' => $ppdb->register_number,
@@ -945,6 +982,7 @@ class PPDBController extends Controller
             'kota' => $ppdb->unit->city,
             // Hardcode for uniform deadline
             'uniform_payment_deadline' => $uniformPaymentDeadline,
+            'school_year' => $school_year,
         ]);
 
         header("Content-Description: File Transfer");
@@ -991,6 +1029,23 @@ class PPDBController extends Controller
         $fittings = ProductFitting::where('unit_id', $user['ppdb']['unit_id'])->with('users')->get();
         $ppdbUser = PPDBUser::where('id', $user['ppdb']['id'])->first();
 
+        $orders = ProductOrder::where('status', ProductOrder::STATUS_NEW_ORDER)
+            ->whereNull('payment_image')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        foreach ($orders as $order) {
+            if (Carbon::now()->format('Y-m-d H:i:s') > $order->getExpiredAtAttribute()->toDateTimeString()) {
+                $order->status = ProductOrder::STATUS_CANCEL;
+                $order->save();
+                if ($order->voucher !== NULL) {
+                    VoucherUsage::where('product_order_id', $order->id)
+                        ->where('voucher_id', json_decode($order->voucher, TRUE)['id'])
+                        ->delete();
+                }
+            }
+        }
+
         $data = [
             'products' => ProductHelper::suitableProducts($ppdbUser),
             'fittings' => $fittings,
@@ -1021,7 +1076,7 @@ class PPDBController extends Controller
         return view('ppdb-online/embed/detail', $data);
     }
 
-    public function embedProductCart(Request $request)
+    public function embedProductCart(Request $request, VoucherService $voucherService)
     {
         $user = $request->session()->get('user');
 
@@ -1068,10 +1123,15 @@ class PPDBController extends Controller
             }
         }
 
+        $getVoucher = [];
+        foreach ($vouchers as $ind => $voucher){
+            $getVoucher[$ind] = $voucherService->getVoucher($voucher);
+        }
+
         $data = [
             'cart' => $cart,
             'fittings' => $fittings,
-            'vouchers' => $vouchers,
+            'vouchers' => $getVoucher,
             'isCartVoucherFulfilled' => $isCartVoucherFulfilled,
             'cartVoucherProducts' => $cartVoucherProducts,
             'orders' => $orders['orders'],
@@ -1133,9 +1193,13 @@ class PPDBController extends Controller
             'note' => 'nullable|string'
         ]);
 
-        if ($cartService->add($params, $user)) {
-            return Response::json(['status' => 'success']);
-        }
+        $validateShop = $cartService->add($params, $user);
+//        if ($cartService->add($params, $user)) {
+            return Response::json([
+                'status' => $validateShop['status'],
+                'message' => $validateShop['message'],
+            ]);
+//        }
     }
 
     public function postCart(Request $request, CartService $cartService)
@@ -1143,7 +1207,6 @@ class PPDBController extends Controller
         $user = $request->session()->get('user');
         try {
             $this->validatePassedShopStages();
-
             $params = $request->validate([
                 'products' => 'required',
                 'products.*.qty' => ['required', 'numeric', 'min:1'],
@@ -1152,7 +1215,6 @@ class PPDBController extends Controller
                 'products.*.include' => ['required', 'in:true,false'],
                 'products.*.note' => ['nullable', 'string'],
             ]);
-
             if ($order = $cartService->store($params, $user)) {
                 return Response::json([
                     'status' => 'success',
@@ -1232,15 +1294,32 @@ class PPDBController extends Controller
         $user = $request->session()->get('user');
 
         $this->validatePassedShopStages();
+        $now = Carbon::now()->format('Y-m-d');
 
         $order = ProductOrder::where([
             'id' => $id,
             'user_id' => $user['id']
         ])->with('productOrderDetails', 'productOrderDetails.productDetail', 'productOrderDetails.product')->firstOrFail();
 
+        $periodComplaint = ComplaintPeriode::where('type', 'ppdb')->first();
+
+        $is_complaint = false;
+        if($periodComplaint){
+            if ($periodComplaint->status == 'all') {
+                $is_complaint = true;
+            } else {
+                if (($now >= $periodComplaint->date_start) && ($now <= $periodComplaint->date_end)) {
+                    $is_complaint = true;
+                }
+            }
+        }
+
+
         $data = [
             'order' => $order,
             'user' => PPDBUser::where('user_id', $user['id'])->firstOrFail(),
+            'is_complaint' => $is_complaint,
+            'periodComplaint' => $periodComplaint,
             'nav' => ['parent' => 'product', 'child' => 'Pesanan']
         ];
 
@@ -1492,4 +1571,127 @@ class PPDBController extends Controller
 
         return $expired_at;
     }
+
+    public function complaint(Request $request)
+    {
+        $productOrder = ProductOrder::whereId($request->id)->first();
+
+        $historyComplaint = ComplaintOrders::where('product_order_id', $productOrder->id)->orderBy('id','desc')->get();
+
+        $products = [];
+        foreach ($productOrder->productOrderDetails as $item) {
+            $products[$item->id] = $item->product->name . ' (Size : '. $item->productDetail->size.')';
+        }
+
+        $complaintCategory = ComplaintCategory::where('status', 1)->get();
+
+        $data = [
+            'productOrder' => $productOrder,
+            'products' => $products,
+            'historyComplaint' => $historyComplaint,
+            'complaintCategory' => $complaintCategory
+        ];
+        return view('ppdb-online.embed.complaint', $data);
+    }
+
+    public function fetchProductOrder(Request $request)
+    {
+        $productOrderDetail = ProductOrderDetail::whereId($request->id)->first();
+
+        $html = '<div style="margin-left: 2em" class="text-title-3 font-italic text-black">Qty : ' . $productOrderDetail->quantity . '</div>';
+        $html .= '<div style="margin-left: 2em" class="text-title-3 font-italic text-black">Size : ' . $productOrderDetail->productDetail->size . '</div>';
+        $html .= '<div style="margin-left: 2em" class="text-title-3 font-italic text-black">Note : ' . $productOrderDetail->note . '</div><br><br>';
+
+        return $html;
+    }
+
+    public function complaintStore(ComplaintOrderRequest $request, ProductOrderComplaintService $productOrderComplaintService)
+    {
+        DB::beginTransaction();
+        try {
+            $validate = $request->validated();
+
+            $productOrderDetail = ProductOrderDetail::whereId($request->product_id)->first();
+
+            if (isset($productOrderDetail)) {
+                $dataCompaint = ComplaintOrders::where([
+                    'product_order_id'=>$request->product_order_id,
+                    'product_order_detail_id' =>$request->product_id
+                ])->first();
+
+                if (empty($dataCompaint)) {
+
+                    $user = $request->session()->get('user');
+                    $payload = [
+                        'product_order_id' => $productOrderDetail->product_order_id,
+                        'product_id' => $productOrderDetail->product_id,
+                        'product_detail_id' => $productOrderDetail->product_detail_id,
+                        'user_id' => $user['id'],
+                        'type'=>'ppdb'
+                    ];
+
+                    $store = $productOrderComplaintService->store($request->all(), $payload, $user);
+
+                    if ($store['success'] == true) {
+                        DB::commit();
+                        return redirect()->route('ppdb.embed-product.complaint', ['id' => $productOrderDetail->product_order_id])->with(['message' => 'Komplain sudah terkirim, silahkan tunggu konfirmasi admin', 'success' => true]);
+                    } else {
+                        DB::rollBack();
+                        return redirect()->route('ppdb.embed-product.complaint', ['id' => $productOrderDetail->product_order_id])->with(['message' => $store['message'], 'success' => false])->withErrors(new \Illuminate\Support\MessageBag());
+                    }
+
+                } else {
+                    return redirect()->route('ppdb.embed-product.complaint', ['id' => $productOrderDetail->product_order_id])->with(['message' => 'Anda telah mengajukan komplain untuk product ini!', 'success' => false])->withErrors(new \Illuminate\Support\MessageBag());
+                }
+            }
+        } catch (Exception $e) {
+            DB::rollBack();
+        }
+    }
+
+    public function cancelComplaint(Request $request, ComplaintOrderService $complaintOrderService)
+    {
+        $data = ComplaintOrders::whereId($request->id)->first();
+
+        $update = $complaintOrderService->changeStatus($request->id, ComplaintOrders::STATUS_CANCEL, '');
+        return redirect()->route('ppdb.embed-product.complaint', ['id' => $data->productOrderDetail->product_order_id]);
+    }
+
+    public function showComplaintPdf(Request $request, $id)
+    {
+        $this->fillDataVarible();
+
+        $complaintOrder = ComplaintOrders::where([
+            'id' => $id,
+        ])->firstOrFail();
+
+        $productOrder = ProductOrder::where([
+            'id'=>$complaintOrder->product_order_id
+        ])->firstOrFail();
+
+        $orderDetail = ProductOrderDetail::where('id',$complaintOrder->product_order_detail_id)->firstOrFail();
+        $user = User::where('id',Auth::user()->id)->first();
+
+        $data = [
+            'complaintOrder' => $complaintOrder,
+            'productOrder'=>$productOrder,
+            'orderDetail'=>$orderDetail,
+            'user' => $user,
+        ];
+
+//        return view('student-dashboard.shop.pdf_complaint', $data);
+
+        $pdf = \PDF::loadView('student-dashboard.shop.pdf_complaint', $data);
+        $date_complaint = Carbon::parse($complaintOrder->created_at)->format('Ymd');
+        return $pdf->download("detail-complaint-".$date_complaint."-".$complaintOrder->user->name.".pdf");
+    }
+
+    private function fillDataVarible()
+    {
+        $this->user = Auth::guard('siswa')->user();
+        $this->user->loadMissing('ppdb', 'student', 'student.class', 'student.class.unit');
+        $this->student = $this->user->student;
+        $this->class = $this->student->class;
+    }
+
 }

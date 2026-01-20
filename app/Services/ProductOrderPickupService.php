@@ -26,6 +26,7 @@ class ProductOrderPickupService
 
     public function filter(array $params, int $paginate_limit = null, array $related = null)
     {
+
         $collections = collect();
         $productOrders = ProductOrder::query();
         if (array_key_exists('product_order', $params) && $params['product_order']) {
@@ -88,6 +89,17 @@ class ProductOrderPickupService
                 $query->where('unit_id', $params['unit']);
             });
         }
+
+        if (array_key_exists('type_user', $params) && $params['type_user']) {
+            $productOrders->where('user_type', '=',  $params['type_user']);
+        }
+
+        if (array_key_exists('date_range', $params) && $params['date_range']) {
+            $dateStart = Carbon::parse(trim(explode('-', $params['date_range'])[0]));
+            $dateEnd = Carbon::parse(trim(explode('-', $params['date_range'])[1]))->endOfDay();
+            $productOrders->where('created_at', '>=', $dateStart)->where('created_at', '<=', $dateEnd);
+        }
+
         if ($related) {
             $productOrders->with($related);
         }
@@ -95,7 +107,7 @@ class ProductOrderPickupService
             if ($params['type'] == ProductTypeEnum::KANTIN) {
                 $productOrders->where('payment_type', ProductOrderPaymentTypeEnum::KANTIN);
             } elseif ($params['type'] == ProductTypeEnum::SERAGAM) {
-                $productOrders->where('payment_type', ProductOrderPaymentTypeEnum::SERAGAM)->orWhereNull('payment_type'); //some data payment type is null
+                $productOrders->where('payment_type', '08'); //some data payment type is null
             }
         }
 
@@ -116,6 +128,7 @@ class ProductOrderPickupService
         // Add pickup status as not picked up, so it's not rescheduling picked up orders
         $params['pickup_status'] = 'not_picked_up';
         $productOrders = $this->filter($params);
+//        $productOrders = ProductOrder::where('id','3534')->get();
 
         $value = [
             'pickup_date_schedule' => $params['pickup_date_schedule'],
@@ -127,12 +140,14 @@ class ProductOrderPickupService
         ];
         ProductOrder::whereIn('id', $productOrders->pluck('id'))->update($value);
         if (array_key_exists('send_email', $params) && $params['send_email']) {
+
             $emailService = new EmailService();
             foreach ($productOrders as $productOrder) {
                 $template = (new OrderPickupNotification($productOrder));
                 $emailService->sendMail($template, $productOrder->user->email);
             }
         }
+
         // Blind success count, it suppossed to count the success rows
         return $productOrders->count();
     }

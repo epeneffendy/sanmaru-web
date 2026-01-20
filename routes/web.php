@@ -114,6 +114,11 @@ Route::group(['domain' => $routeService->getPpdbSubdomain()], function () use ($
             Route::get("/detail-payment/{id?}", 'PPDBController@embedDetailPayment')->name('detail-payment');
             Route::post('/detail-voucher', 'PPDBController@detailVoucher')->name('detail-voucher');
             Route::post('/post-cancel-order', 'PPDBController@postCancelOrder')->name('post-cancel-order');
+            Route::get('/complaint/{id}', 'PPDBController@complaint')->name('complaint');
+            Route::post('/complaint-store', 'PPDBController@complaintStore')->name('complaint-store');
+            Route::get('/fetch-product-order/{id}', 'PPDBController@fetchProductOrder')->name('fetch-product-order');
+            Route::get('/cancel-complaint/{id}', 'PPDBController@cancelComplaint')->name('cancel-complaint');
+            Route::get('/complaint/{id}/pdf', 'PPDBController@showComplaintPdf')->name('complaint.pdf');
         });
     });
 
@@ -154,6 +159,12 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::post('/upload-order-confirmation', 'ShopController@uploadOrderConfirmation')->name('.upload-order-confirmation');
             Route::get("/detail-payment/{id?}", 'ShopController@embedDetailPayment')->name('.detail-payment');
             Route::post('/detail-voucher', 'ShopController@detailVoucher')->name('.detail-voucher');
+            Route::post('/post-cancel-order', 'ShopController@postCancelOrder')->name('.post-cancel-order');
+            Route::get('/complaint/{id}', 'ShopController@complaint')->name('.complaint');
+            Route::post('/complaint-store', 'ShopController@complaintStore')->name('.complaint-store');
+            Route::get('/fetch-product-order/{id}', 'ShopController@fetchProductOrder')->name('.fetch-product-order');
+            Route::get('/cancel-complaint/{id}', 'ShopController@cancelComplaint')->name('.cancel-complaint');
+            Route::get('/complaint/{id}/pdf', 'ShopController@showComplaintPdf')->name('.complaint.pdf');
         });
 
         Route::get('/profile', 'ProfileController@index')->name('profile');
@@ -363,6 +374,14 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::get('gallery-data', 'FacilityController@galleryData')->name('gallery-data');
             Route::post('gallery-data', 'FacilityController@insertGallery')->name('gallery-data.insert');
         });
+
+        Route::prefix('administrator/complaint')->name('admin.complaint.')->namespace('Admin')->group(function () {
+            Route::get('', 'ComplaintOrdersController@index')->name('index');
+            Route::get('show/{id}', 'ComplaintOrdersController@show')->name('show');
+            Route::post('change-status', 'ComplaintOrdersController@changeStatus')->name('change-status');
+            Route::post('setting-period', 'ComplaintOrdersController@settingPeriod')->name('setting-period');
+
+        });
     });
 
     Route::group(['middleware' => ['web', 'auth', 'super_admin']], function () {
@@ -391,6 +410,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::get('/unit-student/{unitId}', 'ProductOrderController@unitStudent')->name('unit-student');
             Route::put('/cancel-pickup/{id}', 'ProductOrderController@cancelPickup')->name('cancel-pickup');
 
+
             if ($helper->isVaBcaEnable()) {
 //                Route::get('/check-status-payment/{id}', 'ProductOrderController@checkStatusPayment')->name('check-status-payment');
                 Route::get('/check-inquiry-status/{id}', 'ProductOrderController@checkInquiryStatus')->name('check-inquiry-status');
@@ -415,13 +435,25 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
         Route::prefix('administrator/voucher')->name('admin.voucher.')->namespace('Admin')->group(function () {
             Route::get('', 'VoucherController@index')->name('index');
             Route::get('add', 'VoucherController@add')->name('add');
+            // Route::get('add-voucher', 'VoucherController@addNewVoucher')->name('add-voucher');
+            Route::get('add-voucher', 'VoucherController@addVoucher')->name('add-voucher');
             Route::post('insert', 'VoucherController@insert')->name('insert');
+            Route::post('new-insert', 'VoucherController@newInsert')->name('new-insert');
             Route::get('edit/{fitting}', 'VoucherController@edit')->name('edit');
             Route::patch('update/{fitting}', 'VoucherController@update')->name('update');
+            Route::patch('new-update/{fitting}', 'VoucherController@newUpdate')->name('new-update');
             Route::delete('delete/{fitting}', 'VoucherController@delete')->name('delete');
             Route::get('ajax', 'VoucherController@ajax')->name('ajax');
             Route::get('usage-miss', 'VoucherController@usageMiss')->name('usage-miss');
             Route::get('usage', 'VoucherController@usage')->name('usage');
+            Route::get('usage-voucher', 'VoucherController@usageVoucher')->name('usage-voucher');
+            Route::get('fetch-student', 'VoucherController@fetchStudent')->name('fetch-student');
+            Route::get('modal-generate-voucher-development', 'VoucherController@modalGenerateVoucherDevelopment')->name('modal-generate-voucher-development');
+            Route::get('generate-voucher-development', 'VoucherController@generateVoucherDevelopment')->name('generate-voucher-development');
+            Route::get('export-usage', 'VoucherController@exportUsage')->name('export-usage');
+            Route::get('export-new-usage', 'VoucherController@exportNewUsage')->name('export-new-usage');
+            Route::get('export-usage-miss', 'VoucherController@exportUsageMiss')->name('export-usage-miss');
+            Route::get('detail-receive-voucher/{id}', 'VoucherController@detailReceiveVoucher')->name('detail-receive-voucher');
         });
         // PRODUCT FITTING
         Route::prefix('administrator/fitting')->name('admin.fitting.')->namespace('Admin')->group(function () {
@@ -454,6 +486,13 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
         Route::get('/administrator/product/history-stock', 'Admin\ProductController@historyStock')->name('admin.product.history-stock');
         Route::get('/administrator/product/{id}', 'Admin\ProductController@show')->name('admin.product.show');
 
+        //PRODUCT ACCEPTANCE
+        Route::get('/administrator/product-acceptance', 'Admin\ProductAcceptanceController@index')->name('admin.product-acceptance.index');
+        Route::get('/administrator/product-acceptance/add', 'Admin\ProductAcceptanceController@add')->name('admin.product-acceptance.add');
+        Route::post('/administrator/product-acceptance/find-by-product', 'Admin\ProductAcceptanceController@findByProduct')->name('admin.product-acceptance.find-by-product');
+        Route::post('/administrator/product-acceptance/store', 'Admin\ProductAcceptanceController@store')->name('admin.product-acceptance.store');
+        Route::get('/administrator/product-acceptance/{id}', 'Admin\ProductAcceptanceController@show')->name('admin.product-acceptance.show');
+
         Route::prefix('administrator/product/kantin')->name('admin.product.kantin.')->group(function () {
             Route::get('create', 'Admin\ProductKantinController@create')->name('create');
             Route::post('store', 'Admin\ProductKantinController@store')->name('store');
@@ -470,6 +509,29 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
 
             Route::get('history', 'UniformPaymentController@history')->name('history');
             Route::get('history-detail/{importJobId}', 'UniformPaymentController@detailHistory')->name('detail-history');
+        });
+
+        Route::prefix('administrator/uniform-deadline')->name('admin.uniform-deadline.')->namespace('Admin')->group(function () {
+            Route::get('', 'UniformDeadlineController@index')->name('index');
+            Route::get('add', 'UniformDeadlineController@add')->name('add');
+            Route::post('insert', 'UniformDeadlineController@store')->name('insert');
+            Route::get('/edit/{id}', 'UniformDeadlineController@edit')->name('edit');
+            Route::post('/update/{id}', 'UniformDeadlineController@update')->name('update');
+            Route::get('/delete/{id}', 'UniformDeadlineController@delete')->name('delete');
+
+        });
+
+        Route::prefix('administrator/distribution-order')->name('admin.distribution-order.')->namespace('Admin')->group(function () {
+            Route::get('', 'DistributionOrdersController@index')->name('index');
+            Route::get('add', 'DistributionOrdersController@add')->name('add');
+            Route::post('insert', 'DistributionOrdersController@store')->name('insert');
+            Route::get('/send/{id}', 'DistributionOrdersController@send')->name('send');
+            Route::get('/confirm/{id}', 'DistributionOrdersController@confirm')->name('confirm');
+            Route::get('/delete/{id}', 'DistributionOrdersController@delete')->name('delete');
+            Route::get('/export/{id}', 'DistributionOrdersController@export')->name('export');
+            Route::get('/pdf/{id}', 'DistributionOrdersController@pdf')->name('pdf');
+            Route::post('find_uniform_order', 'DistributionOrdersController@findUniformOrder')->name('find_uniform_order');
+
         });
 
         // PRODUCT ORDER PICKUP
@@ -512,7 +574,10 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::get('/show/{productOrder}', 'ProductOrderController@show')->name('show');
             Route::prefix('report')->name('report.')->group(function () {
                 Route::get('/', 'ReportProductOrderController@index')->name('index');
+                Route::get('/purchase-report', 'ReportProductOrderController@purchaseReport')->name('purchase-report');
                 Route::get('/export', 'ReportProductOrderController@export')->name('export');
+                Route::get('/export-purchase-report', 'ReportProductOrderController@exportPurchaseReport')->name('export-purchase-report');
+                Route::get('/fetch-purchase-report', 'ReportProductOrderController@fetchPurchaseReport')->name('fetch-purchase-report');
             });
         });
     });
@@ -636,6 +701,8 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
         Route::post('/administrator/ppdb/{ppdbUser}/reset-development-payment-method/', 'Admin\PPDBController@resetDevelopmentPaymentMethod')->name('admin.ppdb.reset-development-payment-method');
         Route::post('/administrator/ppdb/{ppdbUser}/accept-student/','Admin\PPDBController@confirm')->name('admin.ppdb.accept');
         Route::get('/administrator/ppdb/check-inquiry-status/{id}','Admin\PPDBController@checkInquiryStatus')->name('admin.ppdb.check-inquiry-status');
+        Route::get('/administrator/ppdb/download-template','Admin\PPDBController@downloadTemplate')->name('admin.ppdb.download-template');
+        Route::post('/administrator/ppdb/import','Admin\PPDBController@import')->name('admin.ppdb.import');
 
         // AGE LIMIT
         Route::prefix('administrator/age-limit')->name('admin.age-limit.')->namespace('Admin')->group(function () {

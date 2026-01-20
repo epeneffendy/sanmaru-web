@@ -21,6 +21,10 @@
                         value="{{ @$params['student_name'] }}" class="form-control input-sm" />
                 </div>
                 <div class="form-group col-md-3">
+                    <label for="date_range_seragam" class="form-label">rentang waktu</label>
+                    <input type="text" id="date_range_seragam" name="date_range" placeholder="rentang waktu" value="{{ @$params['date_range'] }}" class="form-control input-sm date-range-field" />
+                </div>
+                <div class="form-group col-md-3">
                     <label for="pickup_status" class="form-label">Status Pengambilan</label>
                     <select name="pickup_status" class="form-control input-sm">
                         <option value="">== SEMUA ==</option>
@@ -62,6 +66,14 @@
                         <option value="{{ $year->year }}" {{ $year->year == @$params['year'] ?
                             'selected' : null }}>{{ $year->year }} - {{ $year->year + 1 }}</option>
                         @endforeach
+                    </select>
+                </div>
+                <div class="form-group col-md-2">
+                    <label for="type_user" class="form-label">Siswa</label>
+                    <select name="type_user" id="type_user" class="form-control input-sm">
+                        <option value="">== SEMUA ==</option>
+                        <option value="siswa" {{ @$params['type_user'] == 'siswa' ? 'selected' : NULL }} >Siswa Reguler</option>
+                        <option value="ppdb" {{ @$params['type_user'] == 'ppdb' ? 'selected' : NULL }}>Siswa PPDB</option>
                     </select>
                 </div>
             </div>

@@ -4,7 +4,20 @@
 <div class="row-height">
 
     <div class="wrapper-content-desktop">
-        
+        <div class="col-lg-12 content-top" id="start">
+            <div id="wizard_container">
+                <div id="top-wizard"></div>
+                <div class="header-form">
+
+                    <h5 class="text-center"> SELAMAT DATANG DI<br>
+                        <span class="span-name text-extra-bold">SANMARU</span><br>
+                        Sistem Informasi Sekolah Kampus Santa Maria
+                    </h5>
+                </div>
+                <div class="clear-50"></div>
+            </div>
+            <!-- /Wizard container -->
+        </div>
     </div>
 
     <div class="wrapper-content-mobile">
@@ -15,7 +28,7 @@
                     <img src="{{asset('frontend-ppdb-online/img/logo-serviam.png')}}" class="logo-serviam-top">
                     <h5 class="text-center"> SELAMAT DATANG DI<br>
                         <span class="span-name text-extra-bold">SANMARU</span><br>
-                        Sistem Informasi Sekolah Kampus Santa Maria 
+                        Sistem Informasi Sekolah Kampus Santa Maria
                     </h5>
                 </div>
                 <div class="clear-50"></div>

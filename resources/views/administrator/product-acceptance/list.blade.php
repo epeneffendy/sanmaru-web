@@ -45,6 +45,7 @@
                                     <th class="text-center">Vendor</th>
                                     <th class="text-center">Product</th>
                                     <th class="text-center">Keterangan</th>
+                                    <th class="text-center">Action</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -55,6 +56,12 @@
                                         <td class="text-center">{{$item->vendor->name}}</td>
                                         <td class="text-center">{{$item->product->name}}</td>
                                         <td  class="text-center">{{$item->description}}</td>
+                                        <td  class="text-center">
+                                            <a href="{{ route('admin.product-acceptance.show',$item->id) }}" title="Show"
+                                               class="btn btn-xs btn-success">
+                                                <icon class="icon-plus"><i class="fa fa-eye"></i></icon>
+                                            </a>
+                                        </td>
                                     </tr>
                                 @endforeach
                                 </tbody>

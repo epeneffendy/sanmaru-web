@@ -6,7 +6,7 @@
     </div>
     <div class="form-group col-sm-1">
         <label class="form-label">{{ @$stock }}</label>
-        <input name="stocks[]" min="0" data-validation="number" type="hidden" value="{{ @$stock }}" class="form-control form-control-line" />
+        <input name="stocks[]" min="0" data-validation="number" type="hidden" value="{{ @$stock }}" class="form-control form-control-line" readonly />
     </div>
     <div class="form-group col-sm-2">
         <label class="form-label">{{ number_format(@$price_vendor_regular, 0, '', '') }}</label>

@@ -34,7 +34,7 @@
                                 <div class="form-group col-md-3">
                                     <label for="date_range" class="form-label">Rentang waktu</label>
                                     <input type="text" id="date_range" name="date_range" placeholder="Rentang waktu"
-                                        value="{{ @$params['date_range'] }}" class="form-control input-sm" />
+                                           value="{{ @$params['date_range'] }}" class="form-control input-sm" />
                                 </div>
                                 <div class="form-group col-md-2">
                                     <label for="status" class="form-label">Status</label>
@@ -49,8 +49,8 @@
                                     <select name="unit" class="form-control input-sm">
                                         <option value="">== SEMUA ==</option>
                                         @foreach (@$units as $unit)
-                                        <option value="{{ $unit->id }}" {{ $unit->id == @$params['unit'] ? 'selected' : NULL }}>{{ $unit->name }}
-                                        </option>
+                                            <option value="{{ $unit->id }}" {{ $unit->id == @$params['unit'] ? 'selected' : NULL }}>{{ $unit->name }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -59,8 +59,8 @@
                                     <select name="year" id="year" class="form-control input-sm">
                                         <option value="">== SEMUA ==</option>
                                         @foreach ($years as $year)
-                                        <option value="{{ $year->year }}" {{ $year->year == @$params['year'] ? 'selected' : NULL}}>{{ $year->year }} -
-                                            {{ $year->year + 1 }}</option>
+                                            <option value="{{ $year->year }}" {{ $year->year == @$params['year'] ? 'selected' : NULL}}>{{ $year->year }} -
+                                                {{ $year->year + 1 }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -143,38 +143,38 @@
     <!-- END CONTAINER -->
 @endsection
 @push('styles')
-<link rel="stylesheet" href="{{asset('css/plugin/datatables/datatables.css')}}">
-<style>
-    .button-collection {
-        margin-bottom: 5px;
-    }
+    <link rel="stylesheet" href="{{asset('css/plugin/datatables/datatables.css')}}">
+    <style>
+        .button-collection {
+            margin-bottom: 5px;
+        }
 
-    .d-block {
-        display: block;
-    }
+        .d-block {
+            display: block;
+        }
 
-    .btn-circle {
-        width: 30px;
-        height: 30px;
-        text-align: center;
-        padding: 6px 0;
-        font-size: 12px;
-        line-height: 1.42;
-        border-radius: 15px;
-    }
+        .btn-circle {
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            padding: 6px 0;
+            font-size: 12px;
+            line-height: 1.42;
+            border-radius: 15px;
+        }
 
-    .btn-circle .fa {
-        margin: 0 auto;
-    }
-</style>
+        .btn-circle .fa {
+            margin: 0 auto;
+        }
+    </style>
 @endpush
 @push('scripts')
-<script src="{{asset('js/moment/moment.min.js')}}"></script>
-<script src="{{asset('js/date-range-picker/daterangepicker.js')}}"></script>
+    <script src="{{asset('js/moment/moment.min.js')}}"></script>
+    <script src="{{asset('js/date-range-picker/daterangepicker.js')}}"></script>
 
-<script>
-    $(document).ready(function () {
+    <script>
+        $(document).ready(function () {
             $('#date_range').daterangepicker();
         });
-</script>
+    </script>
 @endpush

@@ -56,4 +56,13 @@ class ProductAcceptanceController extends Controller
 
     }
 
+    public function show(Request $request, ProductAcceptanceService $productAcceptanceService){
+        $data = $productAcceptanceService->getById($request->id);
+
+        return view('administrator/product-acceptance/show', [
+            'nav' => $this->page,
+            'data' => $data,
+        ]);
+    }
+
 }

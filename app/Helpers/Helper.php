@@ -64,13 +64,11 @@ class Helper
     public static function invoiceNo($ppdb, $isPpdb = true)
     {
         $lastInvoice = ProductOrder::orderBy('id', 'desc')->first();
-
         if (!$isPpdb && $ppdb['nis']) {
             $invoiceNo = $ppdb['class']['unit']['unit_code'] . preg_replace('/\D/', '', $ppdb['nis']);
         } else {
             $invoiceNo = $ppdb['register_number'];
         }
-
         if ($lastInvoice) {
             $invoiceNo .= (sprintf("%07d", substr($lastInvoice->invoice_no, -7) + 1));
         } else {
@@ -186,4 +184,5 @@ class Helper
         $date->setLocale('id');
         return $date->isoFormat('YYYY-MM-DD');
     }
+
 }

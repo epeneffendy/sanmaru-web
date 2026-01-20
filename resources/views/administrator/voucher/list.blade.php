@@ -20,7 +20,10 @@
                         Setting Voucher
                     </div>
                     <div class="button-collection">
-                        <a href="{{ route('admin.voucher.usage') }}" class="btn btn-sm btn-success">
+                        {{--                        <a href="{{ route('admin.voucher.usage') }}" class="btn btn-sm btn-success">--}}
+                        {{--                            <i class="fa fa-list"></i> Laporan Klaim--}}
+                        {{--                        </a>--}}
+                        <a href="{{ route('admin.voucher.usage-voucher') }}" class="btn btn-sm btn-success">
                             <i class="fa fa-list"></i> Laporan Klaim
                         </a>
                         <a href="{{ route('admin.voucher.usage-miss') }}" class="btn btn-sm btn-warning">
@@ -108,7 +111,7 @@
                                     <th>Aktif</th>
                                     <th>Tahun Ajaran</th>
                                     @can('create', \App\Models\Voucher::class)
-                                    <th>Option</th>
+                                        <th>Option</th>
                                     @endcan
                                 </tr>
                                 </thead>
@@ -117,7 +120,15 @@
                                     $number = ($vouchers->currentPage() - 1) * $vouchers->perPage();
                                 @endphp
                                 @foreach($vouchers as $key => $voucher)
-                                    @php $number++ @endphp
+                                    @php
+                                        $number++;
+                                        $is_voucher_development = false;
+                                        $kode_voucher = substr($voucher->code,-2);
+                                        if($kode_voucher == 'PA' || $kode_voucher == 'PI'){
+                                            $is_voucher_development = true;
+                                        }
+
+                                    @endphp
                                     <tr>
                                         <td>{{ $number }}</td>
                                         <td>{{ $voucher->code }}</td>
@@ -136,18 +147,24 @@
                                         <td>{!! $voucher->active_label !!}</td>
                                         <td>{{ $voucher->year ? $voucher->year . ' - ' . ($voucher->year + 1) : 'Undefined' }}</td>
                                         @can('update', $voucher)
-                                        <td>
-                                            <a href="{{ route('admin.voucher.edit',$voucher['id']) }}" class="btn btn-xs btn-default">
-                                                <icon class="icon-plus"><i class="fa fa-pencil"></i></icon>
-                                            </a>
-                                            <a onclick="confirmDelete({{$voucher['id']}})" title="Delete" class="btn btn-xs btn-danger">
-                                                <i class="fa fa-trash"></i>
-                                            </a>
-                                            <form id="form-delete-{{$voucher['id']}}" action="{{ route('admin.voucher.delete',$voucher['id']) }}" method="POST">
-                                                @csrf
-                                                @method('DELETE')
-                                            </form>
-                                        </td>
+                                            <td>
+                                                @if(!$is_voucher_development)
+                                                    <a href="{{ route('admin.voucher.edit',$voucher['id']) }}" class="btn btn-xs btn-default">
+                                                        <icon class="icon-plus"><i class="fa fa-pencil"></i></icon>
+                                                    </a>
+                                                    <a onclick="confirmDelete({{$voucher['id']}})" title="Delete" class="btn btn-xs btn-danger">
+                                                        <i class="fa fa-trash"></i>
+                                                    </a>
+                                                    <form id="form-delete-{{$voucher['id']}}" action="{{ route('admin.voucher.delete',$voucher['id']) }}" method="POST">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                    </form>
+                                                @else
+                                                    <button id="voucher-recipient-{{$voucher['id']}}" class="btn btn-sm btn-info voucher-recipient" data-id="{{$voucher['id']}}" style="margin-top: 5px">
+                                                        <i class="fa fa-list"></i>
+                                                    </button>
+                                                @endif
+                                            </td>
                                         @endcan
                                     </tr>
                                 @endforeach
@@ -157,11 +174,14 @@
 
                         {{ $vouchers->appends(request()->except('page'))->links() }}
                         @can('create', \App\Models\Voucher::class)
-                        <div class="btn-group padding-t-10 pull-right">
-                            <a href="{{ route('admin.voucher.add') }}" class="btn btn-sm btn-success">
-                                <i class="fa fa-plus"></i> Tambah Data
-                            </a>
-                        </div>
+                            <div class="btn-group padding-t-10 pull-right">
+                                {{--                            <a href="{{ route('admin.voucher.add') }}" class="btn btn-sm btn-success">--}}
+                                {{--                                <i class="fa fa-plus"></i> Tambah Data--}}
+                                {{--                            </a>--}}
+                                <a href="{{ route('admin.voucher.add-voucher') }}" class="btn btn-sm btn-success">
+                                    <i class="fa fa-plus"></i> Tambah Data
+                                </a>
+                            </div>
                         @endcan
                     </div>
                 </div>
@@ -171,6 +191,23 @@
         <!-- End Row -->
     </div>
     <!-- END CONTAINER -->
+
+    <div id="receive-voucher-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close"
+                            data-dismiss="modal">&times;
+                    </button>
+                    <h4 class="modal-title">Nofitication for student</h4>
+                </div>
+                <div class="modal-body">
+                    <div id="detail_receive_voucher"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 @push('styles')
     <style>
@@ -180,10 +217,25 @@
     </style>
 @endpush
 @push('scripts')
+    <script src="{{asset('js/datatables/datatables.min.js')}}"></script>
     <script>
+        $(document).ready(function () {
+            $('#datatables-uniform-deadline').DataTable();
+        });
+
         function confirmDelete(id) {
             if(confirm('Are you sure you want to delete this item?'))
                 document.getElementById('form-delete-' + id).submit();
         }
+
+        $(document).on('click', '.voucher-recipient', function (e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            let url = "{{ url('administrator/voucher/detail-receive-voucher') }}";
+            $.get(`${url}/${id}`, function (data) {
+                $('#receive-voucher-modal').modal();
+                $('#detail_receive_voucher').html(data);
+            });
+        });
     </script>
 @endpush

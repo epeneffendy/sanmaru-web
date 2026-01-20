@@ -7,7 +7,20 @@
         </ol>
     </div>
 
+
     <div class="container-default">
+        @if(count($stock) > 0)
+            <div class="alert alert-info" role="alert">
+                <h4 class="alert-heading">Informasi Stok Product</h4>
+                <p>Beberapa stok akan segera habis, segera update jumlah stok product yang akan segera habis!</p>
+                <hr>
+                <br class="mb-0">
+                    @foreach($stock as $item)
+                        {{$item}} </br>
+                    @endforeach
+                </p>
+            </div>
+        @endif
         <div class="card h-100"></div>
         @forelse ($data as $unit)
         <div class="col-md-12">

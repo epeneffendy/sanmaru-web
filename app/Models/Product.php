@@ -189,26 +189,26 @@ class Product extends Model implements ModelMetadata
                         $detail->delete();
                     }
                 });
-        if ($cannotDeletedDetails) {
-            $errorMessage = "Maaf, produk details dengan size ";
-            foreach ($cannotDeletedDetails as $value) {
-                $errorMessage .= $value->size;
-                if ($value == $cannotDeletedDetails->last()) {
-                    $errorMessage .= ' ';
-                } else {
-                    $errorMessage .= ', ';
-                }
-            }
-            $errorMessage .= "karena masih ada pesanan aktif produk terkait.";
-            return collect([
-                'errorOccurred' => true,
-                'message' => $errorMessage,
-            ]);
-        } else {
-            return [
-                'errorOccurred' => false,
-            ];
-        }
+        // if ($cannotDeletedDetails) {
+        //     $errorMessage = "Maaf, produk details dengan size ";
+        //     foreach ($cannotDeletedDetails as $value) {
+        //         $errorMessage .= $value->size;
+        //         if ($value == $cannotDeletedDetails->last()) {
+        //             $errorMessage .= ' ';
+        //         } else {
+        //             $errorMessage .= ', ';
+        //         }
+        //     }
+        //     $errorMessage .= "karena masih ada pesanan aktif produk terkait.";
+        //     return collect([
+        //         'errorOccurred' => true,
+        //         'message' => $errorMessage,
+        //     ]);
+        // } else {
+        //     return [
+        //         'errorOccurred' => false,
+        //     ];
+        // }
     }
 
     public function syncUnits($units)

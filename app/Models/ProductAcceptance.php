@@ -25,4 +25,14 @@ class ProductAcceptance extends Model
     {
         return $this->hasOne(__NAMESPACE__ . '\Product', 'id', 'product_id');
     }
+
+    public function user()
+    {
+        return $this->hasOne(__NAMESPACE__ . '\User', 'id', 'created_by');
+    }
+
+    public function details()
+    {
+        return $this->hasMany(ProductAcceptanceDetail::class);
+    }
 }

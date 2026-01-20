@@ -56,7 +56,7 @@
             <th rowspan="2" style="text-align: center;vertical-align: middle;">No</th>
             <th rowspan="2" style="text-align: center;vertical-align: middle;min-width: 150px;">Name</th>
             <th rowspan="2" style="text-align: center;vertical-align: middle;">Category</th>
-            <th colspan="6" style="text-align: center;vertical-align: middle;">Stock</th>
+            <th colspan="7" style="text-align: center;vertical-align: middle;">Stock</th>
             <th rowspan="2" style="text-align: center;vertical-align: middle;" width="100px">Publish</th>
             <th rowspan="2" style="text-align: center;vertical-align: middle;" width="120px">Option</th>
         </tr>
@@ -68,6 +68,7 @@
             <th style="text-align: center;">Available</th>
             <th style="text-align: center;">Price Siswa</th>
             <th style="text-align: center;">Price PPDB</th>
+            <th style="text-align: center;">Description Stock</th>
         </tr>
         </thead>
         <tbody>
@@ -112,6 +113,13 @@
                 <td style="text-align: center;"><label class="label label-success label-sm">{{ $detail->available_stock }}</label></td>
                 <td style="text-align: center;"><label class="label label-default label-sm">{{ \App\Helpers\PriceHelper::rupiah($detail->price_siswa) }}</label></td>
                 <td style="text-align: center;"><label class="label label-default label-sm">{{ \App\Helpers\PriceHelper::rupiah($detail->price_ppdb) }}</label></td>
+                <td style="text-align: center;">
+                    @if($detail->available_stock < 20)
+                        <label class="label label-danger label-sm">Segera Update Stock</label>
+                    @else
+                        <label class="label label-success label-sm">Stock Aman</label>
+                    @endif
+                </td>
 
 
                 @if ($rowId == 0)

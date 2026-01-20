@@ -107,6 +107,10 @@
                                 @if ($order->status === \App\Models\ProductOrder::STATUS_CANCEL)
                                     <span style="color: #E00000;">Dibatalkan</span>
                                 @endif
+
+                                @if ($order->status === \App\Models\ProductOrder::STATUS_CONFIRMED)
+                                    <a href="{{ route('embed-product.order', ['id' => $order->id]) }}" class="text-title-3 text-grey">Lihat detail</a>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -216,6 +220,10 @@
             line-height: 19px;
             color: #06270A;
             align-self: center;
+        }
+
+        .pemesanan {
+            margin: 1px;
         }
 
         .pemesan-info span {

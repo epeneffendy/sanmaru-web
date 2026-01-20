@@ -27,10 +27,10 @@
                 <img class="icon-active" src="{{asset('frontend-ppdb-online/img/Icon/Shop-Active.png')}}" alt="">
             </a>
 
-            <a href="{{ route('kantin.index') }}" class="bottom-navbar-item">
-                <img class="icon-normal" src="{{asset('frontend-ppdb-online/img/Icon/Cart-Normal-Mobile.png')}}" alt="">
-                <img class="icon-active" src="{{asset('frontend-ppdb-online/img/Icon/Cart-Active.png')}}" alt="">
-            </a>
+{{--            <a href="{{ route('kantin.index') }}" class="bottom-navbar-item">--}}
+{{--                <img class="icon-normal" src="{{asset('frontend-ppdb-online/img/Icon/Cart-Normal-Mobile.png')}}" alt="">--}}
+{{--                <img class="icon-active" src="{{asset('frontend-ppdb-online/img/Icon/Cart-Active.png')}}" alt="">--}}
+{{--            </a>--}}
 
             <a href="{{ route('profile') }}" class="bottom-navbar-item {{ isset($nav) ? ($nav['parent']=='profile'?'active':'') : ''}}">
                 <img class="icon-normal" src="{{asset('frontend-ppdb-online/img/Icon/Profile-Normal-Mobile.png')}}" alt="">

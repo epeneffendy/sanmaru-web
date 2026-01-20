@@ -35,7 +35,10 @@
 
                         <div class="button-collection" style="margin: 15px 0">
                             <button class="btn btn-success btn-sm" id="div_export_temp"  style="display: none"><i class="fa fa-file-excel-o"></i> Export</button>
+                            <button class="btn btn-default btn-sm" id="div_download_temp"  style="display: none"><i class="fa fa-save"></i> Download Template .xls</button>
+                            <button class="btn btn-default btn-upload-modal btn-sm"><i class="fa fa-upload"></i> Import .xls</button>
                             <a href="{{ route('admin.ppdb.export', request()->except('page')) }}" download  class="btn btn-success btn-sm div_export" style="display: none"><i class="fa fa-file-excel-o"></i> Export</a>
+                            <a href="{{ route('admin.ppdb.download-template', request()->except('page')) }}" download  class="btn btn-success btn-sm div_download" style="display: none"><i class="fa fa fa-save"></i> Download Template .xls</a>
                             @if (\App\Helpers\Helper::isPpdbRole())
                                 <a href="{{ route('admin.ppdb.add') }}" class="btn btn-primary btn-sm"><i
                                         class="fa fa-plus"></i> Tambah data</a>
@@ -488,6 +491,43 @@
         </div>
     </div>
 
+    <!-- Modal -->
+    <div id="import-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Import Students</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form">
+                        <form class="fieldset-form" method="POST" enctype="multipart/form-data" action={{ route('admin.ppdb.import')}}>
+                            @csrf
+                            <fieldset>
+                                <legend>Import menggunakan template .xls</legend>
+                                <span style="font-style: italic">Pastikan data siswa yang di import adalah data siswa yang sudah sudah memenuhi syarat untuk diterima dikampus Santa Maria </span>
+                                <div class="form-group">
+                                    <input type="file" name="file" class="form-control" />
+                                </div>
+                                <div class="form-group">
+                                    <button class="btn btn-default btn-upload-import" type="submit"><i class="fa fa-upload"></i> Upload</button>
+                                </div>
+                            </fieldset>
+                        </form>
+                    </div>
+                    <div class="result">
+                    </div>
+                    <div class="loadings" style="display:none;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END Modal -->
 @endsection
 @push('styles')
     <link href="{{asset('css/plugin/sweet-alert/sweet-alert.css')}}" rel="stylesheet"/>
@@ -519,6 +559,11 @@
         var classes = {!! json_encode($classes) !!};
         $(document).ready(function () {
             load_filter();
+
+            $('.btn-upload-modal').click(function(e) {
+                e.preventDefault();
+                $('#import-modal').modal();
+            });
 
             $('.send-confirmation').click(function (e) {
                 var parent = this;
@@ -764,11 +809,15 @@
             console.log(url)
             if( unit != 0 && school_year != '' && url != ''){
                 $('#div_export_temp').hide();
+                $('#div_download_temp').hide();
                 $('.div_export').show();
+                $('.div_download').show();
                 console.log("bisa")
             }else{
                 $('#div_export_temp').show();
+                $('#div_download_temp').show();
                 $('.div_export').hide();
+                $('.div_download').hide();
                 console.log("tidak")
 
             }

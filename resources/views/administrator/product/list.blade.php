@@ -37,9 +37,11 @@
                         <div role="tabpanel">
                             <ul class="nav nav-tabs nav-justified tabcolor5-bg" role="tablist">
                                 @foreach ($collections as $tab => $data)
-                                <li role="presentation" class="">
-                                    <a href="#{{ $tab }}" aria-controls="{{$tab}}" data-toggle="tab" aria-expanded="false">{{ strtoupper($tab) }}</a>
-                                </li>
+                                    @if($tab == 'seragam')
+                                        {{--                                    <li role="presentation" class="{{ $activeTab == $tab ? 'active' : null }}">--}}
+                                        {{--                                        <a id="#{{ $tab }}Tab" href="#{{ $tab }}" aria-controls="{{$tab}}" data-toggle="tab" aria-expanded="false">{{ strtoupper($tab) }}</a>--}}
+                                        {{--                                    </li>--}}
+                                    @endif
                                 @endforeach
                             </ul>
                         </div>
@@ -161,7 +163,7 @@
             }).then(console.log)
                 .catch(console.error);
         }
-    
+
         @if(session('recorded'))
             showAlert();
             @endif

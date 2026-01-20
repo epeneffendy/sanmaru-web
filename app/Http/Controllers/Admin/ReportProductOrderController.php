@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Exports\ReportProductOrdersExport;
+use App\Exports\ReportPurchaseReportExport;
+use App\Exports\ReportPurchaseSiswaReportExport;
 use App\Models\Unit;
 use App\Traits\ImageHandler;
 use Illuminate\Http\Request;
@@ -38,6 +40,22 @@ class ReportProductOrderController extends Controller
         return $params;
     }
 
+    private function getParamOrderReport(Request $request)
+    {
+        $params = $request->all();
+        if (!array_key_exists('date_range', $params)) {
+            $params['date_range'] = sprintf('%s - %s', Carbon::now()->subMonth()->format('m/d/Y'), Carbon::now()->format('m/d/Y'));
+        }
+
+        $params['start_date'] = Carbon::parse(trim(explode('-', $params['date_range'])[0]));
+        $params['end_date'] = Carbon::parse(trim(explode('-', $params['date_range'])[1]))->endOfDay();
+        $params['unit'] = $request->get('unit');
+        $params['payment_status'] = $request->get('payment_status');
+        $params['pickup_status'] = $request->get('pickup_status');
+
+        return $params;
+    }
+
     public function index(Request $request, ProductOrderService $productOrderService)
     {
         $params = $this->getParam($request);
@@ -46,7 +64,7 @@ class ReportProductOrderController extends Controller
         $data = [
             'nav' => $this->page,
             'products' => $products,
-            'units' => Unit::byUserRole()->get()->pluck('name','id'),
+            'units' => Unit::byUserRole()->get()->pluck('name', 'id'),
             'params' => $params,
         ];
 
@@ -61,6 +79,46 @@ class ReportProductOrderController extends Controller
         $productOrdersExport = new ReportProductOrdersExport($products);
         $title = sprintf('Exports Laporan Pesanan %s - %s .xlsx', $params['start_date'], $params['end_date']);
 
+        return $productOrdersExport->download($title);
+    }
+
+    public function purchaseReport(Request $request, ProductOrderService $productOrderService)
+    {
+
+        $orders = [];
+        $params = $this->getParamOrderReport($request);
+        if(!empty($request->all())){
+            if($request['filter'] == 'siswa'){
+                $orders = $productOrderService->getSummaryPurchaseOrderBySiswa($params);
+            }else{
+                $orders = $productOrderService->getSummaryPurchaseOrderByUnit($params);
+            }
+
+        }
+
+        $data = [
+            'nav' => $this->page,
+            'orders' => $orders,
+            'units' => Unit::byUserRole()->get()->pluck('name', 'id'),
+            'params' => $params,
+        ];
+
+        return view('administrator.report-product-order.purchase-report', $data);
+    }
+
+    public function exportPurchaseReport(Request $request, ProductOrderService $productOrderService)
+    {
+
+        $params = $this->getParamOrderReport($request);
+        if($request->filter == 'siswa'){
+            $orders = $productOrderService->getSummaryPurchaseOrderBySiswa($params);
+            $productOrdersExport = new ReportPurchaseSiswaReportExport($orders);
+            $title = sprintf('Exports Laporan Pesanan Seragam Per Siswa %s - %s .xlsx', $params['start_date'], $params['end_date']);
+        }else{
+            $orders = $productOrderService->getSummaryPurchaseOrderByUnit($params);
+            $productOrdersExport = new ReportPurchaseReportExport($orders);
+            $title = sprintf('Exports Laporan Pesanan Seragam Per Unit %s - %s .xlsx', $params['start_date'], $params['end_date']);
+        }
         return $productOrdersExport->download($title);
     }
 }

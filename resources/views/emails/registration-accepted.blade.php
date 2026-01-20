@@ -3,7 +3,7 @@
     <p>Hi {{ $ppdbUser->name }}, Selamat kamu sekarang menjadi siswa di <b>{{ $ppdbUser->unit->name }}</b></p>
     <p>Anda dapat login pada akun siswa anda melalui link <a href="{{ route('login')}}">{{ route('login')}}</a></p>
     <p>Berikut detail login anda :</p>
-    <p>Username : <b>{{ $ppdbUser->user->username }}</b></p>
+    <p>Username : <b>{{ $ppdbUser->user->user_account }}</b></p>
     <p>Email : <b>{{ $ppdbUser->user->email }}</b></p>
     <p></p>
     <p>Pastikan akun anda terjaga dengan aman.</p>

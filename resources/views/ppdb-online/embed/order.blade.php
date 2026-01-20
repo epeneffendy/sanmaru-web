@@ -1,403 +1,491 @@
 @extends('layouts.ppdb-online.main')
 @section('content')
 
-<div class="wrapper-content-desktop">
-    <div class="container" style="padding: 3rem">
-        <h2>Pembayaran Seragam</h2>
+    <div class="wrapper-content-desktop">
+        <div class="container" style="padding: 3rem">
+            <h2>Pembayaran Seragam</h2>
 
-        <div class="row">
-            <div class="col">
-                <div class="">
-                    <h3 class="text-black" style="margin-top: 25px">Daftar Pesanan</h3>
-                    @forelse ($order->productOrderDetails as $detail)
-                    <div class="pemesanan-item">
-                        <img src="{{ $detail->product->image }}" />
-                        <div class="pemesanan-item-info">
-                            <h3 class="text-black">{{ $detail->product->name }}</h3>
-                            <div class="pemesanan-item-info__price">{{ \App\Helpers\PriceHelper::rupiah($detail->total_price) }}</div>
-                            <p class="text-title-3 font-italic">Detail Pemesanan</p>
-                            <p class="text-title-3 font-italic">Ukuran: {{ $detail->productDetail->size }}</p>
-                            <p class="text-title-3 font-italic">Jumlah: {{ $detail->quantity }}</p>
-                            <p class="text-title-3 font-italic">Note: {{ $detail->note }}</p>
-                            {{-- <div class="pemesanan-item-info__detail">Size '{{ $detail->productDetail->size }}' - {{ $detail->quantity }} Barang</div> --}}
-                        </div>
-                    </div>
-                    @empty
-                        Tidak ada data
-                    @endforelse
-                </div>
-            </div>
-
-            <div class="col">
-                @if ($order->voucher)
-                @php ($voucher = json_decode($order->voucher, TRUE))
-                <div class="voucher">
-                    <div class="title">Voucher</div>
-                    <div class="voucher-item">
-                        <b>{{ $voucher['code'] }} - ({{ \App\Helpers\PriceHelper::rupiah($order->discount_total) }} off)</b>
-                        <p>{{ nl2br($voucher['note']) }}</p>
-                    </div>
-                    <div class="text-danger" style="margin-top: 10px">
-                        <b>**Notes:</b>
-                        Pastikan ukuran/pesanan yang anda pilih sudah sesuai.
-                        <b>Barang yang sudah dibeli tidak dapat ditukar/dikembalikan</b>
-                    </div>
-                </div>
-                @endif
-
-                <div class="total">
-                    <h2 class="text-black">Total yang harus dibayarkan</h2>
-                    <div class="total-item">{{ \App\Helpers\PriceHelper::rupiah($order->grand_total) }}</div>
-                </div>
-
-                <div class="pembayaran">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h3 class="text-black">Metode Pembayaran</h3>
-                        <a href="{{ route('ppdb.embed-product.detail-payment', ['id' => $order->id]) }}" class="text-subtitle-3 text-grey">lihat detail</a>
-                    </div>
-
-                    <div class="pembayaran-item">
-                        <div class="pembayaran-item__title">
-                            @if(!empty($order->payment_option))
-                                Bank {{ $order->payment_option }} <span class="{{ $order->payment_option }}"></span>
-                            @else
-                                Bank {{ \App\Helpers\PriceHelper::paymentInfo($user->unit, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL)['bank'] }} <span class="{{ \App\Helpers\PriceHelper::paymentInfo($user->unit, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL)['bank'] }}"></span>
-                            @endif
+            <div class="row">
+                <div class="col">
+                    <div class="">
+                        <h3 class="text-black" style="margin-top: 25px">Daftar Pesanan</h3>
+                        @forelse ($order->productOrderDetails as $detail)
+                            <div class="pemesanan-item">
+                                <img src="{{ $detail->product->image }}"/>
+                                <div class="pemesanan-item-info">
+                                    <h3 class="text-black">{{ $detail->product->name }}</h3>
+                                    <div
+                                        class="pemesanan-item-info__price">{{ \App\Helpers\PriceHelper::rupiah($detail->total_price) }}</div>
+                                    <p class="text-title-3 font-italic">Detail Pemesanan</p>
+                                    <p class="text-title-3 font-italic">Ukuran: {{ $detail->productDetail->size }}</p>
+                                    <p class="text-title-3 font-italic">Jumlah: {{ $detail->quantity }}</p>
+                                    <p class="text-title-3 font-italic">Note: {{ $detail->note }}</p>
+                                    {{-- <div class="pemesanan-item-info__detail">Size '{{ $detail->productDetail->size }}' - {{ $detail->quantity }} Barang</div> --}}
+                                </div>
                             </div>
-                        <div class="pembayaran-item__content">No. VA:
-                            <span>
-                                @if(!empty($order->virtual_account_number))
-                                    {{ $order->virtual_account_number }}
-                                @else
-                                    {{ \App\Helpers\PriceHelper::virtualAccountNumber($user, true, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL) }}
-                                @endif
-                            </span>
-                        </div>
+                        @empty
+                            Tidak ada data
+                        @endforelse
                     </div>
                 </div>
 
-                <div class="info">
-                    Anda bisa melihat detail pemesanan lewat email.
-                </div>
+                <div class="col">
+                    @if ($order->voucher)
+                        @php ($voucher = json_decode($order->voucher, TRUE))
+                        <div class="voucher">
+                            <div class="title">Voucher</div>
+                            <div class="voucher-item">
+                                <b>{{ $voucher['code'] }} -
+                                    ({{ \App\Helpers\PriceHelper::rupiah($order->discount_total) }} off)</b>
+                                <p>{{ nl2br($voucher['note']) }}</p>
+                            </div>
+                            <div class="text-danger" style="margin-top: 10px">
+                                <b>**Notes:</b>
+                                Pastikan ukuran/pesanan yang anda pilih sudah sesuai.
+                                <b>Barang yang sudah dibeli tidak dapat ditukar/dikembalikan</b>
+                            </div>
+                        </div>
+                    @endif
 
+                    <div class="total">
+                        <h2 class="text-black">Total yang harus dibayarkan</h2>
+                        <div class="total-item">{{ \App\Helpers\PriceHelper::rupiah($order->grand_total) }}</div>
+                    </div>
 
+                    <div class="pembayaran">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="text-black">Metode Pembayaran</h3>
+                            <a href="{{ route('ppdb.embed-product.detail-payment', ['id' => $order->id]) }}"
+                               class="text-subtitle-3 text-grey">lihat detail</a>
+                        </div>
 
-                @if((ENV("APP_ENV") == "local") || (ENV("APP_ENV") == "staging"))
-                    <div class="cancel-order" id="cancel-order">
-                        @if ($order->status === \App\Models\ProductOrder::STATUS_NEW_ORDER)
-                            <h3 class="text-black">Cancel Order</h3>
-                        @else
-                            <h3 class="text-black">Status Order</h3>
-                        @endif
                         <div class="pembayaran-item">
-                            <div class="pembayaran-item__content">
-                                @if ($order->status === \App\Models\ProductOrder::STATUS_NEW_ORDER)
-                                    <div style="display: inline-block">
-                                        Status: {!! $order->label_konfirmasi_pembayaran !!}
-                                    </div>
-                                    <div style="display: flex; align-items:center; margin:1rem 0">
+                            <div class="pembayaran-item__title">
+                                @if(!empty($order->payment_option))
+                                    Bank {{ $order->payment_option }} <span class="{{ $order->payment_option }}"></span>
+                                @else
+                                    Bank {{ \App\Helpers\PriceHelper::paymentInfo($user->unit, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL)['bank'] }}
+                                    <span
+                                        class="{{ \App\Helpers\PriceHelper::paymentInfo($user->unit, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL)['bank'] }}"></span>
+                                @endif
+                            </div>
+                            <div class="pembayaran-item__content">No. VA:
+                                <span>
+                                @if(!empty($order->virtual_account_number))
+                                        {{ $order->virtual_account_number }}
+                                    @else
+                                        {{ \App\Helpers\PriceHelper::virtualAccountNumber($user, true, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL) }}
+                                    @endif
+                            </span>
+                            </div>
+                        </div>
+                    </div>
 
-                                        <div class="cancel-reason" style="width: 100%">
-                                            <input type="hidden" name="id" id="id" value={{ $order->id }} />
-                                            <div class="label-note">Keterangan</div>
-                                            <div class="text-note" style="width: 100%; padding-left: 3em">
+                    <div class="info">
+                        Anda bisa melihat detail pemesanan lewat email.
+                    </div>
+
+                    @if ($order->pickup_date_schedule)
+                            @if(empty($order->pickup_date))
+                                <div class="pembayaran" id="qr-code">
+                            <h3 class="text-black">Pengambilan Seragam</h3>
+                            <div class="pembayaran-item">
+                                <div class="pembayaran-item__content">
+                                    <div style="color: black">Silahkan unduh detail transaksi berikut ini sebagai
+                                        persyaratan pengambilan seragam
+                                    </div>
+                                    <a class="btn btn-green" style="margin-top: 10px"
+                                       href="{{ route('ppdb.embed-product.order.pdf', $order->id) }}">
+                                        <img class="icon-active"
+                                             src="{{asset('frontend-ppdb-online/img/Icon/Data-Normal.png')}}" alt=""
+                                             style="margin-right: 10px">
+                                        Download
+                                    </a>
+                                    <div style="color: black; margin-top: 20px">QR code ditunjukkan kepada petugas saat
+                                        pengambilan seragam
+                                    </div>
+                                    <button class="btn" style="margin-top: 10px" data-toggle="modal"
+                                            data-target="#qrCodeModal">
+                                        <img class="icon-active"
+                                             src="{{asset('frontend-ppdb-online/img/Icon/qr-code-icon.png')}}" alt=""
+                                             width="30px">
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                            @endif
+                    @endif
+
+                        @if ($order->pickup_status == 'pickup')
+                            @if($is_complaint)
+                                <div class="pembayaran" id="qr-code">
+                                    <h3 class="text-black">Komplain Order</h3>
+                                    <div class="pembayaran-item">
+                                        <div class="pembayaran-item__content">
+                                            <div style="color: black">Jika seragam tidak lengkap atau tidak sesuai dapat
+                                                dapat mengisi form berikut
+                                            </div>
+                                            <a class="btn btn-green" style="margin-top: 10px"
+                                               href="{{ route('ppdb.embed-product.complaint', ['product_order' => $order->id]) }}"
+                                               target="_blank">
+                                                Komplain
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="pembayaran" id="qr-code">
+                                    <div class="pembayaran-item">
+                                        <div class="pembayaran-item__content">
+                                            @if((\Carbon\Carbon::now()->format('Y-m-d')) < $periodComplaint->date_start)
+                                                <div style="color: black; font-size: 17px">Periode komplain akan di buka
+                                                    pada {{ \Carbon\Carbon::parse($periodComplaint->date_start)->format('d-m-Y') }}</div>
+                                            @else
+                                                <h3 class="text-black">Periode komplain masih belum tersedia!</h3>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        @endif
+
+                        @if((ENV("APP_ENV") == "local") || (ENV("APP_ENV") == "staging"))
+                            <div class="cancel-order" id="cancel-order">
+                                @if ($order->status === \App\Models\ProductOrder::STATUS_NEW_ORDER)
+                                    <h3 class="text-black">Cancel Order</h3>
+                                @else
+                                    <h3 class="text-black">Status Order</h3>
+                                @endif
+                                <div class="pembayaran-item">
+                                    <div class="pembayaran-item__content">
+                                        @if ($order->status === \App\Models\ProductOrder::STATUS_NEW_ORDER)
+                                            <div style="display: inline-block">
+                                                Status: {!! $order->label_konfirmasi_pembayaran !!}
+                                            </div>
+                                            <div style="display: flex; align-items:center; margin:1rem 0">
+
+                                                <div class="cancel-reason" style="width: 100%">
+                                                    <input type="hidden" name="id" id="id" value={{ $order->id }} />
+                                                    <div class="label-note">Keterangan</div>
+                                                    <div class="text-note" style="width: 100%; padding-left: 3em">
                                         <textarea class="form-control" name="reason" id="reason"
                                                   placeholder="" required></textarea>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                    <div class="d-flex justify-content-end" style="padding-top: 1em">
-                                        <button type="button" class="btn btn-green post-cancel-order" id="post-cancel-order">Cancel Order</button>
-                                    </div>
-                                @endif
-                                @if ($order->status === \App\Models\ProductOrder::STATUS_CANCEL)
-                                    <div style="display: inline-block">
-                                        Status: {!! $order->label_konfirmasi_pembayaran !!}
-                                    </div>
-                                    @if(!empty($order->payment_cancel_reason))
-                                        <div class="info">
-                                            Anda telah melakukan pembatalan order pada <label class="label" style="color: #dc3545">
-                                                {{ \App\Helpers\Helper::hariTanggalJam($order->payment_cancel_date) }}</label>
-                                        </div>
-                                    @endif
-                                    <div class="info">
-                                        Keterangan Pembatalan :
-                                        @if(!empty($order->payment_cancel_reason))
-                                            <label class="label" style="color: #dc3545">{{$order->payment_cancel_reason}}</label>
-                                        @else
-                                            <label class="label" style="color: #dc3545">Melebihi Batas Waktu Pembayaran</label>
+                                            <div class="d-flex justify-content-end" style="padding-top: 1em">
+                                                <button type="button" class="btn btn-green post-cancel-order"
+                                                        id="post-cancel-order">Cancel Order
+                                                </button>
+                                            </div>
+                                        @endif
+                                        @if ($order->status === \App\Models\ProductOrder::STATUS_CANCEL)
+                                            <div style="display: inline-block">
+                                                Status: {!! $order->label_konfirmasi_pembayaran !!}
+                                            </div>
+                                            @if(!empty($order->payment_cancel_reason))
+                                                <div class="info">
+                                                    Anda telah melakukan pembatalan order pada <label class="label"
+                                                                                                      style="color: #dc3545">
+                                                        {{ \App\Helpers\Helper::hariTanggalJam($order->payment_cancel_date) }}</label>
+                                                </div>
+                                            @endif
+                                            <div class="info">
+                                                Keterangan Pembatalan :
+                                                @if(!empty($order->payment_cancel_reason))
+                                                    <label class="label"
+                                                           style="color: #dc3545">{{$order->payment_cancel_reason}}</label>
+                                                @else
+                                                    <label class="label" style="color: #dc3545">Melebihi Batas Waktu
+                                                        Pembayaran</label>
+                                                @endif
+                                            </div>
+                                        @endif
+
+                                        @if ($order->status === \App\Models\ProductOrder::STATUS_CONFIRMED)
+                                            <div style="display: inline-block">
+                                                Status: {!! $order->label_konfirmasi_pembayaran !!}
+                                            </div>
+                                            <div class="info">
+                                                Pembayaran anda telah terkonfirmasi pada <label class="label"
+                                                                                                style="color: #28a745">
+                                                    {{ \App\Helpers\Helper::hariTanggalJam($order->payment_confirmed_date) }}</label>
+                                            </div>
                                         @endif
                                     </div>
-                                @endif
-
-                                @if ($order->status === \App\Models\ProductOrder::STATUS_CONFIRMED)
-                                    <div style="display: inline-block">
-                                        Status: {!! $order->label_konfirmasi_pembayaran !!}
-                                    </div>
-                                    <div class="info">
-                                        Pembayaran anda telah terkonfirmasi pada <label class="label" style="color: #28a745">
-                                            {{ \App\Helpers\Helper::hariTanggalJam($order->payment_confirmed_date) }}</label>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                @else
-                    <div class="pembayaran" id="konfirmasi-pembayaran">
-                        <h3 class="text-black">Status Pembayaran</h3>
-                        <div class="pembayaran-item">
-                            <div class="pembayaran-item__content">
-                                <div style="display: inline-block">
-                                    Status: {!! $order->label_konfirmasi_pembayaran !!}
-                                </div>
-
-                                @if ($order->status === \App\Models\ProductOrder::STATUS_NEW_ORDER)
-                                    <div style="display: flex; align-items:center; margin:1rem 0">
-                                        <button class="btn btn-sm btn-green upload-file-button">
-                                            <img src="{{asset('frontend-ppdb-online/img/Icon/upload.png')}}" alt=""><span class="text-white">Upload</span></button>
-                                    </div>
-                                    <form id="wrapped" method="POST" enctype="multipart/form-data">
-                                        <input type="file" name="payment_image" id="upload_file" accept="image/x-png,image/jpeg,application/pdf" />
-                                        <input type="hidden" name="id" value={{ $order->id }} />
-                                    </form>
-                                @endif
-
-                                <div class="preview-konfirmasi-pembayaran {{ $order->getPaymentImageUrl() ? NULL : "hide" }}">
-                                    <img src="{{ $order->getPaymentImageUrl() }}" style="display: block; width: 100%; height: auto;" />
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                @endif
+                        @else
+                            <div class="pembayaran" id="konfirmasi-pembayaran">
+                                <h3 class="text-black">Status Pembayaran</h3>
+                                <div class="pembayaran-item">
+                                    <div class="pembayaran-item__content">
+                                        <div style="display: inline-block">
+                                            Status: {!! $order->label_konfirmasi_pembayaran !!}
+                                        </div>
 
+                                        @if ($order->status === \App\Models\ProductOrder::STATUS_NEW_ORDER)
+                                            <div style="display: flex; align-items:center; margin:1rem 0">
+                                                <button class="btn btn-sm btn-green upload-file-button">
+                                                    <img src="{{asset('frontend-ppdb-online/img/Icon/upload.png')}}" alt=""><span
+                                                        class="text-white">Upload</span></button>
+                                            </div>
+                                            <form id="wrapped" method="POST" enctype="multipart/form-data">
+                                                <input type="file" name="payment_image" id="upload_file"
+                                                       accept="image/x-png,image/jpeg,application/pdf"/>
+                                                <input type="hidden" name="id" value={{ $order->id }} />
+                                            </form>
+                                        @endif
 
-                @if ($order->pickup_date_schedule)
-                <div class="pembayaran" id="qr-code">
-                    <h3 class="text-black">Pengambilan Seragam</h3>
-                    <div class="pembayaran-item">
-                        <div class="pembayaran-item__content">
-                            <div style="color: black">Silahkan unduh detail transaksi berikut ini sebagai persyaratan pengambilan seragam</div>
-                            <a class="btn btn-green" style="margin-top: 10px" href="{{ route('ppdb.embed-product.order.pdf', $order->id) }}">
-                                <img class="icon-active" src="{{asset('frontend-ppdb-online/img/Icon/Data-Normal.png')}}" alt="" style="margin-right: 10px">
-                                Download
-                            </a>
-                            <div style="color: black; margin-top: 20px">QR code ditunjukkan kepada petugas saat pengambilan seragam</div>
-                            <button class="btn" style="margin-top: 10px" data-toggle="modal" data-target="#qrCodeModal">
-                                <img class="icon-active" src="{{asset('frontend-ppdb-online/img/Icon/qr-code-icon.png')}}" alt="" width="30px">
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                @endif
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="wrapper-content-mobile">
-    <div class="row pl-3">
-        <a href="{{ route('ppdb.embed-product.order-list') }}" class="d-flex align-items-center justify-content-around"><img class="head-left" src="{{asset('frontend-ppdb-online/img/Icon/Icon-Arrow.png')}}" alt=""><span class="text-body-title text-primary-green ml-2">Kembali</span></a>
-        {{-- <a href="{{ route('ppdb.embed-product.order-list') }}" class="arrow-back"></a> --}}
-        {{-- <span>Detail Pesanan</span> --}}
-    </div>
-    <div class="pemesan">
-        <div class="title">Pemesan</div>
-        <div class="pemesan-content">
-            <img src="/img/profile.png" />
-            <div class="pemesan-info">
-                {{ $user['name'] }}
-                <span>ID {{ $user['register_number'] }}</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="pemesanan">
-        <div class="title">Pemesan</div>
-        @forelse ($order->productOrderDetails as $detail)
-        <div class="pemesanan-item">
-            <img src="{{ $detail->product->image }}" />
-            <div class="pemesanan-item-info">
-                <div class="pemesanan-item-info__title">{{ $detail->product->name }}</div>
-                <div class="pemesanan-item-info__detail">Size '{{ $detail->productDetail->size }}' - {{ $detail->quantity }} Barang</div>
-                <div class="pemesanan-item-info__price">{{ \App\Helpers\PriceHelper::rupiah($detail->total_price) }}</div>
-            </div>
-        </div>
-        @empty
-            Tidak ada data
-        @endforelse
-    </div>
-
-    @if ($order->voucher)
-    @php ($voucher = json_decode($order->voucher, TRUE))
-    <div class="voucher">
-        <div class="title">Voucher</div>
-        <div class="voucher-item">
-            <b>{{ $voucher['code'] }} - ({{ \App\Helpers\PriceHelper::rupiah($order->discount_total) }} off)</b>
-            <p>{{ nl2br($voucher['note']) }}</p>
-        </div>
-    </div>
-    @endif
-
-    <div class="total">
-        <div class="title">Total</div>
-        <div class="total-item">{{ \App\Helpers\PriceHelper::rupiah($order->grand_total) }}</div>
-    </div>
-
-    <div class="pembayaran">
-        <div class="d-flex justify-content-between align-items-center">
-            <div class="title">Pembayaran</div>
-            <a href="{{ route('ppdb.embed-product.detail-payment', ['id' => $order->id]) }}" class="title text-grey">lihat detail</a>
-        </div>
-        <div class="pembayaran-item">
-            @if(!empty($order->payment_option))
-                <div class="pembayaran-item__title">Bank {{ $order->payment_option }} <span class="{{ $order->payment_option }}"></span></div>
-                <div class="pembayaran-item__content">No. VA: <span>{{ $order->virtual_account_number  }}</span></div>
-            @else
-                <div class="pembayaran-item__title">Bank {{ \App\Helpers\PriceHelper::paymentInfo($user->unit, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL)['bank'] }} <span class="{{ \App\Helpers\PriceHelper::paymentInfo($user->unit, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL)['bank'] }}"></span></div>
-                <div class="pembayaran-item__content">No. VA: <span>{{ \App\Helpers\PriceHelper::virtualAccountNumber($user, true, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL) }}</span></div>
-            @endif
-        </div>
-    </div>
-
-    <div class="info">
-        Anda bisa melihat detail pemesanan lewat email.
-    </div>
-
-    @if((ENV("APP_ENV") == "local") || (ENV("APP_ENV") == "staging"))
-        <div class="cancel-order" id="cancel-order">
-            @if ($order->status === \App\Models\ProductOrder::STATUS_NEW_ORDER)
-                <h3 class="text-black">Cancel Order</h3>
-            @else
-                <h3 class="text-black">Status Order</h3>
-            @endif
-            <div class="pembayaran-item">
-                <div class="pembayaran-item__content">
-                    @if ($order->status === \App\Models\ProductOrder::STATUS_NEW_ORDER)
-                        <div style="display: inline-block">
-                            Status: {!! $order->label_konfirmasi_pembayaran !!}
-                        </div>
-                        <div style="display: flex; align-items:center; margin:1rem 0">
-
-                            <div class="cancel-reason" style="width: 100%">
-                                <input type="hidden" name="id" id="id" value={{ $order->id }} />
-                                <div class="label-note">Keterangan</div>
-                                <div class="text-note" style="width: 100%; padding-left: 3em">
-                                        <textarea class="form-control" name="reason" id="reason"
-                                                  placeholder="" required></textarea>
+                                        <div
+                                            class="preview-konfirmasi-pembayaran {{ $order->getPaymentImageUrl() ? NULL : "hide" }}">
+                                            <img src="{{ $order->getPaymentImageUrl() }}"
+                                                 style="display: block; width: 100%; height: auto;"/>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-end" style="padding-top: 1em">
-                            <button type="button" class="btn btn-green post-cancel-order" id="post-cancel-order">Cancel Order</button>
-                        </div>
-                    @endif
-                    @if ($order->status === \App\Models\ProductOrder::STATUS_CANCEL)
-                        <div style="display: inline-block">
-                            Status: {!! $order->label_konfirmasi_pembayaran !!}
-                        </div>
-                        @if(!empty($order->payment_cancel_reason))
-                            <div class="info">
-                                Anda telah melakukan pembatalan order pada <label class="label" style="color: #dc3545">
-                                    {{ \App\Helpers\Helper::hariTanggalJam($order->payment_cancel_date) }}</label>
                             </div>
                         @endif
-                        <div class="info">
-                            Keterangan Pembatalan :
-                            @if(!empty($order->payment_cancel_reason))
-                                <label class="label" style="color: #dc3545">{{$order->payment_cancel_reason}}</label>
-                            @else
-                                <label class="label" style="color: #dc3545">Melebihi Batas Waktu Pembayaran</label>
-                            @endif
-                        </div>
-                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    @if ($order->status === \App\Models\ProductOrder::STATUS_CONFIRMED)
+    <div class="wrapper-content-mobile">
+        <div class="row pl-3">
+            <a href="{{ route('ppdb.embed-product.order-list') }}"
+               class="d-flex align-items-center justify-content-around"><img class="head-left"
+                                                                             src="{{asset('frontend-ppdb-online/img/Icon/Icon-Arrow.png')}}"
+                                                                             alt=""><span
+                    class="text-body-title text-primary-green ml-2">Kembali</span></a>
+            {{-- <a href="{{ route('ppdb.embed-product.order-list') }}" class="arrow-back"></a> --}}
+            {{-- <span>Detail Pesanan</span> --}}
+        </div>
+        <div class="pemesan">
+            <div class="title">Pemesan</div>
+            <div class="pemesan-content">
+                <img src="/img/profile.png"/>
+                <div class="pemesan-info">
+                    {{ $user['name'] }}
+                    <span>ID {{ $user['register_number'] }}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="pemesanan">
+            <div class="title">Pemesan</div>
+            @forelse ($order->productOrderDetails as $detail)
+                <div class="pemesanan-item">
+                    <img src="{{ $detail->product->image }}"/>
+                    <div class="pemesanan-item-info">
+                        <div class="pemesanan-item-info__title">{{ $detail->product->name }}</div>
+                        <div class="pemesanan-item-info__detail">Size '{{ $detail->productDetail->size }}'
+                            - {{ $detail->quantity }} Barang
+                        </div>
+                        <div
+                            class="pemesanan-item-info__price">{{ \App\Helpers\PriceHelper::rupiah($detail->total_price) }}</div>
+                    </div>
+                </div>
+            @empty
+                Tidak ada data
+            @endforelse
+        </div>
+
+        @if ($order->voucher)
+            @php ($voucher = json_decode($order->voucher, TRUE))
+            <div class="voucher">
+                <div class="title">Voucher</div>
+                <div class="voucher-item">
+                    <b>{{ $voucher['code'] }} - ({{ \App\Helpers\PriceHelper::rupiah($order->discount_total) }} off)</b>
+                    <p>{{ nl2br($voucher['note']) }}</p>
+                </div>
+            </div>
+        @endif
+
+        <div class="total">
+            <div class="title">Total</div>
+            <div class="total-item">{{ \App\Helpers\PriceHelper::rupiah($order->grand_total) }}</div>
+        </div>
+
+        <div class="pembayaran">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="title">Pembayaran</div>
+                <a href="{{ route('ppdb.embed-product.detail-payment', ['id' => $order->id]) }}"
+                   class="title text-grey">lihat detail</a>
+            </div>
+            <div class="pembayaran-item">
+                @if(!empty($order->payment_option))
+                    <div class="pembayaran-item__title">Bank {{ $order->payment_option }} <span
+                            class="{{ $order->payment_option }}"></span></div>
+                    <div class="pembayaran-item__content">No. VA: <span>{{ $order->virtual_account_number  }}</span>
+                    </div>
+                @else
+                    <div class="pembayaran-item__title">
+                        Bank {{ \App\Helpers\PriceHelper::paymentInfo($user->unit, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL)['bank'] }}
+                        <span
+                            class="{{ \App\Helpers\PriceHelper::paymentInfo($user->unit, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL)['bank'] }}"></span>
+                    </div>
+                    <div class="pembayaran-item__content">No. VA:
+                        <span>{{ \App\Helpers\PriceHelper::virtualAccountNumber($user, true, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL) }}</span>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <div class="info">
+            Anda bisa melihat detail pemesanan lewat email.
+        </div>
+
+        @if((ENV("APP_ENV") == "local") || (ENV("APP_ENV") == "staging"))
+            <div class="cancel-order" id="cancel-order">
+                @if ($order->status === \App\Models\ProductOrder::STATUS_NEW_ORDER)
+                    <h3 class="text-black">Cancel Order</h3>
+                @else
+                    <h3 class="text-black">Status Order</h3>
+                @endif
+                <div class="pembayaran-item">
+                    <div class="pembayaran-item__content">
+                        @if ($order->status === \App\Models\ProductOrder::STATUS_NEW_ORDER)
+                            <div style="display: inline-block">
+                                Status: {!! $order->label_konfirmasi_pembayaran !!}
+                            </div>
+                            <div style="display: flex; align-items:center; margin:1rem 0">
+
+                                <div class="cancel-reason" style="width: 100%">
+                                    <input type="hidden" name="id" id="id" value={{ $order->id }} />
+                                    <div class="label-note">Keterangan</div>
+                                    <div class="text-note" style="width: 100%; padding-left: 3em">
+                                        <textarea class="form-control" name="reason" id="reason"
+                                                  placeholder="" required></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end" style="padding-top: 1em">
+                                <button type="button" class="btn btn-green post-cancel-order" id="post-cancel-order">
+                                    Cancel Order
+                                </button>
+                            </div>
+                        @endif
+                        @if ($order->status === \App\Models\ProductOrder::STATUS_CANCEL)
+                            <div style="display: inline-block">
+                                Status: {!! $order->label_konfirmasi_pembayaran !!}
+                            </div>
+                            @if(!empty($order->payment_cancel_reason))
+                                <div class="info">
+                                    Anda telah melakukan pembatalan order pada <label class="label"
+                                                                                      style="color: #dc3545">
+                                        {{ \App\Helpers\Helper::hariTanggalJam($order->payment_cancel_date) }}</label>
+                                </div>
+                            @endif
+                            <div class="info">
+                                Keterangan Pembatalan :
+                                @if(!empty($order->payment_cancel_reason))
+                                    <label class="label"
+                                           style="color: #dc3545">{{$order->payment_cancel_reason}}</label>
+                                @else
+                                    <label class="label" style="color: #dc3545">Melebihi Batas Waktu Pembayaran</label>
+                                @endif
+                            </div>
+                        @endif
+
+                        @if ($order->status === \App\Models\ProductOrder::STATUS_CONFIRMED)
+                            <div style="display: inline-block">
+                                Status: {!! $order->label_konfirmasi_pembayaran !!}
+                            </div>
+                            <div class="info">
+                                Pembayaran anda telah terkonfirmasi pada <label class="label" style="color: #28a745">
+                                    {{ \App\Helpers\Helper::hariTanggalJam($order->payment_confirmed_date) }}</label>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @else
+            <div class="pembayaran" id="konfirmasi-pembayaran">
+                <h3 class="text-black">Status Pembayaran</h3>
+                <div class="pembayaran-item">
+                    <div class="pembayaran-item__content">
                         <div style="display: inline-block">
                             Status: {!! $order->label_konfirmasi_pembayaran !!}
                         </div>
-                        <div class="info">
-                            Pembayaran anda telah terkonfirmasi pada <label class="label" style="color: #28a745">
-                                {{ \App\Helpers\Helper::hariTanggalJam($order->payment_confirmed_date) }}</label>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-    @else
-        <div class="pembayaran" id="konfirmasi-pembayaran">
-            <h3 class="text-black">Status Pembayaran</h3>
-            <div class="pembayaran-item">
-                <div class="pembayaran-item__content">
-                    <div style="display: inline-block">
-                        Status: {!! $order->label_konfirmasi_pembayaran !!}
-                    </div>
 
-                    @if ($order->status === \App\Models\ProductOrder::STATUS_NEW_ORDER)
-                        <div style="display: flex; align-items:center; margin:1rem 0">
-                            <button class="btn btn-sm btn-green upload-file-button">
-                                <img src="{{asset('frontend-ppdb-online/img/Icon/upload.png')}}" alt=""><span class="text-white">Upload</span></button>
-                        </div>
-                        <form id="wrapped" method="POST" enctype="multipart/form-data">
-                            <input type="file" name="payment_image" id="upload_file" accept="image/x-png,image/jpeg,application/pdf" />
-                            <input type="hidden" name="id" value={{ $order->id }} />
-                        </form>
-                    @endif
+                        @if ($order->status === \App\Models\ProductOrder::STATUS_NEW_ORDER)
+                            <div style="display: flex; align-items:center; margin:1rem 0">
+                                <button class="btn btn-sm btn-green upload-file-button">
+                                    <img src="{{asset('frontend-ppdb-online/img/Icon/upload.png')}}" alt=""><span
+                                        class="text-white">Upload</span></button>
+                            </div>
+                            <form id="wrapped" method="POST" enctype="multipart/form-data">
+                                <input type="file" name="payment_image" id="upload_file"
+                                       accept="image/x-png,image/jpeg,application/pdf"/>
+                                <input type="hidden" name="id" value={{ $order->id }} />
+                            </form>
+                        @endif
 
-                    <div class="preview-konfirmasi-pembayaran {{ $order->getPaymentImageUrl() ? NULL : "hide" }}">
-                        <img src="{{ $order->getPaymentImageUrl() }}" style="display: block; width: 100%; height: auto;" />
+                        <div class="preview-konfirmasi-pembayaran {{ $order->getPaymentImageUrl() ? NULL : "hide" }}">
+                            <img src="{{ $order->getPaymentImageUrl() }}"
+                                 style="display: block; width: 100%; height: auto;"/>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    @endif
-    @if ($order->pickup_date_schedule)
-    <div class="pembayaran" id="qr-code-mobile">
-        <h3 class="text-black">Pengambilan Seragam</h3>
-        <div class="pembayaran-item">
-            <div class="pembayaran-item__content">
-                <div style="color: black">Silahkan unduh detail transaksi berikut ini sebagai persyaratan pengambilan seragam</div>
-                <a class="btn btn-green" style="margin-top: 10px" href="{{ route('ppdb.embed-product.order.pdf', $order->id) }}">
-                    <img class="icon-active" src="{{asset('frontend-ppdb-online/img/Icon/Data-Normal.png')}}" alt="" style="margin-right: 10px">
-                    Download
-                </a>
-                <div style="color: black; margin-top: 20px">QR code ditunjukkan kepada petugas saat pengambilan seragam</div>
-                <button class="btn" style="margin-top: 10px;" data-toggle="modal" data-target="#qrCodeModal">
-                    <img class="icon-active" src="{{asset('frontend-ppdb-online/img/Icon/qr-code-icon.png')}}" alt="" width="30px">
-                </button>
+        @endif
+        @if ($order->pickup_date_schedule)
+            <div class="pembayaran" id="qr-code-mobile">
+                <h3 class="text-black">Pengambilan Seragam</h3>
+                <div class="pembayaran-item">
+                    <div class="pembayaran-item__content">
+                        <div style="color: black">Silahkan unduh detail transaksi berikut ini sebagai persyaratan
+                            pengambilan seragam
+                        </div>
+                        <a class="btn btn-green" style="margin-top: 10px"
+                           href="{{ route('ppdb.embed-product.order.pdf', $order->id) }}">
+                            <img class="icon-active" src="{{asset('frontend-ppdb-online/img/Icon/Data-Normal.png')}}"
+                                 alt="" style="margin-right: 10px">
+                            Download
+                        </a>
+                        <div style="color: black; margin-top: 20px">QR code ditunjukkan kepada petugas saat pengambilan
+                            seragam
+                        </div>
+                        <button class="btn" style="margin-top: 10px;" data-toggle="modal" data-target="#qrCodeModal">
+                            <img class="icon-active" src="{{asset('frontend-ppdb-online/img/Icon/qr-code-icon.png')}}"
+                                 alt="" width="30px">
+                        </button>
+                    </div>
+                </div>
+            </div>
+        @endif
+    </div>
+    <div class="modal fade" id="qrCodeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalCenterTitle">QR Code</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        {!! QrCode::size(200)->generate(route('admin.product-order-pickup.qr-result', $order->id )) !!}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
-    @endif
-</div>
-<div class="modal fade" id="qrCodeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalCenterTitle">QR Code</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-          <div class="text-center">
-                {!! QrCode::size(200)->generate(route('admin.product-order-pickup.qr-result', $order->id )) !!}
-          </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
 @endsection
 @push('scripts')
-<script src="{{asset('js/sweet-alert/sweet-alert.min.js')}}"></script>
+    <script src="{{asset('js/sweet-alert/sweet-alert.min.js')}}"></script>
     <script>
-        $(document).on('click', '.upload-file-button', function() {
+        $(document).on('click', '.upload-file-button', function () {
             $("#upload_file").click();
         });
 
-        $(document).on('change', '#upload_file', function() {
+        $(document).on('change', '#upload_file', function () {
             if ($(this).val()) {
                 var self = $(this);
                 var formData = new FormData($('#wrapped')[0]);
@@ -438,12 +526,12 @@
             var message = '';
 
             console.log(reason);
-            if (reason == '' || reason == null){
+            if (reason == '' || reason == null) {
                 success = false;
                 message = 'Keterangan Harap Diisi!'
             }
 
-            if (success){
+            if (success) {
                 swal({
                     title: 'Perhatian !',
                     text: "Apakah Anda yakin membatalkan order ini?",
@@ -470,7 +558,7 @@
                         })
                     }
                 });
-            }else {
+            } else {
                 swal(
                     'Gagal!',
                     message,

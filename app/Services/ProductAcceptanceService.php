@@ -19,6 +19,7 @@ class ProductAcceptanceService
 
         $payload = [
             'product_id' => $params['product_id'],
+            'product_type_id' => $params['type_name'],
             'vendor_id' => $params['vendor_id'],
             'date' => (empty($params['date'])) ? date('Y-m-d') : $params['date'],
             'description' => $params['description'],
@@ -26,6 +27,7 @@ class ProductAcceptanceService
             'updated_at' => date('Y-m-d H:i:s'),
             'created_by' => auth()->user()->id
         ];
+
         $productAcceptance = ProductAcceptance::create($payload);
 
         foreach ($params['id'] as $ind => $item) {

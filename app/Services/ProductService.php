@@ -440,7 +440,13 @@ class ProductService
 
     public function getTypeName()
     {
-        $type = PRoductType::where('type','=','seragam')->get();
+        $type = ProductType::where('type','=','seragam')->get();
         return $type;
+    }
+
+    public function getUniformByType($type)
+    {
+        $product = Product::where(['type_id'=>$type,'status'=> Product::STATUS_PUBLISHED])->get();
+        return $product;
     }
 }

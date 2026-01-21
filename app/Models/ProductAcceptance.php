@@ -10,6 +10,7 @@ class ProductAcceptance extends Model
 
     protected $fillable = [
         'product_id',
+        'product_type_id',
         'vendor_id',
         'date',
         'description',
@@ -29,6 +30,11 @@ class ProductAcceptance extends Model
     public function user()
     {
         return $this->hasOne(__NAMESPACE__ . '\User', 'id', 'created_by');
+    }
+
+    public function productType()
+    {
+        return $this->hasOne(__NAMESPACE__ . '\ProductType', 'id', 'product_type_id');
     }
 
     public function details()

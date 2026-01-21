@@ -150,6 +150,11 @@
                                             </tr>
 
                                             <tr>
+                                                <td>Product Type</td>
+                                                <td><strong> : {{ ($data->productType) ? $data->productType->name : '-' }}</strong></td>
+                                            </tr>
+
+                                            <tr>
                                                 <td>Vendor</td>
                                                 <td><strong> : {{ ($data->vendor) ? $data->vendor->name : '-' }}</strong></td>
                                             </tr>
@@ -168,7 +173,7 @@
                                         <hr>
                                         <h4>Detail Stok</h4>
 
-                                        <table class="table table-hover">
+                                        <table class="table table-bordered">
                                             <tr>
                                                 <th>Size</th>
                                                 <th>Stock</th>
@@ -178,7 +183,7 @@
                                                 <th>Vendor PPDB</th>
                                             </tr>
                                             @foreach($data->details as $item)
-                                                <tr>
+                                                <tr style="background: {{ ($item->stock > 0) ? '#dcf8e9' : '' }}">
                                                     <td>{{ $item->size }}</td>
                                                     <td>{{ $item->stock }}</td>
                                                     <td>{{ $item->price_vendor_regular }}</td>

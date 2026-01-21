@@ -44,7 +44,7 @@
                                     <select name="type_name" id="type_name" class="form-control selectpicker" >
                                         <option value="0">== Silahkan Pilih ==</option>
                                         @foreach (@$typeNames as $type)
-                                            <option value="{{ $type->name }}" >{{ $type->name }}</option>
+                                            <option value="{{ $type->id }}" >{{ $type->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -170,14 +170,16 @@
         });
 
         function selectedType(type){
-            $.get('{{ route('admin.product-acceptance.ajax') }}', {
+            $.get('{{ route('admin.product-acceptance.uniform') }}', {
                 select: type
-            }, function (data, status) {
-                // $("#year").val(data.year).change();
-                // $("#year").attr('disabled',true);
-                //
-                // $("#unit_student").val(data.unit_id).change();
-                // $("#unit_student").attr('disabled',true);
+            }, function (data) {
+                console.log(data)
+                $.each(data, function (index, item) {
+                    element = '<option value="' + index + '"  >' + item + '</option>'
+                    console.log(element)
+                    $("#product_id").append(element)
+                });
+                $("#product_id").selectpicker("refresh")
             });
         }
     </script>

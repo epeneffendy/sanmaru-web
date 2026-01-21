@@ -41,6 +41,7 @@
                                     <th class="text-center">No</th>
                                     <th class="text-center">Tanggal Penerimaan</th>
                                     <th class="text-center">Vendor</th>
+                                    <th class="text-center">Type</th>
                                     <th class="text-center">Product</th>
                                     <th class="text-center">Keterangan</th>
                                     <th class="text-center">Action</th>
@@ -52,6 +53,7 @@
                                         <td class="text-center">{{$key + 1}}</td>
                                         <td class="text-center">{{$item->date}}</td>
                                         <td class="text-center">{{($item->vendor) ? $item->vendor->name : '-'}}</td>
+                                        <td class="text-center">{{ ($item->productType) ? $item->productType->name : '-' }}</td>
                                         <td class="text-center">{{($item->product) ? $item->product->name : '-'}}</td>
                                         <td  class="text-center">{{$item->description}}</td>
                                         <td  class="text-center">

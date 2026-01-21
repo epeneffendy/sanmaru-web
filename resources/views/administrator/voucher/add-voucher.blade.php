@@ -311,6 +311,9 @@
                     if(target_siswa == 'reguler'){
                         $('#target_siswa').val(target_siswa).change();
                         $('#unit_student').val(unit_student).change();
+                    }else{
+                        $('#target_siswa').val(target_siswa).change();
+                        $('#unit_student').val(unit_student).change();
                     }
                 }
             @endif

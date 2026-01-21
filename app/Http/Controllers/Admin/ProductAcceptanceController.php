@@ -66,8 +66,14 @@ class ProductAcceptanceController extends Controller
         ]);
     }
 
-    public function ajax(Request $request, ProductAcceptanceService $productAcceptanceService){
-        dd("Asdasd");
+    public function uniform(Request $request, ProductService $productService){
+        $products = $productService->getUniformByType($request->select);
+        $collections = collect();
+        foreach ($products as $product) {
+            $collections->put($product->id,  $product->name);
+        }
+
+        return $collections;
     }
 
 }

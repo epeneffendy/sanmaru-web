@@ -437,4 +437,10 @@ class ProductService
         }])->where('status','=', Product::STATUS_PUBLISHED)->get();
         return $product;
     }
+
+    public function getTypeName()
+    {
+        $type = PRoductType::where('type','=','seragam')->get();
+        return $type;
+    }
 }

@@ -37,14 +37,24 @@
                         @endif
                         <form role="form" method="POST" action="{{$action}}" class="form-horizontal"
                               enctype="multipart/form-data">
+
+                            <div class="form-group">
+                                <label class="control-label col-sm-2" for="name">Type Product:</label>
+                                <div class="col-sm-6">
+                                    <select name="type_name" id="type_name" class="form-control selectpicker" >
+                                        <option value="0">== Silahkan Pilih ==</option>
+                                        @foreach (@$typeNames as $type)
+                                            <option value="{{ $type->name }}" >{{ $type->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
                             <div class="form-group">
                                 <label class="control-label col-sm-2" for="name">Product:</label>
                                 <div class="col-sm-6">
                                     <select name="product_id" id="product_id" class="form-control selectpicker" >
                                         <option value="0">== Silahkan Pilih ==</option>
-                                        @foreach (@$products as $product)
-                                            <option value="{{ $product->id }}" >{{ $product->name .' - '. $product->level }}</option>
-                                        @endforeach
                                     </select>
                                 </div>
                             </div>
@@ -150,6 +160,25 @@
                     $('#list_product').html(data)
                 }
             );
+        }
+
+        $('#type_name').change(function (e) {
+            e.preventDefault();
+            var valueSelected = $('#type_name').val();
+            console.log(valueSelected)
+            selectedType(valueSelected);
+        });
+
+        function selectedType(type){
+            $.get('{{ route('admin.product-acceptance.ajax') }}', {
+                select: type
+            }, function (data, status) {
+                // $("#year").val(data.year).change();
+                // $("#year").attr('disabled',true);
+                //
+                // $("#unit_student").val(data.unit_id).change();
+                // $("#unit_student").attr('disabled',true);
+            });
         }
     </script>
 @endpush

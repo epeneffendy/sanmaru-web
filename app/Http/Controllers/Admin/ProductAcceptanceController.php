@@ -29,6 +29,7 @@ class ProductAcceptanceController extends Controller
     public function add(Request $request, ProductService $productService){
         $params = [
             'products' => $productService->getUniform(),
+            'typeNames' => $productService->getTypeName(),
             'vendors' => Vendor::get(),
             'nav' => $this->page
         ];
@@ -63,6 +64,10 @@ class ProductAcceptanceController extends Controller
             'nav' => $this->page,
             'data' => $data,
         ]);
+    }
+
+    public function ajax(Request $request, ProductAcceptanceService $productAcceptanceService){
+        dd("Asdasd");
     }
 
 }

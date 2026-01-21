@@ -492,6 +492,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
         Route::post('/administrator/product-acceptance/find-by-product', 'Admin\ProductAcceptanceController@findByProduct')->name('admin.product-acceptance.find-by-product');
         Route::post('/administrator/product-acceptance/store', 'Admin\ProductAcceptanceController@store')->name('admin.product-acceptance.store');
         Route::get('/administrator/product-acceptance/{id}', 'Admin\ProductAcceptanceController@show')->name('admin.product-acceptance.show');
+        Route::get('/administrator/product-acceptance/ajax', 'Admin\ProductAcceptanceController@ajax')->name('admin.product-acceptance.ajax');
 
         Route::prefix('administrator/product/kantin')->name('admin.product.kantin.')->group(function () {
             Route::get('create', 'Admin\ProductKantinController@create')->name('create');

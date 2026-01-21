@@ -146,7 +146,7 @@
                                         <table width="50%">
                                             <tr>
                                                 <td>Product</td>
-                                                <td><strong> : {{ $data->product->name }}</strong></td>
+                                                <td><strong> : {{ ($data->product) ? $data->product->name : '-' }}</strong></td>
                                             </tr>
 
                                             <tr>

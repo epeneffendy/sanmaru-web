@@ -34,8 +34,6 @@
                             </div>
                         @endif
 
-
-
                         <div class="fixed-table-head period">
                             <table id="datatables-uniform-deadline" class="table display">
                                 <thead>
@@ -53,8 +51,8 @@
                                     <tr>
                                         <td class="text-center">{{$key + 1}}</td>
                                         <td class="text-center">{{$item->date}}</td>
-                                        <td class="text-center">{{$item->vendor->name}}</td>
-                                        <td class="text-center">{{$item->product->name}}</td>
+                                        <td class="text-center">{{($item->vendor) ? $item->vendor->name : '-'}}</td>
+                                        <td class="text-center">{{($item->product) ? $item->product->name : '-'}}</td>
                                         <td  class="text-center">{{$item->description}}</td>
                                         <td  class="text-center">
                                             <a href="{{ route('admin.product-acceptance.show',$item->id) }}" title="Show"

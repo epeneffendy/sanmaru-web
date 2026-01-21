@@ -218,7 +218,7 @@ class VoucherController extends Controller
                 $users = PpdbUser::with('user')
                     ->where('school_year', $request->year)
                     ->where('unit_id', $request->unit_student)
-                    ->where('periode',$request->period_id)
+//                    ->where('periode',$request->period_id)
                     ->whereHas('user', function($query) {
                         $query->where('type', 'ppdb');
                     })

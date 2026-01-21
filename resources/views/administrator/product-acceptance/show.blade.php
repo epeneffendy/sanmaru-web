@@ -151,7 +151,7 @@
 
                                             <tr>
                                                 <td>Vendor</td>
-                                                <td><strong> : {{ ($data->vendor->name) ? $data->vendor->name : '-' }}</strong></td>
+                                                <td><strong> : {{ ($data->vendor) ? $data->vendor->name : '-' }}</strong></td>
                                             </tr>
 
                                             <tr>
@@ -161,7 +161,7 @@
 
                                             <tr>
                                                 <td>Petugas</td>
-                                                <td><strong> : {{ $data->user->username }}</strong></td>
+                                                <td><strong> : {{ ($data->user) ? $data->user->username : '' }}</strong></td>
                                             </tr>
                                         </table>
 

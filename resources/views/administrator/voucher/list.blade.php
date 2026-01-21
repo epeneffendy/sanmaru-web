@@ -124,7 +124,7 @@
                                         $number++;
                                         $is_voucher_development = false;
                                         $kode_voucher = substr($voucher->code,-2);
-                                        if($kode_voucher == 'PA' || $kode_voucher == 'PI'){
+                                        if($voucher->is_development == 1){
                                             $is_voucher_development = true;
                                         }
 

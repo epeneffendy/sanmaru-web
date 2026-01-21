@@ -142,19 +142,19 @@
                                 </div>
                             </div>
 
-                            <div class="form-group" id="period_student" style="display: none">
-                                <label class="control-label col-sm-2" for="period_id">Periode:</label>
-                                <div class="col-sm-10">
-                                    <select name="period_id" id="period_id" class="form-control selectpicker period_id"
-                                            data-style="btn-success">
-                                        <option data-hidden="true"></option>
-                                        @foreach($periods as $value => $item)
-                                            <option
-                                                value="{{ $item->id }}" {{ ($item->id == old('year', @$voucher['period_id'])) ? 'selected' : null }}>{{ $item->name .' ('.$item->unit->name.')' }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
+{{--                            <div class="form-group" id="period_student" style="display: none">--}}
+{{--                                <label class="control-label col-sm-2" for="period_id">Periode:</label>--}}
+{{--                                <div class="col-sm-10">--}}
+{{--                                    <select name="period_id" id="period_id" class="form-control selectpicker period_id"--}}
+{{--                                            data-style="btn-success">--}}
+{{--                                        <option data-hidden="true"></option>--}}
+{{--                                        @foreach($periods as $value => $item)--}}
+{{--                                            <option--}}
+{{--                                                value="{{ $item->id }}" {{ ($item->id == old('year', @$voucher['period_id'])) ? 'selected' : null }}>{{ $item->name .' ('.$item->unit->name.')' }}</option>--}}
+{{--                                        @endforeach--}}
+{{--                                    </select>--}}
+{{--                                </div>--}}
+{{--                            </div>--}}
 
                             <div class="form-group">
                                 <label class="control-label col-sm-2" for="year">Tahun Ajaran:</label>

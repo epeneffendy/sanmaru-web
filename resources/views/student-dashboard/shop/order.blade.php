@@ -70,14 +70,14 @@
                                 @endif
                             </div>
                             <div class="pembayaran-item__content">No. VA:
-                                <span id="virtual_account_number">
-                                @if(!empty($order->virtual_account_number))
+                                <span class="virtual_account_number">
+                                    @if(!empty($order->virtual_account_number))
                                         {{ $order->virtual_account_number }}
                                     @else
                                         {{ \App\Helpers\PriceHelper::virtualAccountNumber($user, true, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL) }}
                                     @endif
-                            </span>
-                            <img class="icon-normal"
+                                </span>
+                                <img class="icon-normal"
                                      onclick="CopyToClipboard('virtual_account_number')"
                                      id="copy-va"
                                      src="{{asset('frontend-ppdb-online/img/Icon/Data-Active.png')}}"
@@ -332,6 +332,11 @@
                          src="{{asset('frontend-ppdb-online/img/Icon/Data-Active.png')}}"
                          alt="Copy" title="Copy">
                     </div>
+                    <img class="icon-normal"
+                         onclick="CopyToClipboardMobile('virtual_account_number_mobile')"
+                         id="copy-va"
+                         src="{{asset('frontend-ppdb-online/img/Icon/Data-Active.png')}}"
+                         alt="Copy" title="Copy">
                 @else
                     <div class="pembayaran-item__title">
                         Bank {{ \App\Helpers\PriceHelper::paymentInfo($user->unit, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL)['bank'] }}
@@ -535,6 +540,7 @@
 @endsection
 @push('scripts')
     <script src="{{asset('js/sweet-alert/sweet-alert.min.js')}}"></script>
+
     <script>
         $(document).on('click', '.upload-file-button', function () {
             $("#upload_file").click();

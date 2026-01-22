@@ -374,8 +374,6 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::get('gallery-data', 'FacilityController@galleryData')->name('gallery-data');
             Route::post('gallery-data', 'FacilityController@insertGallery')->name('gallery-data.insert');
         });
-
-        
     });
 
     Route::group(['middleware' => ['web', 'auth', 'super_admin']], function () {

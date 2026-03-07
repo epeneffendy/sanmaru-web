@@ -114,7 +114,7 @@ class CartService
         $payment_type = $coll->pluck('payment_type')->all();
 
         $bank_account = $va_account = '';
-
+        $payment_type[0] = '08';
         if ($payment_type[0] == '08'){
             $ppdb = PPDBUser::where('user_id', $user['id'])->firstOrFail();
             $bank_account = \App\Helpers\PriceHelper::paymentInfo($ppdb->unit, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL)['bank'];

@@ -126,6 +126,7 @@
                                 <tr>
                                     <th>No</th>
                                     @if(@$params['filter'] == 'siswa')
+                                        <th>Register Number</th>
                                         <th>Nama Siswa</th>
                                     @endif
                                     <th>Unit Sekolah</th>
@@ -145,6 +146,7 @@
                                     <tr>
                                         <td>{{ $no++ }}</td>
                                         @if(@$params['filter'] == 'siswa')
+                                            <td>{{ $item->register_number }}</td>
                                             <td>{{ $item->name }}</td>
                                         @endif
                                         <td>{{ $item->unit_name }}</td>

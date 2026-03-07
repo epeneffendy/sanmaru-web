@@ -42,7 +42,7 @@
 <body>
     <table width="100%" style="border-bottom: 1px solid black" >
         <tr>
-            {{-- <td valign="top" style="width: 1%;" ><img src="{{ public_path('img/logo-serviam.png') }}" alt="logo serviam" width="75"/></td> --}}
+             <td valign="top" style="width: 1%;" ><img src="{{ public_path('img/logo-serviam.png') }}" alt="logo serviam" width="75"/></td> 
             <td>
                 <h3 style="margin: 3px 0px"><strong>YAYASAN PARATHA BHAKTI</strong></h3>
                 <div style="margin: 3px 0px">Jl. Raya Darmo No.49 Surabaya</div>
@@ -63,20 +63,20 @@
 
         <table width="100%" class="table-bordered">
             <tr>
-                <td>No.</td>
-                <td>Nama Siswa</td>
-                <td>Nama Product</td>
-                <td>Ukuran Seragam</td>
-                <td>Jumlah</td>
+                <td style="text-align:center; font-weight:bold;">No.</td>
+                <td style="text-align:center; font-weight:bold;">Nama Siswa</td>
+                <td style="text-align:center; font-weight:bold;">Nama Product</td>
+                <td style="text-align:center; font-weight:bold;">Ukuran Seragam</td>
+                <td style="text-align:center; font-weight:bold;">Jumlah</td>
             </tr>
             @if(count($orders))
                 @foreach($orders as $ind => $item)
                     <tr>
-                        <td>{{ $ind + 1 }}</td>
+                        <td style="text-align:center; ">{{ $ind + 1 }}</td>
                         <td>{{ $item->name }}</td>
                         <td>{{ $item->product_name }}</td>
-                        <td>{{ $item->size }}</td>
-                        <td>{{ $item->qty }}</td>
+                        <td style="text-align:center;">{{ $item->size }}</td>
+                        <td style="text-align:center;">{{ $item->qty }}</td>
                     </tr>
                 @endforeach
             @endif

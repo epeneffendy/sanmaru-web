@@ -977,7 +977,7 @@ class ProductOrderService
     public function getSummaryPurchaseOrderBySiswa(array $params = [])
     {
         $orders = DB::table('product_orders')
-            ->select('ppdb_users.name','units.name as unit_name', 'products.name as product_name', 'product_details.size', 'product_orders.status as payment_status', 'product_orders.pickup_status', DB::raw('sum(product_order_details.quantity) AS qty'))
+            ->select('ppdb_users.register_number','ppdb_users.name','units.name as unit_name', 'products.name as product_name', 'product_details.size', 'product_orders.status as payment_status', 'product_orders.pickup_status', DB::raw('sum(product_order_details.quantity) AS qty'))
             ->join('ppdb_users', 'ppdb_users.user_id', '=', 'product_orders.user_id')
             ->join('units', 'units.id', '=', 'ppdb_users.unit_id')
             ->join('product_order_details', 'product_order_details.product_order_id', '=', 'product_orders.id')
@@ -1011,7 +1011,7 @@ class ProductOrderService
             $orders->where('product_orders.created_at', '>=', $dateStart)->where('product_orders.created_at', '<=', $dateEnd);
         }
 
-        $orders = $orders->groupBy(['ppdb_users.unit_id','products.name','product_details.size','product_orders.status','product_orders.pickup_status','ppdb_users.name'])->get();
+        $orders = $orders->groupBy(['ppdb_users.unit_id','products.name','product_details.size','product_orders.status','product_orders.pickup_status','ppdb_users.name', 'ppdb_users.register_number'])->get();
 
         return $orders;
     }

@@ -88,14 +88,13 @@
                                                 <a href="{{route('admin.distribution-order.export',$item->id) }}" class="btn btn-xs btn-info">
                                                     <icon class="icon-plus"><i class="fa fa-file-excel-o"></i></icon>
                                                 </a>
-                                                <a href="{{route('admin.distribution-order.pdf',$item->id) }}" class="btn btn-xs btn-warning">
+                                                 <a href="{{route('admin.distribution-order.pdf',$item->id) }}" class="btn btn-xs btn-warning">
                                                     <icon class="icon-plus"><i class="fa fa-file-word-o"></i></icon>
-                                                </a>
-
+                                                </a>   
                                             @endif
 
                                             @if((in_array($item->unit_id, auth()->user()->role_units)) && ($item->status == 'confirmed'))
-
+                                            
                                             @endif
 
                                             @if(($item->created_by == auth()->user()->id) && ($item->status == 'active'))

@@ -70,14 +70,19 @@
                                 @endif
                             </div>
                             <div class="pembayaran-item__content">No. VA:
-                                <span>
+                                <span id="virtual_account_number">
                                 @if(!empty($order->virtual_account_number))
                                         {{ $order->virtual_account_number }}
                                     @else
                                         {{ \App\Helpers\PriceHelper::virtualAccountNumber($user, true, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL) }}
                                     @endif
-                            </span>
-                            </div>
+                                </span>
+                                <img class="icon-normal"
+                                     onclick="CopyToClipboard('virtual_account_number')"
+                                     id="copy-va"
+                                     src="{{asset('frontend-ppdb-online/img/Icon/Data-Active.png')}}"
+                                     alt="Copy" title="Copy">
+                                </div>
                         </div>
                     </div>
 
@@ -149,7 +154,7 @@
                             @endif
                         @endif
 
-                        @if((ENV("APP_ENV") == "local") || (ENV("APP_ENV") == "staging"))
+                        @if((ENV("APP_ENV") == "local") || (ENV("APP_ENV") == "production"))
                             <div class="cancel-order" id="cancel-order">
                                 @if ($order->status === \App\Models\ProductOrder::STATUS_NEW_ORDER)
                                     <h3 class="text-black">Cancel Order</h3>
@@ -317,8 +322,13 @@
                 @if(!empty($order->payment_option))
                     <div class="pembayaran-item__title">Bank {{ $order->payment_option }} <span
                             class="{{ $order->payment_option }}"></span></div>
-                    <div class="pembayaran-item__content">No. VA: <span>{{ $order->virtual_account_number  }}</span>
+                    <div class="pembayaran-item__content">No. VA: <span id="virtual_account_number_mobile">{{ $order->virtual_account_number  }}</span>
                     </div>
+                    <img class="icon-normal"
+                         onclick="CopyToClipboardMobile('virtual_account_number_mobile')"
+                         id="copy-va"
+                         src="{{asset('frontend-ppdb-online/img/Icon/Data-Active.png')}}"
+                         alt="Copy" title="Copy">
                 @else
                     <div class="pembayaran-item__title">
                         Bank {{ \App\Helpers\PriceHelper::paymentInfo($user->unit, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL)['bank'] }}
@@ -567,6 +577,42 @@
             }
 
         });
+
+        function CopyToClipboard(id) {
+            var r = document.createRange();
+            r.selectNode(document.getElementById(id));
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(r);
+            try {
+                document.execCommand('copy');
+                window.getSelection().removeAllRanges();
+                console.log('Successfully copy text: hello world ' + r);
+                swal({
+                    text: "Virtual Account berhasil disalin!",
+                });
+            } catch (err) {
+                console.log('Unable to copy!');
+            }
+        }
+
+        function CopyToClipboardMobile(id) {
+            var r = document.createRange();
+            r.selectNode(document.getElementById(id));
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(r);
+            try {
+                document.execCommand('copy');
+                window.getSelection().removeAllRanges();
+                console.log('Successfully copy text: hello world ' + r);
+                swal({
+
+                    text: "Virtual Account berhasil salin!",
+                });
+            } catch (err) {
+                console.log('Unable to copy!');
+            }
+        }
+
     </script>
 @endpush
 @push('styles')

@@ -8,7 +8,7 @@
                         <img src="{{asset('frontend-ppdb-online/img/ppdb-online-image.svg')}}" alt=""
                              class="img-fluid img-ppdb-online">
                     </figure>
-                    <h2 class="title-white">Penerimaan Peserta Didik Baru<br>Tahun Ajaran 2022-2023</h2>
+                    <h2 class="title-white">Sistem Penerimaan Peserta Didik Baru<br>Tahun Ajaran 2026-2027</h2>
                     <p>YAYASAN PARATHA BHAKTI<br>
                         Kampus Santa Maria<br>
                         Jl. Raya Darmo No. 49<br>

@@ -126,6 +126,7 @@
                                 <tr>
                                     <th>No</th>
                                     <th width="15%">Unit</th>
+                                    <th>Register Number</th>
                                     <th>Nama</th>
                                     <th>Kode</th>
                                     <th>Tipe</th>
@@ -140,6 +141,7 @@
                                     <tr>
                                         <td>{{$no++}}</td>
                                         <td width="15%">{{$item['unit']}}</td>
+                                        <th>{{$item['register_number']}}</th>
                                         <th>{{$item['name']}}</th>
                                         <td>{{$item['code']}}</td>
                                         <td>

@@ -27,18 +27,20 @@ class DashboardController extends Controller
             $query->select('unit_id', 'id', 'status', 'payment_form');
         }])->orderBy('unit_code', 'ASC')->get();
 
-        $products = Product::select(['products.name', 'products.type_name', 'product_details.stock'])
+        $products = Product::select(['products.name', 'products.type_name', 'product_details.stock', 'product_details.size'])
             ->join('product_details', 'product_details.product_id', '=', 'products.id')
             ->where('product_details.stock', '<', 20)
             ->where('type_name', '!=', 'Kantin')
             ->where('products.deleted_at', '=', null)
-            ->groupBY('name', 'type_name')->get();
+            ->where('product_details.deleted_at', '=', null)
+            ->where('products.status', '=', Product::STATUS_PUBLISHED)
+            ->groupBY('name', 'type_name','size')->get();
 
         $stock_product = [];
         foreach ($products as $ind => $item) {
-            $stock_product[$ind] = $item->name . '  Sisa Stock ' . $item->stock;
+            $stock_product[$ind]['text'] = $item->name . ' -- [Ukuran ' .$item->size .'] -- ' . '  Sisa Stock ' . $item->stock;
+            $stock_product[$ind]['stock'] = $item->stock;
         }
-
         $params = [
             'data' => $units,
             'nav' => $this->page,

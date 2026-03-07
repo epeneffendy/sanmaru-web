@@ -16,7 +16,11 @@
                 <hr>
                 <br class="mb-0">
                     @foreach($stock as $item)
-                        {{$item}} </br>
+                        @if($item['stock'] < 5)
+                            <div style="color: red">{{$item['text']}}</div>
+                        @else
+                            <div>{{$item['text']}}</div>
+                        @endif
                     @endforeach
                 </p>
             </div>

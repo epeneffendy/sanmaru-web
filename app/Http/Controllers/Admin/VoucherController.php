@@ -276,7 +276,9 @@ class VoucherController extends Controller
 
                 if (!empty($voucher->user_id)) {
                     foreach ($voucher->user_id as $user) {
+
                         $user_id = $user;
+
                         $total_used = $voucher->usages->filter(function ($usage) use ($user_id) {
                             return $usage->orders->filter(function ($order) use ($user_id) {
                                 return $user_id == $order->user_id && $order->status !== 'cancel';
@@ -312,7 +314,7 @@ class VoucherController extends Controller
 
                         $filter_status = false;
                         if (isset($request->status)) {
-                            if ($request->status != 0) {
+                            if ($request->status == 'available' || $request->status == 'claimed') {
                                 $filter_status = true;
                             }
                         }
@@ -345,6 +347,7 @@ class VoucherController extends Controller
                             }
 
                             if (!$filter_status) {
+                                $usage[$voucher->code . '-' . $ppdb->id]['register_number'] = $ppdb->register_number;
                                 $usage[$voucher->code . '-' . $ppdb->id]['unit'] = $ppdb->unit->name;
                                 $usage[$voucher->code . '-' . $ppdb->id]['name'] = $ppdb->name;
                                 $usage[$voucher->code . '-' . $ppdb->id]['code'] = $voucher->code;
@@ -358,6 +361,7 @@ class VoucherController extends Controller
                             } else {
                                 $status_voucher = ($total_used) ? 'claimed' : 'available';
                                 if ($request->status == $status_voucher) {
+                                    $usage[$voucher->code . '-' . $ppdb->id]['register_number'] = $ppdb->register_number;
                                     $usage[$voucher->code . '-' . $ppdb->id]['unit'] = $ppdb->unit->name;
                                     $usage[$voucher->code . '-' . $ppdb->id]['name'] = $ppdb->name;
                                     $usage[$voucher->code . '-' . $ppdb->id]['code'] = $voucher->code;
@@ -368,6 +372,7 @@ class VoucherController extends Controller
                                     $usage[$voucher->code . '-' . $ppdb->id]['total_usage'] = $total_used;
                                     $usage[$voucher->code . '-' . $ppdb->id]['status'] = $total_used ? 'claimed' : 'available';
                                     $usage[$voucher->code . '-' . $ppdb->id]['label_color'] = $total_used ? 'danger' : 'success';
+                                    $usage[$voucher->code . '-' . $ppdb->id]['claimed_date'] = $total_used ? 'danger' : 'success';
                                 }
 
                             }

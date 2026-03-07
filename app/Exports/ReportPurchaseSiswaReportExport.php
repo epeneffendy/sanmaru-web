@@ -37,6 +37,7 @@ class ReportPurchaseSiswaReportExport implements FromCollection, WithHeadings, W
         }
         return [
             'no' => $this->no++,
+            "register_number"=> $productOrder->register_number,
             "name"=> $productOrder->name,
             "unit_name" => $productOrder->unit_name,
             "product_name" => $productOrder->product_name,
@@ -52,6 +53,7 @@ class ReportPurchaseSiswaReportExport implements FromCollection, WithHeadings, W
     {
         return [
             'No',
+            'Register Number',
             'Nama Siswa',
             'Unit Sekolah',
             'Nama Seragam',

@@ -20,6 +20,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Log;
+use App\Models\PaymentApiLog;
 
 class PaymentBCAController extends Controller
 {
@@ -177,6 +178,7 @@ class PaymentBCAController extends Controller
             $this->destroyToken($headerToken);
             $data = new PaymentBcaBillRequest($request->all());
             $result = new PaymentBcaBillResponse($request->all());
+
             try {
                 $inquiryRequestId = $data->getinquiryRequestId();
                 $validateField = $this->validateField($request->all(), 'bills');
@@ -343,6 +345,7 @@ class PaymentBCAController extends Controller
             $data = new PaymentBcaInvocationRequest($request->all());
             $result = new PaymentBcaInvocationResponse($request->all());
             $validateHeader = $this->validateHeader($request, $ClientID, $ChannelID, $partnerServiceId, $relativeUrl);
+            $paymentBCAService->log('request_payment', $request->toArray(), '');
             if ($validateHeader['success']) {
                 $this->destroyToken($headerToken);
                 $validateField = $this->validateField($request->all(), 'payment');
@@ -756,6 +759,7 @@ class PaymentBCAController extends Controller
         $arrFill = $this->fillParams($request->toArray(), $isBills);
         $signature = $this->generateSignature('POST', $relativeUrl, $headerToken, $ClientSecret, $headerTimestamp, $arrFill);
         $getToken = $this->authenticationToken($headerToken);
+        
         if ($getToken) {
             if ($signature['signature'] == $headerSignature) {
                 $validateTimestap = $this->validateDate($headerTimestamp);
@@ -985,6 +989,13 @@ class PaymentBCAController extends Controller
                 $param[$key] = $item;
             }
         }
+
+        $log = PaymentApiLog::create([
+            'type' => 'param_logs',
+            'request' => json_encode($param),
+            'response' => '',
+        ]);
+
         return $param;
     }
 

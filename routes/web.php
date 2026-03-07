@@ -375,13 +375,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::post('gallery-data', 'FacilityController@insertGallery')->name('gallery-data.insert');
         });
 
-        Route::prefix('administrator/complaint')->name('admin.complaint.')->namespace('Admin')->group(function () {
-            Route::get('', 'ComplaintOrdersController@index')->name('index');
-            Route::get('show/{id}', 'ComplaintOrdersController@show')->name('show');
-            Route::post('change-status', 'ComplaintOrdersController@changeStatus')->name('change-status');
-            Route::post('setting-period', 'ComplaintOrdersController@settingPeriod')->name('setting-period');
-
-        });
+        
     });
 
     Route::group(['middleware' => ['web', 'auth', 'super_admin']], function () {
@@ -532,6 +526,14 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::get('/export/{id}', 'DistributionOrdersController@export')->name('export');
             Route::get('/pdf/{id}', 'DistributionOrdersController@pdf')->name('pdf');
             Route::post('find_uniform_order', 'DistributionOrdersController@findUniformOrder')->name('find_uniform_order');
+
+        });
+
+        Route::prefix('administrator/complaint')->name('admin.complaint.')->namespace('Admin')->group(function () {
+            Route::get('', 'ComplaintOrdersController@index')->name('index');
+            Route::get('show/{id}', 'ComplaintOrdersController@show')->name('show');
+            Route::post('change-status', 'ComplaintOrdersController@changeStatus')->name('change-status');
+            Route::post('setting-period', 'ComplaintOrdersController@settingPeriod')->name('setting-period');
 
         });
 

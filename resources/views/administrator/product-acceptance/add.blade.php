@@ -170,6 +170,7 @@
         });
 
         function selectedType(type){
+            $("#product_id").empty();
             $.get('{{ route('admin.product-acceptance.uniform') }}', {
                 select: type
             }, function (data) {

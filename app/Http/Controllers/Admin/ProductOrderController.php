@@ -154,16 +154,28 @@ class ProductOrderController extends Controller
 
     public function export(DateRangeDifferenceRequest $request)
     {
+        // $validParams = $request->validated();
+
+        // $productOrdersExport = new productOrdersExport($request->all(), Auth::user());
+        // $title = Str::slug("Exports Data Pemesanan Product " . date('Y-m-d H:i:s'), '_') . ".xlsx";
+
+        // // $productOrdersExport->queue('exports/'. $title, 'private')->allOnQueue('exports');
+        // (new ExportJob())->export($productOrdersExport, array_merge($request->only('unit'), ['page' => 'product-order']), Auth::user(), $title);
+        // return back()->withSuccess('Export started!');
+
+        // //return $productOrdersExport->download($title);
+
         $validParams = $request->validated();
 
         $productOrdersExport = new productOrdersExport($request->all(), Auth::user());
-        $title = Str::slug("Exports Data Pemesanan Product " . date('Y-m-d H:i:s'), '_') . ".xlsx";
+        $title = "Exports Data PPDB Users " . date('Y-m-d H:i:s') . ".xlsx";
 
-        // $productOrdersExport->queue('exports/'. $title, 'private')->allOnQueue('exports');
-        (new ExportJob())->export($productOrdersExport, array_merge($request->only('unit'), ['page' => 'product-order']), Auth::user(), $title);
-        return back()->withSuccess('Export started!');
+        if ($request->has('template-only')) {
+            $productOrdersExport->setTemplate(true);
+            $title = "Template Import PPDB Users.xlsx";
+        }
 
-        //return $productOrdersExport->download($title);
+        return $productOrdersExport->download($title);
     }
 
     public function exportKantin(DateRangeDifferenceRequest $request)

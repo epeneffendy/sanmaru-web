@@ -90,9 +90,11 @@ class UserController extends Controller
         return view('administrator/user/add', $data);
     }
 
-    public function update(UserStoreRequest $request, $id)
+    public function update(Request $request, $id)
     {
-        $input = $request->validated();
+        // $input = $request->validated();
+        $input['password'] = $request->password;
+        $input['mobile_phone'] = $request->mobile_phone;
 
         try {
             if (is_null($input['password'])) {

@@ -410,7 +410,7 @@ class PPDBController extends Controller
             'cities' => $cities,
             'nav' => ['parent' => 'data', 'child' => 'Data Siswa']
         );
-        return view('ppdb-online/form-student', $data);
+        return view('ppdb-online/form-student-administration', $data);
         // dd($cities);
     }
 

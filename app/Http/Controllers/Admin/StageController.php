@@ -27,7 +27,7 @@ class StageController extends Controller
     public function index(Request $request)
     {
         $stages = Stage::query()
-        ->with('period');
+            ->with('period');
 
         if ($request->input('name')) {
             $stages = $stages->where('name', 'like', '%' . $request->input('name') . '%');
@@ -36,13 +36,13 @@ class StageController extends Controller
             $stages = $stages->where('unit_id', $request->input('unit'));
         }
         {
-            if ($request->input('period')){
-                $stages = $stages->where('periode',$request->input('period'));
+            if ($request->input('period')) {
+                $stages = $stages->where('periode', $request->input('period'));
             }
         }
         if ($request->input('year')) {
             $stages = $stages->whereHas('period', function ($query) use ($request) {
-                 return $query->where('school_year', $request->input('year'));
+                return $query->where('school_year', $request->input('year'));
 
             });
         }
@@ -53,7 +53,7 @@ class StageController extends Controller
             'units' => Unit::byUserRole()->get(),
             'stages' => $stages,
             'periods' => period::byUserRole()->get(),
-            'params' => $request->only(['name', 'unit', 'period','year'])
+            'params' => $request->only(['name', 'unit', 'period', 'year'])
         ];
 
         return view('administrator.stage.list', $data);
@@ -120,7 +120,7 @@ class StageController extends Controller
         $ppdbUsers = PPDBUser::where('unit_id', $unit)
             ->where('periode', $period)
             ->select('ppdb_users.id', 'name', 'register_number', 'unit_id', 'periode', 'ppdb_user_stages.passed', 'ppdb_user_stages.note')
-            ->leftJoin('ppdb_user_stages', function($join) use ($stage) {
+            ->leftJoin('ppdb_user_stages', function ($join) use ($stage) {
                 return $join->on('ppdb_users.id', '=', 'ppdb_user_stages.ppdb_user_id')->where('stage_id', $stage->id);
             })
             ->get();
@@ -130,7 +130,7 @@ class StageController extends Controller
             $development = Stage::where('unit_id', $unit)->where('periode', $period)->where('active', 1)->where('is_opening_development_feature', 1)->first();
             if ($development) {
                 $accepted = PPDBUserStage::where('stage_id', $development->id)
-                                    ->where('passed', 1)->pluck('ppdb_user_id')->all();
+                    ->where('passed', 1)->pluck('ppdb_user_id')->all();
             }
 
             $ppdbUsers = $ppdbUsers->filter(function ($ppdbUser) use ($accepted) {
@@ -161,10 +161,10 @@ class StageController extends Controller
             $isPassedAll = true;
         }
 
-        DbTrx::useTrx(function() use ($stage, $request, $isPassedAll) {
+        DbTrx::useTrx(function () use ($stage, $request, $isPassedAll) {
             $datas = [];
             PPDBUserStage::where('stage_id', $stage->id)->delete();
-            foreach ($request->statuses as $id=>$data) {
+            foreach ($request->statuses as $id => $data) {
                 if (!is_null($data) || $isPassedAll) {
                     $now = date('Y-m-d H:i:s');
                     $datas[] = [
@@ -178,7 +178,7 @@ class StageController extends Controller
                 }
             }
             PPDBUserStage::insert($datas);
-        }, function() use (&$response) {
+        }, function () use (&$response) {
             $response = 'failed';
         });
 
@@ -196,7 +196,8 @@ class StageController extends Controller
     public function import(
         $stage,
         ImportExcelRequest $request
-    ) {
+    )
+    {
         $sessionFlash = [];
         $stage = Stage::byUserRole()->where('id', $stage)->firstOrFail();
         $input = $request->validated();

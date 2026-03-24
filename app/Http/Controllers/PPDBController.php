@@ -8,6 +8,7 @@ use App\Models\ComplaintCategory;
 use App\Models\ComplaintOrders;
 use App\Models\ComplaintPeriode;
 use App\Models\ProductOrderDetail;
+use App\Models\Provinces;
 use App\Models\Stage;
 use App\Models\UniformDeadline;
 use App\Models\User;
@@ -91,12 +92,12 @@ class PPDBController extends Controller
         // }
 
         $is_stage = false;
-        if($user_ppdb->payment_option == 'BCA'){
-            if ($user_ppdb->isStatusCompleteWhitoutBca){
+        if ($user_ppdb->payment_option == 'BCA') {
+            if ($user_ppdb->isStatusCompleteWhitoutBca) {
                 $is_stage = true;
             }
-        }else{
-            if ($user_ppdb->isStatusComplete){
+        } else {
+            if ($user_ppdb->isStatusComplete) {
                 $is_stage = true;
             }
         }
@@ -105,11 +106,11 @@ class PPDBController extends Controller
 
         $data = array(
             'user' => $user_ppdb,
-            'ppdbUser'=>$user_ppdb,
+            'ppdbUser' => $user_ppdb,
             'stages' => $stageResults,
             'notifications' => $notifications,
-            'currentDateTime'=>$currentDateTime,
-            'is_stage'=>$is_stage,
+            'currentDateTime' => $currentDateTime,
+            'is_stage' => $is_stage,
             'nav' => ['parent' => 'home', 'child' => 'Home'],
         );
         $view = 'new-welcome';
@@ -405,11 +406,21 @@ class PPDBController extends Controller
         $user_ppdb = PPDBUser::where('user_id', $user['id'])->first();
         $cities = DB::table('ppdb_users')->selectRaw('lower(place_of_birth) AS city_name')->where('place_of_birth', '!=', NULL)->groupby('place_of_birth')->distinct('city_name')->get();
 
+        $provinces = Provinces::get();
+
+        $arr_stepper = ['Identitas Siswa', 'Data Tambahan', 'Asal Sekolah', 'Riwayat Kesehatan', 'Prestasi & Potensi'];
+        if ($user_ppdb->unit->unit_code != '05') {
+            unset($arr_stepper[4]);
+        }
+
         $data = array(
             'ppdbUser' => $user_ppdb,
             'cities' => $cities,
+            'stepper' => $arr_stepper,
+            'provinces'=>$provinces,
             'nav' => ['parent' => 'data', 'child' => 'Data Siswa']
         );
+
         return view('ppdb-online/form-student-administration', $data);
         // dd($cities);
     }
@@ -417,7 +428,9 @@ class PPDBController extends Controller
     public function formStudentSubmit(Request $request, PPDBUserService $ppdbUserService)
     {
         $input = $request->all();
+
         $user = $request->session()->get('user');
+
         $unit = Unit::find($user['ppdb']['unit_id']);
 
         if ($request->place_of_birth == 'another_city') {
@@ -476,16 +489,19 @@ class PPDBController extends Controller
                 $ppdb = PPDBUser::where('user_id', $user['id'])->firstOrFail();
 
                 $new_generate_voucher = false;
-                if($ppdb->gender != $input['gender']){
-                    (new VoucherService)->removeGeneratedFreeVouchersForOlahRagaProduct($ppdb);
-                    $new_generate_voucher = true;
+                if(!empty($ppdb->development_statement)){
+                    if ($ppdb->gender != $input['gender']) {
+                        (new VoucherService)->removeGeneratedFreeVouchersForOlahRagaProduct($ppdb);
+                        $new_generate_voucher = true;
+                    }
                 }
+
 
                 PPDBUser::where('user_id', $user['id'])
                     ->firstOrFail()
                     ->update($update);
 
-                if($new_generate_voucher){
+                if ($new_generate_voucher) {
                     $ppdbUserService->confirmDevelopmentStatement($ppdb->id);
                 }
             }
@@ -504,15 +520,23 @@ class PPDBController extends Controller
     {
         $user = $request->session()->get('user');
         $ppdb = PPDBUser::where('user_id', $user['id'])->with('parents')->firstOrFail();
+        $arr_stepper = ['Data Ayah', 'Data Ibu'];
 
         $data = array(
             'dad' => Parents::where('children_id', $user['id'])->where('type', 'father')->first(),
             'mom' => Parents::where('children_id', $user['id'])->where('type', 'mother')->first(),
             'wali' => Parents::where('children_id', $user['id'])->where('type', 'wali')->first(),
             'ppdb' => $ppdb,
+            'stepper' => $arr_stepper,
             'nav' => ['parent' => 'data', 'child' => 'Data Siswa']
         );
-        return view('ppdb-online/form-parent', $data);
+
+        if ($ppdb->isWaliRequired) {
+            return view('ppdb-online/form-parent-guardian-administration', $data);
+        } else {
+            return view('ppdb-online/form-parent-administration', $data);
+        }
+
     }
 
     public function formParentSubmit(Request $request)
@@ -935,14 +959,14 @@ class PPDBController extends Controller
             'unit_id' => $ppdb->unit_id,
             'status' => 1
         ])->first();
-        $uniform_deadline = date('Y') .' - '. (date('Y') + 1);
+        $uniform_deadline = date('Y') . ' - ' . (date('Y') + 1);
         $school_year = '';
-        if ($deadline){
+        if ($deadline) {
             $uniform_deadline = $deadline->uniform_payment_deadline;
-            $school_year = $deadline->school_year .' - '. ($deadline->school_year + 1);
+            $school_year = $deadline->school_year . ' - ' . ($deadline->school_year + 1);
         }
 
-        $uniformPaymentDeadline = strtolower($ppdb->unit->city) != 'pacet' ? ', '. $uniform_deadline : '';
+        $uniformPaymentDeadline = strtolower($ppdb->unit->city) != 'pacet' ? ', ' . $uniform_deadline : '';
 
         $templateProcessor->setValues([
             'register_number' => $ppdb->register_number,
@@ -1124,7 +1148,7 @@ class PPDBController extends Controller
         }
 
         $getVoucher = [];
-        foreach ($vouchers as $ind => $voucher){
+        foreach ($vouchers as $ind => $voucher) {
             $getVoucher[$ind] = $voucherService->getVoucher($voucher);
         }
 
@@ -1195,10 +1219,10 @@ class PPDBController extends Controller
 
         $validateShop = $cartService->add($params, $user);
 //        if ($cartService->add($params, $user)) {
-            return Response::json([
-                'status' => $validateShop['status'],
-                'message' => $validateShop['message'],
-            ]);
+        return Response::json([
+            'status' => $validateShop['status'],
+            'message' => $validateShop['message'],
+        ]);
 //        }
     }
 
@@ -1304,7 +1328,7 @@ class PPDBController extends Controller
         $periodComplaint = ComplaintPeriode::where('type', 'ppdb')->first();
 
         $is_complaint = false;
-        if($periodComplaint){
+        if ($periodComplaint) {
             if ($periodComplaint->status == 'all') {
                 $is_complaint = true;
             } else {
@@ -1550,7 +1574,8 @@ class PPDBController extends Controller
         return view('ppdb-online.detail-payment-register', ['data' => $user_ppdb]);
     }
 
-    public function repaymentRegistration(Request $request){
+    public function repaymentRegistration(Request $request)
+    {
         $ppdbUser = PPDBUser::where('id', $request->id)->firstOrFail();
         $bank_account = \App\Helpers\PriceHelper::paymentInfo($ppdbUser->unit, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL)['bank'];
         $va_account = \App\Helpers\PriceHelper::virtualAccountNumber($ppdbUser, false, \App\Helpers\Helper::isVaBcaEnable() ? 'BCA' : NULL);
@@ -1564,7 +1589,8 @@ class PPDBController extends Controller
 
     }
 
-    public function expiredRemining(){
+    public function expiredRemining()
+    {
 
         $currentDateTime = Carbon::now();
         $expired_at = Carbon::now()->addDay();
@@ -1576,11 +1602,11 @@ class PPDBController extends Controller
     {
         $productOrder = ProductOrder::whereId($request->id)->first();
 
-        $historyComplaint = ComplaintOrders::where('product_order_id', $productOrder->id)->orderBy('id','desc')->get();
+        $historyComplaint = ComplaintOrders::where('product_order_id', $productOrder->id)->orderBy('id', 'desc')->get();
 
         $products = [];
         foreach ($productOrder->productOrderDetails as $item) {
-            $products[$item->id] = $item->product->name . ' (Size : '. $item->productDetail->size.')';
+            $products[$item->id] = $item->product->name . ' (Size : ' . $item->productDetail->size . ')';
         }
 
         $complaintCategory = ComplaintCategory::where('status', 1)->get();
@@ -1615,8 +1641,8 @@ class PPDBController extends Controller
 
             if (isset($productOrderDetail)) {
                 $dataCompaint = ComplaintOrders::where([
-                    'product_order_id'=>$request->product_order_id,
-                    'product_order_detail_id' =>$request->product_id
+                    'product_order_id' => $request->product_order_id,
+                    'product_order_detail_id' => $request->product_id
                 ])->first();
 
                 if (empty($dataCompaint)) {
@@ -1627,7 +1653,7 @@ class PPDBController extends Controller
                         'product_id' => $productOrderDetail->product_id,
                         'product_detail_id' => $productOrderDetail->product_detail_id,
                         'user_id' => $user['id'],
-                        'type'=>'ppdb'
+                        'type' => 'ppdb'
                     ];
 
                     $store = $productOrderComplaintService->store($request->all(), $payload, $user);
@@ -1666,16 +1692,16 @@ class PPDBController extends Controller
         ])->firstOrFail();
 
         $productOrder = ProductOrder::where([
-            'id'=>$complaintOrder->product_order_id
+            'id' => $complaintOrder->product_order_id
         ])->firstOrFail();
 
-        $orderDetail = ProductOrderDetail::where('id',$complaintOrder->product_order_detail_id)->firstOrFail();
-        $user = User::where('id',Auth::user()->id)->first();
+        $orderDetail = ProductOrderDetail::where('id', $complaintOrder->product_order_detail_id)->firstOrFail();
+        $user = User::where('id', Auth::user()->id)->first();
 
         $data = [
             'complaintOrder' => $complaintOrder,
-            'productOrder'=>$productOrder,
-            'orderDetail'=>$orderDetail,
+            'productOrder' => $productOrder,
+            'orderDetail' => $orderDetail,
             'user' => $user,
         ];
 
@@ -1683,7 +1709,7 @@ class PPDBController extends Controller
 
         $pdf = \PDF::loadView('student-dashboard.shop.pdf_complaint', $data);
         $date_complaint = Carbon::parse($complaintOrder->created_at)->format('Ymd');
-        return $pdf->download("detail-complaint-".$date_complaint."-".$complaintOrder->user->name.".pdf");
+        return $pdf->download("detail-complaint-" . $date_complaint . "-" . $complaintOrder->user->name . ".pdf");
     }
 
     private function fillDataVarible()

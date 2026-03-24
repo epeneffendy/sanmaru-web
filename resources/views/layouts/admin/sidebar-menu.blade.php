@@ -20,6 +20,8 @@
                 <ul class="treeview-menu">
                     <li><a href="{{ route('admin.ppdb.index') }}" class="{{($nav['child']=='ppdb')?'active':''}}">
                             <span class="icon color12"><i class="fa fa-user-plus"></i></span>Pendaftar</a></li>
+                    <li><a href="{{ route('admin.ppdb-monitoring.index') }}" class="{{($nav['child']=='ppdb-monitoring')?'active':''}}">
+                            <span class="icon color12"><i class="fa fa-tachometer"></i></span>Monitoring PPDB</a></li>
                     <li><a href="{{ route('admin.period.index') }}" class="{{($nav['child']=='period')?'active':''}}">
                             <span class="icon color12"><i class="fa fa-clock-o"></i></span>Periode</a></li>
                     <li><a href="{{ route('admin.age-limit.index') }}"

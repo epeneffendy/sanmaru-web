@@ -97,7 +97,7 @@
                         </ul>
                     </div>
                     <div class="form-group">
-                        <input type="text" name="name" class="form-control required"
+                        <input type="text" name="name" class="form-control uppercase-input required"
                                placeholder="Nama Siswa Sesuai Akta kelahiran"
                                value="{{ old('name') }}" onchange="getVals(this, 'name');">
                     </div>
@@ -113,7 +113,7 @@
                     </div>
                     @else
                     <div class="form-group">
-                        <input type="text" name="origin_school" class="form-control required" placeholder="Sekolah Asal"
+                        <input type="text" name="origin_school" class="form-control uppercase-input required" placeholder="Sekolah Asal"
                                value="{{ old('origin_school') }}" onchange="getVals(this, 'origin_school');">
                     </div>
                     @endif
@@ -243,10 +243,17 @@
 <script>
     $(document).ready(function () {
         $('#popup_modal').modal('show');
+
     })
 </script>
 @endif
 <script>
+    $(document).ready(function () {
+
+        $('.uppercase-input').on('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    })
     $('input[name=date_of_birth]').datepicker({
         uiLibrary: 'bootstrap4',
         format: 'yyyy-mm-dd',

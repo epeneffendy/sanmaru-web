@@ -1,0 +1,216 @@
+<div class="fixed-table-head">
+    <table id="datatables-master-ppdb" class="table table-responsive table-striped display"
+           style="width: 100%; border-top-width: medium; border-top-style: solid;">
+        <thead>
+        <tr>
+            <th rowspan="2" class="text-center">No</th>
+            <th rowspan="2" class="text-center">Calon Siswa</th>
+            <th rowspan="2" class="text-center">Status Pendaftaran</th>
+            <th colspan="5" class="text-center">Status Administrasi</th>
+            <th rowspan="2" class="text-center">Option</th>
+        </tr>
+        <tr>
+            <th class="text-center">Verified</th>
+            <th class="text-center">Biaya Formulir</th>
+            <th class="text-center">Data</th>
+            <th class="text-center">Parent</th>
+            <th class="text-center">Surat Pernyataan</th>
+        </tr>
+        </thead>
+        <tbody>
+        @php($number = 1)
+        @foreach($data as $item)
+            <tr>
+                <td class="text-center">{{$number++}}</td>
+                <td class="text-center">
+                    <b style="text-transform: uppercase">{{$item['name']}}</b><br/>
+                    <u>{{$item['username']}}</u><br/>
+                    <label class="label label-info">{{$item['email']}}</label><br/>
+                    <label class="label label-warning label-sm">no
+                        registrasi: {{$item['register_number']}}</label><br/>
+                    <label
+                        class="label label-danger label-sm">{{$item['unit_name']}}</label><br/>
+                    <label class="label label-info label-xs">{{ $item['periode_name'] }}</label><br/>
+                    <label class="label label-xs"
+                           style="background-color: gray">{{ $item['origin_school'] }}</label><br/>
+                    <small>phone: {{$item['mobile_phone']}}</small><br/>
+                    {{$item['gender']}}
+                </td>
+                <td class="text-center">{!! $item['status_confirm'] !!}</td>
+                <td class="text-center">
+                    <span class="btn btn-circle btn-sm {{ $item['isEmailVerified'] ? "btn-success" : "btn-danger" }}">
+                        <icon class="icon-plus">
+                            @if ($item['isEmailVerified'])
+                                <i class="fa fa-check" title="Email Verified"></i>
+                            @else
+                                <i class="fa fa-times" title="Email belum Verified"></i>
+                            @endif
+                        </icon>
+                    </span>
+                    @if (!$item['isEmailVerified'])
+                        <br/>
+                        <br/>
+                        <span class="btn btn-sm btn-default send-confirmation" data-id="{{ $item['id'] }}"><i
+                                class="fa fa-envelope"></i></span>
+                    @endif
+                </td>
+                <td class="text-center">
+                    @if($item['payment_date'] == '')
+                        <span class="btn btn-circle btn-sm btn-danger">
+                            <icon class="icon-times"><i class="fa fa-times"
+                                                        title="Belum melakukan pembayaran"></i></icon>
+                        </span>
+                    @else
+                        <span class="btn btn-circle btn-sm btn-success">
+                            <icon class="icon-times"><i class="fa fa-check" title="Pembayaran Terkonfirmasi"></i></icon>
+                        </span>
+                        <br/>
+                        <br/>
+                        <span
+                            class="label label-info">Pembayaran Terkonfirmasi</span>
+                        <br>
+                        <span
+                            class="label label-success">Rp.{{number_format($item['total_payment_form'])}}</span>
+                    @endif
+                </td>
+
+                <td class="text-center">
+                    <span
+                        class="btn btn-circle btn-sm {{ $item['isComplite'] ? "btn-success" : "btn-danger" }}">
+                        <icon class="icon-plus">
+                            @if ($item['isComplite'])
+                                <i class="fa fa-check" title="Lengkap"></i>
+                            @else
+                                <i class="fa fa-times" title="Belum Lengkap"></i>
+                            @endif
+                        </icon>
+                    </span>
+                </td>
+                <td class="text-center">
+                    <span
+                        class="btn btn-circle btn-sm {{ $item['isParent'] ? "btn-success" : "btn-danger" }}">
+                        <icon class="icon-plus">
+                            @if ($item['isParent'])
+                                <i class="fa fa-check" title="Lengkap"></i>
+                            @else
+                                <i class="fa fa-times" title="Belum Lengkap"></i>
+                            @endif
+                        </icon>
+                    </span>
+                </td>
+                <td class="text-center">
+                    <span
+                        class="btn btn-circle btn-sm {{ $item['IsStatementLetterUploaded'] ? ($item['IsStatementLetterConfirmed'] ? "btn-success btn-modal-statement-letter-success" : "btn-warning btn-modal-statement-letter") : "btn-danger" }}"
+                        data-id="{{$item['id']}}" data-name="{{$item['name']}}"
+                        data-register_number="{{$item['register_number']}}"
+                        data-unit_id="{{$item['unit_id']}}"
+                        data-unit_name="{{$item['unit_name']}}">
+                        <icon class="icon-plus">
+                            @if ($item['IsStatementLetterConfirmed'])
+                                <i class="fa fa-check"></i>
+                            @elseif ($item['IsStatementLetterUploaded'])
+                                <i class="fa fa-question"></i>
+                            @else
+                                <i class="fa fa-times"></i>
+                            @endif
+                        </icon>
+                    </span>
+
+                    {{-- ACTION MODAL--}}
+
+                    @if ($item['development_fee_option'] && !$item['isOrderConfirmed'])
+                        <button data-toggle="modal"
+                                data-target="#reset-development-payment-modal"
+                                class="btn btn-sm btn-warning" style="margin-top: 5px"
+                                onclick="return confirm('Apakah anda yakin akan mereset tahapan ini? Surat pernyataan akan terhapus');">
+                            Reset
+                        </button>
+                        <!-- Modal -->
+                        <div id="reset-development-payment-modal" class="modal fade"
+                             role="dialog">
+                            <div class="modal-dialog">
+                                <!-- Modal content-->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close"
+                                                data-dismiss="modal">&times;
+                                        </button>
+                                        <h4 class="modal-title">Nofitication for student</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form
+                                            action="{{ route('admin.ppdb.reset-development-payment-method', $item) }}"
+                                            method="POST">
+                                            @csrf
+                                            <p style="text-align: left;">Silahkan isi alasan
+                                                mereset surat pernyataan.</p>
+                                            <input type="hidden" id="year" name="year"
+                                                   value="{{ $item['school_year'] }}">
+                                            <input type="hidden" id="unit" name="unit"
+                                                   value="{{ $item['unit_id'] }}">
+                                            <input type="hidden" id="periode" name="periode"
+                                                   value="{{ $item['periode']}}">
+                                            <input type="hidden" id="ppdb_user_id"
+                                                   name="ppdb_user_id[]"
+                                                   value="{{ $item['id']}}">
+                                            <input type="hidden" id="title" name="title"
+                                                   value="[RESET] Surat Pernyataan {{ $item['name'] }}">
+                                            <div class="form-group row">
+                                                <label for="body"
+                                                       class="col-md-4 col-form-label text-md-right">Alasan
+                                                    Reset</label>
+                                                <div class="col-md-6">
+                                                                            <textarea class="form-control" name="body"
+                                                                                      id="body" rows="3"
+                                                                                      placeholder="Enter Pesan">{!! old('body') !!}</textarea>
+
+                                                    @error('body')
+                                                    <span class="invalid-feedback" role="alert">
+                                                                            <strong>{{ $message }}</strong>
+                                                                        </span>
+                                                    @enderror
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group row">
+                                                <div class="col-sm-10 col-sm-offset-2">
+                                                    <div class="checkbox checkbox-success">
+                                                        <input type="checkbox" name="send_email"
+                                                               id="send_email"
+                                                               value="1" {{ old('send_email', 1) ? 'checked' : '' }}>
+                                                        <label for="send_email">Kirim email
+                                                            pemberitahuan</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group row mb-0"
+                                                 style="text-align: right; padding-right:10px">
+                                                <button type="submit" class="btn btn-warning">
+                                                    Reset
+                                                </button>
+
+                                                <button type="button" class="btn btn-secondary"
+                                                        data-dismiss="modal">Cancel
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                </td>
+                <td class="text-center">
+                    <a href="{{ route('admin.ppdb.show', $item['id']) }}" title="Show"
+                       class="btn btn-xs btn-success">
+                        <icon class="icon-plus"><i class="fa fa-eye"></i></icon>
+                    </a>
+                </td>
+            </tr>
+        @endforeach
+
+        </tbody>
+    </table>
+</div>

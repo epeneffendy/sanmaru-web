@@ -4,7 +4,7 @@
         <div class="input-group modern-input-group">
             <input type="text" name="name"
                    value="{{ old('name', @$ppdbUser->name) }}"
-                   class="form-control border-start-0 ps-0 shadow-none required"
+                   class="form-control border-start-0 ps-0 shadow-none uppercase-input required"
                    placeholder="Masukkan Nama Lengkap Sesuai Ijazah">
         </div>
         <small class="text-muted mt-1 d-block" style="font-size: 0.75rem;">*Pastikan ejaan nama sudah benar.</small>
@@ -15,7 +15,7 @@
     <div class="form-group custom-form-group">
         <label class="form-label fw-bold text-muted mb-2">NIK Siswa</label>
         <div class="input-group modern-input-group">
-            <input type="text" name="nik_siswa"
+            <input type="text" name="nik_siswa" id="nik_siswa"
                    value="{{ old('nik_siswa', @$ppdbUser->nik_siswa) }}"
                    class="form-control border-start-0 ps-0 shadow-none required"
                    placeholder="Masukkan NIK Siswa">
@@ -29,10 +29,11 @@
         <label class="form-label fw-bold text-muted mb-2">Jenis Kelamin</label>
         <div class="input-group modern-input-group">
             <select class="form-control required" placeholder="Jenis Kelamin" name="gender">
-                <option value="male" {{ old('gender', @$ppdbUser->gender) === 'male' ? 'selected' : NULL }}>Laki-Laki
+                <option value="">--SILAHKAN PILIH--</option>
+                <option value="male" {{ old('gender', @$ppdbUser->gender) === 'male' ? 'selected' : NULL }}>LAKI-LAKI
                 </option>
                 <option value="female" {{ old('gender', @$ppdbUser->gender) === 'female' ? 'selected' : NULL }}>
-                    Perempuan
+                    PEREMPUAN
                 </option>
             </select>
         </div>
@@ -44,23 +45,24 @@
         <label class="form-label fw-bold text-muted mb-2">Agama</label>
         <div class="input-group modern-input-group">
             <select class="form-control required" placeholder="Agama" name="religion">
+                <option value="">--SILAHKAN PILIH--</option>
                 <option value="Katolik" {{ old('religion', @$ppdbUser->religion) === 'Katolik' ? 'selected' : NULL }}>
-                    Katolik
+                    KATOLIK
                 </option>
                 <option
                     value="Protestan" {{ old('religion', @$ppdbUser->religion) === 'Protestan' ? 'selected' : NULL }}>
-                    Protestan
+                    PROSTESTAN
                 </option>
-                <option value="Islam" {{ old('religion', @$ppdbUser->religion) === 'Islam' ? 'selected' : NULL }}>Islam
+                <option value="Islam" {{ old('religion', @$ppdbUser->religion) === 'Islam' ? 'selected' : NULL }}>ISLAM
                 </option>
-                <option value="Hindu" {{ old('religion', @$ppdbUser->religion) === 'Hindu' ? 'selected' : NULL }}>Hindu
+                <option value="Hindu" {{ old('religion', @$ppdbUser->religion) === 'Hindu' ? 'selected' : NULL }}>HINDU
                 </option>
                 <option value="Buddha" {{ old('religion', @$ppdbUser->religion) === 'Buddha' ? 'selected' : NULL }}>
-                    Buddha
+                    BUDHA
                 </option>
                 <option
                     value="Khonghucu" {{ old('religion', @$ppdbUser->religion) === 'Khonghucu' ? 'selected' : NULL }}>
-                    Khonghucu
+                    KHONGHUCU
                 </option>
             </select>
         </div>
@@ -72,8 +74,8 @@
         <label class="form-label fw-bold text-muted mb-2">Tempat Lahir</label>
         <div class="input-group modern-input-group">
             <input type="text" name="place_of_birth"
-                   value="{{ old('place_of_birth', @$ppdbUser->city_name) }}"
-                   class="form-control border-start-0 ps-0 shadow-none required"
+                   value="{{ old('place_of_birth', @$ppdbUser->place_of_birth) }}"
+                   class="form-control border-start-0 ps-0 shadow-none uppercase-input required"
                    placeholder="Masukkan Tempat Lahir">
         </div>
     </div>
@@ -85,7 +87,7 @@
         <div class="input-group modern-input-group">
             <input type="date" name="date_of_birth"
                    value="{{ old('date_of_birth', @$ppdbUser->date_of_birth) }}"
-                   class="form-control required" id="datepicker"/>
+                   class="form-control uppercase-input required" id="datepicker"/>
         </div>
     </div>
 </div>
@@ -94,7 +96,8 @@
     <div class="form-group custom-form-group">
         <label class="form-label fw-bold text-muted mb-2">Alamat</label>
         <div class="input-group modern-input-group">
-            <textarea class="form-control required" name="alamat_sesuai_kk" rows="3" placeholder="Alamat Sesuai KK">{{ old('alamat_sesuai_kk', @$ppdbUser->alamat_sesuai_kk) }}</textarea>
+            <textarea class="form-control uppercase-input required" name="address" rows="3"
+                      placeholder="Alamat">{{ old('address', @$ppdbUser->address) }}</textarea>
         </div>
     </div>
 </div>
@@ -103,12 +106,8 @@
     <div class="form-group custom-form-group">
         <label class="form-label fw-bold text-muted mb-2">Provinsi</label>
         <div class="input-group modern-input-group">
-            <select class="form-control required" placeholder="Kewarganegaraan" name="country">
-                <option value="WNI" {{ old('country', @$ppdbUser->country) === 'WNI' ? 'selected' : NULL }}>WNI
-                </option>
-                <option value="WNA" {{ old('country', @$ppdbUser->country) === 'WNA' ? 'selected' : NULL }}>WNA
-                </option>
-            </select>
+            <input name="region" class="form-control uppercase-input required" placeholder="Provinsi"
+                   value="{{ old('region', @$ppdbUser->region) }}"/>
         </div>
     </div>
 </div>
@@ -118,12 +117,8 @@
     <div class="form-group custom-form-group">
         <label class="form-label fw-bold text-muted mb-2">Kota</label>
         <div class="input-group modern-input-group">
-            <select class="form-control required" placeholder="Kewarganegaraan" name="country">
-                <option value="WNI" {{ old('country', @$ppdbUser->country) === 'WNI' ? 'selected' : NULL }}>WNI
-                </option>
-                <option value="WNA" {{ old('country', @$ppdbUser->country) === 'WNA' ? 'selected' : NULL }}>WNA
-                </option>
-            </select>
+            <input name="city" class="form-control uppercase-input required" placeholder="Kota"
+                   value="{{ old('city', @$ppdbUser->city) }}"/>
         </div>
     </div>
 </div>
@@ -133,6 +128,7 @@
         <label class="form-label fw-bold text-muted mb-2">Kewarganegaraan</label>
         <div class="input-group modern-input-group">
             <select class="form-control required" placeholder="Kewarganegaraan" name="country">
+                <option value="">--SILAHKAN PILIH--</option>
                 <option value="WNI" {{ old('country', @$ppdbUser->country) === 'WNI' ? 'selected' : NULL }}>WNI
                 </option>
                 <option value="WNA" {{ old('country', @$ppdbUser->country) === 'WNA' ? 'selected' : NULL }}>WNA

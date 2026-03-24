@@ -232,7 +232,8 @@ class PPDBController extends Controller
             'mom' => $mom,
             'wali' => $wali
         );
-        return view('administrator/ppdb/show', $data);
+
+        return view('administrator/ppdb/show-detail', $data);
     }
 
     public function showPayment($id, PPDBUserService $ppdbUserService, ParentService $parentService)

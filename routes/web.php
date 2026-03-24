@@ -705,6 +705,13 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
         Route::get('/administrator/ppdb/download-template','Admin\PPDBController@downloadTemplate')->name('admin.ppdb.download-template');
         Route::post('/administrator/ppdb/import','Admin\PPDBController@import')->name('admin.ppdb.import');
 
+        //MONITORING PPDB
+        Route::prefix('administrator/ppdb-monitoring')->name('admin.ppdb-monitoring.')->namespace('Admin')->group(function () {
+            Route::get('', 'PPDBMonitoringController@index')->name('index');
+            Route::get('show-detail-period/{id}', 'PPDBMonitoringController@showDetailPeriod')->name('show-detail-period');
+            Route::get('show-detail-stage/{id}/{type}/{stage_id}', 'PPDBMonitoringController@showDetailStage')->name('show-detail-stage');
+        });
+
         // AGE LIMIT
         Route::prefix('administrator/age-limit')->name('admin.age-limit.')->namespace('Admin')->group(function () {
             Route::get('', 'AgeLimitController@index')->name('index');

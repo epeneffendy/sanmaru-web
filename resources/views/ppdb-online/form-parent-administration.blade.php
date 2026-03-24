@@ -86,11 +86,11 @@
 
         </style>
     @endpush
-    @php($inputs = \App\Helpers\InputCollectionHelper::additionalData($ppdbUser->unit))
+
     <div class="container py-5">
         <div class="card registration-card border-0 shadow-lg">
             <div class="card-header bg-white pt-5 pb-4 border-0">
-                <h3 class="fw-bold text-success text-center mb-5">Formulir Pendaftaran Siswa Baru</h3>
+                <h3 class="fw-bold text-success text-center mb-5">Identitas Orang Tua Calon Siswa</h3>
 
                 <div class="stepper-container">
                     <div class="progress-line">
@@ -111,67 +111,26 @@
             </div>
 
             <div class="card-body p-4 p-md-5">
-                <form id="wrapped" method="POST" autocomplete="off" action="{{route('ppdb.form-student.submit')}}" novalidate>
+                <form id="wrapped" method="POST" autocomplete="off" action="{{route('ppdb.form-parent.submit')}}"
+                      novalidate>
                     @csrf
                     <div class="tab-content">
-                        @if (count($errors) > 0)
-                            <div class="alert alert-danger">
-                                <ul style="margin: 0 0 0 0;">
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-                        <div class="tab-pane fade show active" id="identitas" role="tabpanel">
+                        <div class="tab-pane fade show active" id="father" role="tabpanel">
                             <div class="row g-4">
                                 <div class="col-12">
-                                    <h5 class="section-title"><i class="bi bi-person-badge me-2"></i>Identitas Calon
-                                        Siswa</h5>
+                                    <h5 class="section-title"><i class="bi bi-person-badge me-2"></i>Data Ayah</h5>
                                 </div>
-                                @include('ppdb-online.partials.form_registration._identitas')
+                                @include('ppdb-online.partials.form_registration._father_form')
                             </div>
                         </div>
 
-                        <div class="tab-pane fade" id="additional" role="tabpanel">
+                        <div class="tab-pane fade" id="mother" role="tabpanel">
                             <div class="col-12">
-                                <h5 class="section-title"><i class="bi bi-person-badge me-2"></i>Data Calon Peserta
-                                    Didik</h5>
+                                <h5 class="section-title"><i class="bi bi-person-badge me-2"></i>Data Ibu</h5>
                             </div>
 
-                            @include('ppdb-online.partials.form_registration._additional_data')
+                            @include('ppdb-online.partials.form_registration._mother_form')
                         </div>
-
-                        <div class="tab-pane fade" id="school" role="tabpanel">
-                            <div class="col-12">
-                                <h5 class="section-title"><i class="bi bi-person-badge me-2"></i>Asal Sekolah Calon
-                                    Peserta Didik</h5>
-                            </div>
-
-                            @include('ppdb-online.partials.form_registration._school_form')
-                        </div>
-
-                        <div class="tab-pane fade" id="medical" role="tabpanel">
-                            <div class="col-12">
-                                <h5 class="section-title"><i class="bi bi-person-badge me-2"></i>Riwayat Kesehatan Calon
-                                    Peserta Didik</h5>
-                            </div>
-
-                            @include('ppdb-online.partials.form_registration._medical_history')
-                        </div>
-
-                        @if($ppdbUser->unit->unit_code == '05')
-                            <div class="tab-pane fade" id="potential" role="tabpanel">
-                                <div class="col-12">
-                                    <h5 class="section-title"><i class="bi bi-person-badge me-2"></i>Potensi Calon
-                                        Peserta Didik</h5>
-                                </div>
-
-                                @include('ppdb-online.partials.form_registration._potential_student')
-                            </div>
-                        @endif
-
-
                     </div>
 
                     <div class="form-footer mt-5 pt-4 d-flex justify-content-between">
@@ -181,6 +140,7 @@
                                 id="simpan-pendaftaran">
                             Simpan <i class="bi bi-check-circle me-2"></i>
                         </button>
+
                     </div>
                 </form>
             </div>
@@ -193,16 +153,14 @@
     <script>
         const RegistrationWizard = {
             currentTab: 0,
-            tabs: @json($ppdbUser->unit->unit_code != '05')
-                ? ['identitas', 'additional', 'school', 'medical']
-                : ['identitas', 'additional', 'school', 'medical', 'potential'],
+            tabs: ['father', 'mother'],
+
 
             init() {
                 this.updateUI();
                 $('#nextBtn').off('click').on('click', () => this.moveTab(1));
                 $('#prevBtn').off('click').on('click', () => this.moveTab(-1));
 
-                this.checkingNIK();
                 this.checkingPhoneNumber();
 
                 $('.uppercase-input').on('input', function () {
@@ -271,72 +229,9 @@
                 $('#simpan-pendaftaran').toggleClass('d-none', !isLastTab);
             },
 
-            checkingNIK() {
-                const nikSiswa = $('input[name="nik_siswa"]');
-                const nikOrtu = $('input[name="nik_ortu"]');
-
-                const validate = (el) => {
-                    const val = el.val();
-                    const feedbackId = 'nik-feedback';
-                    $(`#${feedbackId}`).remove();
-                    el.removeClass('is-invalid is-valid');
-
-                    if (val.length === 0) return;
-
-                    let errorMessage = "";
-
-                    // Validasi 1: Harus 16 digit angka
-                    if (val.length !== 16 || isNaN(val)) {
-                        errorMessage = "NIK harus berupa 16 digit angka.";
-                    } else {
-                        // Validasi 2: Bedah Tanggal Lahir (Digit ke 7 sampai 12)
-                        let day = parseInt(val.substring(6, 8));
-                        let month = parseInt(val.substring(8, 10));
-                        let year = parseInt(val.substring(10, 12));
-
-                        // Jika perempuan, tanggal lahir + 40
-                        if (day > 40) day -= 40;
-
-                        // Cek validitas tanggal dan bulan dasar
-                        if (day < 1 || day > 31) errorMessage = "Struktur angka NIK tidak valid.";
-                        if (month < 1 || month > 12) errorMessage = "Struktur angka NIK tidak valid.";
-
-                        // Validasi 3: Kode Wilayah (6 digit pertama tidak boleh 000000)
-                        if (val.substring(0, 6) === "000000") {
-                            errorMessage = "Kode wilayah NIK tidak valid.";
-                        }
-                    }
-
-                    if (errorMessage) {
-                        el.addClass('is-invalid');
-                        el.after(`<div id="${feedbackId}" class="invalid-feedback">${errorMessage}</div>`);
-                        return false;
-                    } else {
-                        el.addClass('is-valid');
-                        return true;
-                    }
-                };
-
-                // 1. Jalankan validasi saat input berubah (typing/paste)
-                nikSiswa.on('input change', function () {
-                    validate($(this));
-                });
-
-                nikOrtu.on('input change', function () {
-                    validate($(this));
-                });
-
-                if (nikSiswa.val()) {
-                    validate(nikSiswa);
-                }
-
-                if (nikOrtu.val()) {
-                    validate(nikOrtu);
-                }
-            },
-
             checkingPhoneNumber() {
-                const telpAsalSekolah = $('input[name="nomor_telepon_asal_sekolah"]');
+                const telpAyah = $('input[name="f_phone"]');
+                const telpIbu = $('input[name="m_phone"]');
 
                 const validate = (el, type) => {
                     const val = el.val();
@@ -367,12 +262,20 @@
                     }
                 };
 
-                telpAsalSekolah.on('input change', function () {
-                    validate($(this), 'kantor');
+                telpAyah.on('input change', function () {
+                    validate($(this), 'hp');
                 });
 
-                if (telpAsalSekolah.val()) {
-                    validate(telpAsalSekolah, 'kantor');
+                if (telpAyah.val()) {
+                    validate(telpAyah, 'hp');
+                }
+
+                telpIbu.on('input change', function () {
+                    validate($(this), 'hp');
+                });
+
+                if (telpIbu.val()) {
+                    validate(telpIbu, 'hp');
                 }
 
 

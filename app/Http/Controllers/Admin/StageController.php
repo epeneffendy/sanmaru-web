@@ -152,6 +152,7 @@ class StageController extends Controller
 
     public function postUsers($stage, Request $request)
     {
+
         //TODO move to stageservice
         $stage = Stage::byUserRole()->findOrFail($stage);
         $response = 'success';
@@ -164,7 +165,14 @@ class StageController extends Controller
         DbTrx::useTrx(function () use ($stage, $request, $isPassedAll) {
             $datas = [];
             PPDBUserStage::where('stage_id', $stage->id)->delete();
+
             foreach ($request->statuses as $id => $data) {
+                $user = PPDBUser::find($id);
+                if ($user) {
+                    $user->stages_id = 0;
+                    $user->stages_status = null;
+                    $user->save();
+                }
                 if (!is_null($data) || $isPassedAll) {
                     $now = date('Y-m-d H:i:s');
                     $datas[] = [
@@ -175,6 +183,18 @@ class StageController extends Controller
                         'created_at' => $now,
                         'updated_at' => $now
                     ];
+
+                    if ($user) {
+                        $stage_status = 'pending';
+                        if($data == 0){
+                            $stage_status = 'not_passed';
+                        }else if($data == 1){
+                            $stage_status = 'passed';
+                        }
+                        $user->stages_id = $stage->id;
+                        $user->stages_status = $stage_status;
+                        $user->save();
+                    }
                 }
             }
             PPDBUserStage::insert($datas);
@@ -222,5 +242,51 @@ class StageController extends Controller
         }
 
         return redirect()->route('admin.stage.edit', ['stage' => $stage->id])->with($sessionFlash);
+    }
+
+    public function getUsersStage($stage, $unit, $period)
+    {
+
+        $passedUserIds = $this->studentPassed($period);
+
+        $stage = Stage::byUserRole()->where('id', $stage)->firstOrFail();
+
+        $ppdbUsers = PPDBUser::where('unit_id', $unit)
+            ->where('periode', $period)
+            ->whereIn('ppdb_users.id', $passedUserIds)
+            ->select('ppdb_users.id', 'name', 'register_number', 'unit_id', 'periode', 'ppdb_user_stages.passed', 'ppdb_user_stages.note')
+            ->leftJoin('ppdb_user_stages', function ($join) use ($stage) {
+                return $join->on('ppdb_users.id', '=', 'ppdb_user_stages.ppdb_user_id')->where('stage_id', $stage->id);
+            })
+            ->get();
+
+        if ($stage->is_opening_shop_feature) {
+            $accepted = [];
+            $development = Stage::where('unit_id', $unit)->where('periode', $period)->where('active', 1)->where('is_opening_development_feature', 1)->first();
+            if ($development) {
+                $accepted = PPDBUserStage::where('stage_id', $development->id)
+                    ->where('passed', 1)->pluck('ppdb_user_id')->all();
+            }
+
+            $ppdbUsers = $ppdbUsers->filter(function ($ppdbUser) use ($accepted) {
+                return in_array($ppdbUser->id, $accepted);
+            })->values();
+
+        }
+
+        return response()->json($ppdbUsers);
+    }
+
+    public function studentPassed($period)
+    {
+        $ppdbUser = PPDBUser::where('periode', $period)->get();
+        $arr = [];
+        foreach ($ppdbUser as $user) {
+            if ($user->isDataCompleteWhitoutBca) {
+                $arr[] = $user->id;
+            }
+        }
+
+        return $arr;
     }
 }

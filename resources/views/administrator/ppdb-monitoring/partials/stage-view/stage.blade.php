@@ -214,7 +214,7 @@
             }
 
             if (unit && period) {
-                $.get('{{ route('admin.stage.users-json', ['stage' => @$stage['id']]) }}/'+ unit + '/' + period, function (data, status) {
+                $.get('{{ route('admin.stage.users-stage-json', ['stage' => @$stage['id']]) }}/'+ unit + '/' + period, function (data, status) {
                     if (data.length) {
                         $.each(data, function(index, value) {
                             nullChecked = pendingChecked = notpassedChecked = passedChecked = textareaReadonly = '';

@@ -19,6 +19,10 @@ class PPDBMonitoringService
         $collection = [];
         $is_locked = false;
         $completedStagesCount = 0;
+
+        //cari siswa yang sudah menyelesaikan administrasi
+        $passedUserIds = $this->studentPassed($period);
+
         foreach ($stages as $index => $stage) {
 
             //check stage
@@ -26,15 +30,18 @@ class PPDBMonitoringService
 
             $ppdbUsers = PPDBUser::where('unit_id', $period->unit_id)
                 ->where('periode', $period->id)
+                ->whereIn('ppdb_users.id', $passedUserIds)
                 ->select('ppdb_users.id', 'name', 'register_number', 'unit_id', 'periode', 'ppdb_user_stages.passed', 'ppdb_user_stages.note')
                 ->leftJoin('ppdb_user_stages', function ($join) use ($stage) {
                     return $join->on('ppdb_users.id', '=', 'ppdb_user_stages.ppdb_user_id')->where('stage_id', $stage->id);
                 })
                 ->get();
+
             $totalSiswa = $ppdbUsers->count();
 
             $not_confirm = $pending = $passed = $not_passed = $total = 0;
             $current_stage_locked = $is_locked;
+
 
             if ($stage->is_opening_shop_feature) {
                 $accepted = [];
@@ -118,8 +125,6 @@ class PPDBMonitoringService
                     $collection[$stage->id]['is_locked'] = $is_locked;
                     $collection[$stage->id]['overallProgress'] = $overallProgress;
                     $collection[$stage->id]['stageUsed'] = $stageUsed;
-
-
                 }
                 $not_confirm = $pending = $passed = $not_passed = $total = 0;
             }
@@ -139,10 +144,19 @@ class PPDBMonitoringService
 
         if ($isList) {
             foreach ($ppdbUser as $user) {
-                if ($user->isDataCompleteWhitoutBca) {
+                if (($user->isDataCompleteWhitoutBca) && ($user->isParentsComplete)) {
                     $status_confirm = '<label class="label label-success">Dokumen Sudah Lengkap</label>';
                 } else {
                     $status_confirm = '<label class="label label-warning">Dokumen Belum Lengkap</label>';
+                }
+
+                $stage_status = '';
+                if(!empty($user->stages_status)){
+                    if($user->stages_status == 'not_passed'){
+                        $stage_status = '<label class="label label-danger">Tidak Lolos</label>';
+                    }elseif ($user->stages_status == 'pending') {
+                        $stage_status = '<label class="label label-danger">Proses Pending</label>';
+                    }
                 }
 
                 $collection[$user->id] = [
@@ -170,11 +184,13 @@ class PPDBMonitoringService
                     'isEmailVerified' => $user->isEmailVerified,
                     'payment_date' => $user->payment_date,
                     'total_payment_form' => $user->total_payment_form,
+                    'status_stage'=>$stage_status
+
                 ];
             }
         } else {
             foreach ($ppdbUser as $user) {
-                if ($user->isDataCompleteWhitoutBca) {
+                if (($user->isDataCompleteWhitoutBca) && ($user->isParentsComplete)) {
                     $confirm++;
                 } else {
                     $not_confirm++;
@@ -185,5 +201,18 @@ class PPDBMonitoringService
         }
 
         return $collection;
+    }
+
+    public function studentPassed($period)
+    {
+        $ppdbUser = PPDBUser::where('periode', $period->id)->get();
+        $arr = [];
+        foreach ($ppdbUser as $user) {
+            if ($user->isDataCompleteWhitoutBca) {
+                $arr[] = $user->id;
+            }
+        }
+
+        return $arr;
     }
 }

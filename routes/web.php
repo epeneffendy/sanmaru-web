@@ -743,6 +743,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::patch('update/{stage}', 'StageController@update')->name('update');
             Route::delete('delete/{stage}', 'StageController@delete')->name('delete');
             Route::get('get-users/{stage}/{unit?}/{period?}', 'StageController@getUsers')->name('users-json');
+            Route::get('get-users/{stage}/{unit?}/{period?}', 'StageController@getUsersStage')->name('users-stage-json');
             Route::get('get-periods/{unit?}', 'StageController@getPeriods')->name('get-periods');
             Route::post('post-users/{stage}', 'StageController@postUsers')->name('post-users');
             Route::post('post-mass/{stage}', 'StageController@postMass')->name('post-mass');

@@ -36,7 +36,11 @@
                     <small>phone: {{$item['mobile_phone']}}</small><br/>
                     {{$item['gender']}}
                 </td>
-                <td class="text-center">{!! $item['status_confirm'] !!}</td>
+                <td class="text-center">
+                    {!! $item['status_confirm'] !!}<br>
+
+                    {!! $item['status_stage'] !!}
+                </td>
                 <td class="text-center">
                     <span class="btn btn-circle btn-sm {{ $item['isEmailVerified'] ? "btn-success" : "btn-danger" }}">
                         <icon class="icon-plus">
@@ -115,6 +119,12 @@
                             @endif
                         </icon>
                     </span>
+                    <br>
+                    <br>
+                    <span class="label label-info">Informasi Status Pembayaran (Lunas/Cicilan)</span>
+                    <br>
+                    <span class="label label-success">Voucher Free Product</span>
+
 
                     {{-- ACTION MODAL--}}
 
@@ -195,6 +205,7 @@
                                                 </button>
                                             </div>
                                         </form>
+
                                     </div>
                                 </div>
                             </div>

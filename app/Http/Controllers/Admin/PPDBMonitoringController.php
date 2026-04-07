@@ -77,7 +77,7 @@ class PPDBMonitoringController extends Controller
         $period = Period::find($id);
         $stages = Stage::where('periode', $id)->where('active', 1)->get();
 
-        $stageAdministrasi = $PPDBMonitoringService->stagesAdministrasi($period, false);
+        $stageAdministrasi = $PPDBMonitoringService->stagesAdministrasi($period, false, 'administration');
         $detailStages = $PPDBMonitoringService->stages($stages, $period);
 
         $data = [
@@ -96,7 +96,7 @@ class PPDBMonitoringController extends Controller
         $period = Period::find($id);
 
         if ($type == 'administration') {
-            $data = $PPDBMonitoringService->stagesAdministrasi($period, true);
+            $data = $PPDBMonitoringService->stagesAdministrasi($period, true, 'administration');
 
             $data = [
                 'nav' => $this->page,
@@ -105,6 +105,19 @@ class PPDBMonitoringController extends Controller
                 'data' => $data
             ];
 
+        }elseif ($type == 'development-statement'){
+
+            $data = $PPDBMonitoringService->stagesAdministrasi($period, true, 'development-statement');
+
+            $stage = Stage::where('id', $stage_id)->where('active', 1)->first();
+
+            $data = [
+                'nav' => $this->page,
+                'period' => $period,
+                'type' => $type,
+                'data' => $data,
+                'stage'=>$stage
+            ];
         } else {
             $stage = Stage::where('id', $stage_id)->where('active', 1)->first();
             $data = [];
@@ -117,7 +130,6 @@ class PPDBMonitoringController extends Controller
                 'stage'=>$stage
             ];
         }
-
 
         return view('administrator/ppdb-monitoring/partials/stage-view/detail-stage', $data);
     }

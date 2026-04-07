@@ -1,6 +1,8 @@
 @extends('layouts.ppdb-online.main')
 @section('content')
     @push('styles')
+        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@x.x.x/dist/select2-bootstrap4.min.css">
         <style>
             :root {
                 --primary-green: #198754;
@@ -82,6 +84,37 @@
                 margin-bottom: 25px;
                 padding-left: 10px;
                 border-left: 5px solid var(--primary-green);
+            }
+
+            /* Perbaikan Tinggi dan Border Select2 */
+            .select2-container--bootstrap4 .select2-selection--single,
+            .select2-container--default .select2-selection--single {
+                height: 45px !important; /* Sesuaikan dengan tinggi input template Anda */
+                border: 1px solid #ddd !important;
+                border-radius: 5px !important;
+                display: flex !important;
+                align-items: center !important;
+            }
+
+            /* Mengatur posisi teks di dalam Select2 agar di tengah */
+            .select2-container--default .select2-selection--single .select2-selection__rendered {
+                line-height: 45px !important;
+                padding-left: 15px !important;
+                color: #444 !important;
+            }
+
+            /* Mengatur posisi ikon panah Select2 */
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 45px !important;
+                top: 0 !important;
+                right: 10px !important;
+            }
+
+            /* Mengatur dropdown agar tidak berantakan */
+            .select2-dropdown {
+                border: 1px solid #26703B !important; /* Gunakan warna hijau identitas Anda */
+                border-radius: 0 0 10px 10px !important;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
             }
 
         </style>
@@ -190,6 +223,7 @@
 @endsection
 @push('scripts')
     <script src="{{asset('js/sweet-alert/sweet-alert.min.js')}}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         const RegistrationWizard = {
             currentTab: 0,
@@ -216,6 +250,59 @@
                             icon: 'error',
                             title: 'Gagal Simpan',
                             text: 'Masih ada data yang tidak valid. Mohon periksa kembali semua tab.',
+                        });
+                    }
+                });
+
+                $('.select2-provinces').select2({
+                    theme: 'default', // atau 'bootstrap4' jika filenya ada
+                    width: '100%',
+                    placeholder: "Pilih Provinsi",
+                    // allowClear: true
+                });
+
+                $('.select2-cities').select2({
+                    theme: "bootstrap4",
+                    width: '100%',
+                    placeholder: "Pilih Kota"
+                });
+
+                this.setupProvinceChangeEvent();
+
+                const initialProvince = $('.select2-provinces').val();
+                if (initialProvince) {
+                    this.fetchCities(initialProvince, "{{ @$ppdbUser->city }}"); // Kirim ID kota lama jika ada
+                }
+
+                // Menangani validasi warna border saat Select2 berubah
+                $('.select2-provinces').on('change', function() {
+
+                    let provinceId = $(this).val();
+                    let citySelect = $('#city');
+
+                    citySelect.empty().append('<option value=""></option>').trigger('change');
+
+                    if (provinceId) {
+                        // Tampilkan loading pada select kota
+                        citySelect.prop('disabled', true);
+
+                        // Ganti URL sesuai dengan route di Laravel Anda
+                        $.ajax({
+                            url: "{{ route('ppdb.get-cities') }}",
+                            type: "GET",
+                            data: { province_id: provinceId },
+                            success: function(response) {
+                                // Isi data kota ke select2
+                                $.each(response, function(key, city) {
+                                    citySelect.append(new Option(city.name, city.id, false, false));
+                                });
+
+                                citySelect.prop('disabled', false).trigger('change');
+                            },
+                            error: function() {
+                                alert('Gagal mengambil data kota.');
+                                citySelect.prop('disabled', false);
+                            }
                         });
                     }
                 });
@@ -374,10 +461,47 @@
                 if (telpAsalSekolah.val()) {
                     validate(telpAsalSekolah, 'kantor');
                 }
+            },
 
+            setupProvinceChangeEvent() {
+                const self = this;
+                $('.select2-provinces').on('change', function() {
+                    self.fetchCities($(this).val());
+                });
+            },
 
-            }
+            fetchCities(provinceId, selectedCityId = null) {
+                let citySelect = $('#city');
 
+                // Jangan lakukan apa-apa jika provinsi kosong
+                if (!provinceId) {
+                    citySelect.empty().append('<option value=""></option>').trigger('change');
+                    return;
+                }
+
+                citySelect.prop('disabled', true);
+
+                $.ajax({
+                    url: "{{ route('ppdb.get-cities') }}",
+                    type: "GET",
+                    data: { province_id: provinceId },
+                    success: (response) => {
+                        citySelect.empty().append('<option value=""></option>');
+
+                        $.each(response, (key, city) => {
+                            // Cek apakah ID kota ini adalah yang harus terpilih (untuk handle edit/old data)
+                            const isSelected = (selectedCityId && city.name == selectedCityId);
+                            citySelect.append(new Option(city.name, city.name, isSelected, isSelected));
+                        });
+
+                        citySelect.prop('disabled', false).trigger('change');
+                    },
+                    error: () => {
+                        alert('Gagal mengambil data kota.');
+                        citySelect.prop('disabled', false);
+                    }
+                });
+            },
 
         };
 

@@ -43,7 +43,7 @@
                             </table>
                             </br>
                             <div class="row">
-                                @if($type == 'administration')
+                                @if(($type == 'administration') || ($type == 'development-statement'))
                                     @include('administrator.ppdb-monitoring.partials.stage-view.administration')
                                 @else
                                     @include('administrator.ppdb-monitoring.partials.stage-view.stage')

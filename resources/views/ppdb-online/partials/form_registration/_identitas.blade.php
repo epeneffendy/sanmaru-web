@@ -106,8 +106,14 @@
     <div class="form-group custom-form-group">
         <label class="form-label fw-bold text-muted mb-2">Provinsi</label>
         <div class="input-group modern-input-group">
-            <input name="region" class="form-control uppercase-input required" placeholder="Provinsi"
-                   value="{{ old('region', @$ppdbUser->region) }}"/>
+            <select name="region" id="region" class="form-control select2-provinces required">
+                <option value=""></option>
+                @foreach($provinces as $province)
+                    <option value="{{ $province->name }}" {{ old('region', @$ppdbUser->region) == $province->name ? 'selected' : '' }}>
+                        {{ $province->name }}
+                    </option>
+                @endforeach
+            </select>
         </div>
     </div>
 </div>
@@ -115,10 +121,11 @@
 
 <div class="col-md-4 mb-4">
     <div class="form-group custom-form-group">
-        <label class="form-label fw-bold text-muted mb-2">Kota</label>
+        <label class="form-label fw-bold text-muted mb-2">Kota/Kabupaten</label>
         <div class="input-group modern-input-group">
-            <input name="city" class="form-control uppercase-input required" placeholder="Kota"
-                   value="{{ old('city', @$ppdbUser->city) }}"/>
+            <select name="city" id="city" class="form-control select2-cities required" data-placeholder="Pilih Kota">
+                <option value=""></option>
+            </select>
         </div>
     </div>
 </div>

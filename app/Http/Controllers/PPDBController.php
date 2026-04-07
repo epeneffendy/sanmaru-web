@@ -9,6 +9,7 @@ use App\Models\ComplaintOrders;
 use App\Models\ComplaintPeriode;
 use App\Models\ProductOrderDetail;
 use App\Models\Provinces;
+use App\Models\Regencies;
 use App\Models\Stage;
 use App\Models\UniformDeadline;
 use App\Models\User;
@@ -522,12 +523,15 @@ class PPDBController extends Controller
         $ppdb = PPDBUser::where('user_id', $user['id'])->with('parents')->firstOrFail();
         $arr_stepper = ['Data Ayah', 'Data Ibu'];
 
+        $provinces = Provinces::get();
+
         $data = array(
             'dad' => Parents::where('children_id', $user['id'])->where('type', 'father')->first(),
             'mom' => Parents::where('children_id', $user['id'])->where('type', 'mother')->first(),
             'wali' => Parents::where('children_id', $user['id'])->where('type', 'wali')->first(),
             'ppdb' => $ppdb,
             'stepper' => $arr_stepper,
+            'provinces'=>$provinces,
             'nav' => ['parent' => 'data', 'child' => 'Data Siswa']
         );
 
@@ -601,6 +605,8 @@ class PPDBController extends Controller
             'mobile' => $text,
         ]);
 
+
+
         if ($validator->fails()) {
             return redirect()
                 ->back()
@@ -627,6 +633,7 @@ class PPDBController extends Controller
                     'children_id' => $user['id']
                 );
 
+
                 $moms_data = array(
                     'name' => $input['mother_name'],
                     'place_of_birth' => $input['m_place_of_birth'],
@@ -643,6 +650,7 @@ class PPDBController extends Controller
                     'phone' => app('phoneNormalizerService')->normalize($input['m_phone']),
                     'children_id' => $user['id']
                 );
+
                 $father = Parents::firstOrNew([
                     'children_id' => $user['id'],
                     'type' => 'father'
@@ -684,6 +692,7 @@ class PPDBController extends Controller
             }
 
         } catch (\Exception $e) {
+            dd($e);
             return redirect()
                 ->back()
                 ->withErrors($e->getMessage())
@@ -1718,6 +1727,19 @@ class PPDBController extends Controller
         $this->user->loadMissing('ppdb', 'student', 'student.class', 'student.class.unit');
         $this->student = $this->user->student;
         $this->class = $this->student->class;
+    }
+
+    public function getCities(Request $request)
+    {
+        //cari provisi
+        $getProvince = Provinces::where('name',$request->province_id)->first();
+        if(isset($getProvince)){
+            $cities = Regencies::where('province_id', $getProvince->id)
+                ->orderBy('name', 'asc')
+                ->get(['id', 'name']);
+        }
+
+        return response()->json($cities);
     }
 
 }

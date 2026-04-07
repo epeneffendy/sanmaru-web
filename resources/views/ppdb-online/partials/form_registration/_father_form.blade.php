@@ -42,14 +42,23 @@
 <div class="col-md-6 mb-4">
     <label class="form-label fw-bold text-muted mb-2">Provinsi</label>
     <div class="input-group modern-input-group">
-        <input name="f_region" class="form-control uppercase-input required" placeholder="Provinsi" value="{{ old('f_region', @$dad->region) }}" />
+        <select name="f_region" id="f_region" class="form-control select2-provinces required">
+            <option value=""></option>
+            @foreach($provinces as $province)
+                <option value="{{ $province->name }}" {{ old('f_region', @$dad['region']) == $province->name ? 'selected' : '' }}>
+                    {{ $province->name }}
+                </option>
+            @endforeach
+        </select>
     </div>
 </div>
 
 <div class="col-md-6 mb-4">
-    <label class="form-label fw-bold text-muted mb-2">Kota</label>
+    <label class="form-label fw-bold text-muted mb-2">Kota/Kabupaten</label>
     <div class="input-group modern-input-group">
-        <input name="f_city" class="form-control uppercase-input required" placeholder="Kota" value="{{ old('f_city', @$dad->city) }}" />
+        <select name="f_city" id="f_city" class="form-control select2-cities required" data-placeholder="Pilih Kota">
+            <option value=""></option>
+        </select>
     </div>
 </div>
 

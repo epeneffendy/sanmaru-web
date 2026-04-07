@@ -233,11 +233,20 @@
                                     </div>
 
                                     <div class="d-flex gap-6 mt-2">
-                                        <a href="{{ route('admin.ppdb-monitoring.show-detail-stage', [$period['id'], 'stage',$stage->id]) }}"
-                                           title="Detail Seleksi Tahap"
-                                           class="btn btn-ld btn-success">
-                                            Detail
-                                        </a>
+                                        @if($stage->is_opening_development_feature)
+                                            <a href="{{ route('admin.ppdb-monitoring.show-detail-stage', [$period['id'], 'development-statement',$stage->id ]) }}"
+                                               title="Detail Seleksi Administrasi"
+                                               class="btn btn-ld btn-success">
+                                                Detail
+                                            </a>
+                                        @else
+                                            <a href="{{ route('admin.ppdb-monitoring.show-detail-stage', [$period['id'], 'stage',$stage->id]) }}"
+                                               title="Detail Seleksi Tahap"
+                                               class="btn btn-ld btn-success">
+                                                Detail
+                                            </a>
+                                        @endif
+
                                     </div>
                                 @endif
 

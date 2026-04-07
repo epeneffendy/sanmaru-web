@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PPDBRegisterRequest;
+use App\Models\Period;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\PPDBVerifyRequest;
 use App\Http\Controllers\Controller;
@@ -38,9 +39,14 @@ class RegistrasiPPDBController extends Controller
         $unit = Unit::where('name', $unitName)->firstOrFail();
         $ageLimit = AgeLimit::active()->first();
 
+        $periods = Period::where('unit_id',$unit->id)
+            ->where('active',1)
+            ->get();
+
         return view('ppdb-online.registration', [
             'unit' => $unit,
-            'ageLimit' => $ageLimit
+            'ageLimit' => $ageLimit,
+            'periods'=>$periods
         ]);
     }
 

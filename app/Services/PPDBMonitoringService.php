@@ -6,6 +6,7 @@ use App\Models\Period;
 use App\Models\PPDBUser;
 use App\Models\PPDBUserStage;
 use App\Models\Stage;
+use App\Models\Voucher;
 use App\Traits\ImageHandler;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 
@@ -89,7 +90,6 @@ class PPDBMonitoringService
                     $collection[$stage->id]['overallProgress'] = $overallProgress;
                     $collection[$stage->id]['stageUsed'] = $stageUsed;
                 }
-
             } else {
                 foreach ($ppdbUsers as $ind => $user) {
                     if (isset($user->passed)) {
@@ -135,7 +135,7 @@ class PPDBMonitoringService
 
     }
 
-    public function stagesAdministrasi($period, $isList)
+    public function stagesAdministrasi($period, $isList, $flag)
     {
         $ppdbUser = PPDBUser::where('periode', $period->id)->get();
 
@@ -151,42 +151,88 @@ class PPDBMonitoringService
                 }
 
                 $stage_status = '';
-                if(!empty($user->stages_status)){
-                    if($user->stages_status == 'not_passed'){
+                if (!empty($user->stages_status)) {
+                    if ($user->stages_status == 'not_passed') {
                         $stage_status = '<label class="label label-danger">Tidak Lolos</label>';
-                    }elseif ($user->stages_status == 'pending') {
+                    } elseif ($user->stages_status == 'pending') {
                         $stage_status = '<label class="label label-danger">Proses Pending</label>';
                     }
                 }
 
-                $collection[$user->id] = [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'status_confirm' => $status_confirm,
-                    'email' => $user->email,
-                    'register_number' => $user->register_number,
-                    'school_year' => $user->school_year,
-                    'periode' => $user->periode,
-                    'username' => $user->user->username,
-                    'email' => $user->user->email,
-                    'periode_name' => $user->period->name,
-                    'origin_school' => $user->origin_school,
-                    'mobile_phone' => $user->user->mobile_phone,
-                    'gender' => $user->gender,
-                    'unit_id' => $user->unit->id,
-                    'unit_name' => $user->unit->name,
-                    'isComplite' => $user->isDataCompleteWhitoutBca,
-                    'isParent' => $user->isParentsComplete,
-                    'IsStatementLetterUploaded' => $user->IsStatementLetterUploaded,
-                    'IsStatementLetterConfirmed' => $user->IsStatementLetterConfirmed,
-                    'development_fee_option' => $user->development_fee_option,
-                    'isOrderConfirmed' => $user->isOrderConfirmed,
-                    'isEmailVerified' => $user->isEmailVerified,
-                    'payment_date' => $user->payment_date,
-                    'total_payment_form' => $user->total_payment_form,
-                    'status_stage'=>$stage_status
+                $voucher = '';
+                if ($user->development_fee_option == 'lunas') {
+                    $checkVoucher = $this->checkVocuher($user);
+                    //cari voucher
+                    $check = Voucher::where('code', $checkVoucher)
+                        ->whereJsonContains('user_id', $user->user_id) // Mengecek apakah 15706 ada dalam array user_id
+                        ->where('active', 1)
+                        ->exists();
+                    if ($check) {
+                        $voucher = '<label class="label label-success"> Free Voucher : ' . $checkVoucher . '</label>';
+                    }
+                }
 
-                ];
+                if ($flag == 'development-statement') {
+                    if (!empty($user->IsStatementLetterUploaded)) {
+                        $collection[$user->id] = [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'status_confirm' => $status_confirm,
+                            'email' => $user->email,
+                            'register_number' => $user->register_number,
+                            'school_year' => $user->school_year,
+                            'periode' => $user->periode,
+                            'username' => $user->user->username,
+                            'email' => $user->user->email,
+                            'periode_name' => $user->period->name,
+                            'origin_school' => $user->origin_school,
+                            'mobile_phone' => $user->user->mobile_phone,
+                            'gender' => $user->gender,
+                            'unit_id' => $user->unit->id,
+                            'unit_name' => $user->unit->name,
+                            'isComplite' => $user->isDataCompleteWhitoutBca,
+                            'isParent' => $user->isParentsComplete,
+                            'IsStatementLetterUploaded' => $user->IsStatementLetterUploaded,
+                            'IsStatementLetterConfirmed' => $user->IsStatementLetterConfirmed,
+                            'development_fee_option' => $user->development_fee_option,
+                            'isOrderConfirmed' => $user->isOrderConfirmed,
+                            'isEmailVerified' => $user->isEmailVerified,
+                            'payment_date' => $user->payment_date,
+                            'total_payment_form' => $user->total_payment_form,
+                            'status_stage' => $stage_status,
+                            'voucher'=>$voucher
+                        ];
+                    }
+                } else {
+                    $collection[$user->id] = [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'status_confirm' => $status_confirm,
+                        'email' => $user->email,
+                        'register_number' => $user->register_number,
+                        'school_year' => $user->school_year,
+                        'periode' => $user->periode,
+                        'username' => $user->user->username,
+                        'email' => $user->user->email,
+                        'periode_name' => $user->period->name,
+                        'origin_school' => $user->origin_school,
+                        'mobile_phone' => $user->user->mobile_phone,
+                        'gender' => $user->gender,
+                        'unit_id' => $user->unit->id,
+                        'unit_name' => $user->unit->name,
+                        'isComplite' => $user->isDataCompleteWhitoutBca,
+                        'isParent' => $user->isParentsComplete,
+                        'IsStatementLetterUploaded' => $user->IsStatementLetterUploaded,
+                        'IsStatementLetterConfirmed' => $user->IsStatementLetterConfirmed,
+                        'development_fee_option' => $user->development_fee_option,
+                        'isOrderConfirmed' => $user->isOrderConfirmed,
+                        'isEmailVerified' => $user->isEmailVerified,
+                        'payment_date' => $user->payment_date,
+                        'total_payment_form' => $user->total_payment_form,
+                        'status_stage' => $stage_status,
+                        'voucher'=>$voucher
+                    ];
+                }
             }
         } else {
             foreach ($ppdbUser as $user) {
@@ -214,5 +260,27 @@ class PPDBMonitoringService
         }
 
         return $arr;
+    }
+
+    function checkVocuher($user)
+    {
+        $code = "";
+        $unit = 0;
+        $periode = 0;
+        if ($user->unit_id) {
+            $unit = (int)$user->unit_id;
+        }
+        if ($user->register_number) {
+            $periode = (int)substr($user->register_number, 0, 2);
+        }
+
+        $code = $code . sprintf("%02d%02d%02d", $unit, $periode, ($periode + 1));
+        if ($user->gender && $user->gender === 'female') {
+            $code = $code . 'PI';
+        } else {
+            $code = $code . 'PA';
+        }
+
+        return $code;
     }
 }

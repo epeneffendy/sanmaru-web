@@ -89,6 +89,7 @@ Route::group(['domain' => $routeService->getPpdbSubdomain()], function () use ($
         Route::post("/$prefix/custom-form/{slug}", 'PPDBController@customFormInputPost')->name('ppdb.custom-form.input.post');
         Route::get("/$prefix/detail/registration/{id?}", 'PPDBController@getPaymentRegistration')->name('ppdb.payment-registration');
         Route::post("/$prefix/repayment-registration", 'PPDBController@repaymentRegistration')->name('ppdb.repayment-registration');
+        Route::get("/$prefix/get-cities", 'PPDBController@getCities')->name('ppdb.get-cities');
 
         Route::prefix("/$prefix/notification")->name("ppdb.notification.")->group(function () {
             Route::get('/', 'PPDBController@notificationIndex')->name('index');
@@ -743,7 +744,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::patch('update/{stage}', 'StageController@update')->name('update');
             Route::delete('delete/{stage}', 'StageController@delete')->name('delete');
             Route::get('get-users/{stage}/{unit?}/{period?}', 'StageController@getUsers')->name('users-json');
-            Route::get('get-users/{stage}/{unit?}/{period?}', 'StageController@getUsersStage')->name('users-stage-json');
+            Route::get('get-stage-users/{stage}/{unit?}/{period?}', 'StageController@getUsersStage')->name('users-stage-json');
             Route::get('get-periods/{unit?}', 'StageController@getPeriods')->name('get-periods');
             Route::post('post-users/{stage}', 'StageController@postUsers')->name('post-users');
             Route::post('post-mass/{stage}', 'StageController@postMass')->name('post-mass');

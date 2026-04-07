@@ -79,7 +79,7 @@
                   enctype="multipart/form-data">
                 <input type="hidden" name="show_fieldset" value="false"/>
                 <input type="hidden" name="unit_id" value="{{ $unit->id }}"/>
-                <input type="hidden" name="periode" value="{{ $unit->ongoingPeriods->first()->id }}"/>
+                <input type="hidden" name="periode" id="period" value=""/>
                 <input autocomplete="false" name="hidden" type="text" style="display:none;">
                 <!-- Leave for security protection, read docs for details -->
                 <div class="text-center">
@@ -96,109 +96,129 @@
                             @endforeach
                         </ul>
                     </div>
+
                     <div class="form-group">
-                        <input type="text" name="name" class="form-control uppercase-input required"
-                               placeholder="Nama Siswa Sesuai Akta kelahiran"
-                               value="{{ old('name') }}" onchange="getVals(this, 'name');">
+                        <label for="period_id">Periode Pendaftaran <span class="text-danger">*</span></label>
+                        <div class="input-icon-wrapper">
+                            <select name="period_id" id="period_id" class="form-control required">
+                                <option value="">-- Pilih Periode Pendaftaran --</option>
+                                @foreach($periods as $period)
+                                    <option value="{{ $period->id }}">{{ $period->name }}</option>
+                                @endforeach
+                            </select>
+                            <i class="fa fa-check-circle text-success-icon icon-success"></i>
+                            <i class="fa fa-times-circle text-danger-icon icon-danger"></i>
+                        </div>
+                        <small id="period-hint" class="text-info" style="display: block; margin-top: 5px;">
+                            <i class="fa fa-info-circle"></i> Silakan pilih periode pendaftaran terlebih dahulu untuk melanjutkan.
+                        </small>
                     </div>
-                    @if (!\Illuminate\Support\Str::startsWith($unit->name, ['KB', 'TK']))
-                    @if($unit->ongoingPeriods->first()->is_feeder_school)
-                    <div class="form-group">
-                        <select name="origin_school" class="form-control required">
-                            @foreach($unit->ongoingPeriods->first()->origin_school_options as $value)
-                            <option value="{{ $value }}" {{ old(
+
+                    <div id="registration-fields" style="display: none; margin-top: 20px;">
+                        <div class="form-group">
+                            <input type="text" name="name" class="form-control uppercase-input required"
+                                   placeholder="Nama Siswa Sesuai Akta kelahiran"
+                                   value="{{ old('name') }}" onchange="getVals(this, 'name');">
+                        </div>
+                        @if (!\Illuminate\Support\Str::startsWith($unit->name, ['KB', 'TK']))
+                            @if($unit->ongoingPeriods->first()->is_feeder_school)
+                                <div class="form-group">
+                                    <select name="origin_school" class="form-control required">
+                                        @foreach($unit->ongoingPeriods->first()->origin_school_options as $value)
+                                            <option value="{{ $value }}" {{ old(
                             'origin_school') == $value ? 'selected' : NULL }}>{{ $value }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    @else
-                    <div class="form-group">
-                        <input type="text" name="origin_school" class="form-control uppercase-input required" placeholder="Sekolah Asal"
-                               value="{{ old('origin_school') }}" onchange="getVals(this, 'origin_school');">
-                    </div>
-                    @endif
-
-                    @endif
-
-                    @if ($unit->isAgeLimitApplied)
-                    <div class="form-group">
-                        <input type="text" readonly="readonly" name="date_of_birth" class="form-control required"
-                               placeholder="Tanggal Lahir"
-                               value="{{ old('date_of_birth') }}" onchange="getVals(this, 'date_of_birth');">
-                    </div>
-                    @endif
-                    <div class="form-group">
-                        <input type="email" name="email" class="form-control required" placeholder="Email Orang Tua"
-                               value="{{ old('email') }}" onchange="getVals(this, 'email');">
-                    </div>
-                    <div class="form-group">
-                        <input type="number" name="mobile_phone" class="form-control required"
-                               placeholder="Nomor HP / Whatsapp Orang Tua" value="{{ old('mobile_phone') }}"
-                               onchange="getVals(this, 'mobile_phone');">
-                    </div>
-
-                    <!-- https://aimsis.atlassian.net/browse/AIMSIS-10448 -->
-                    <div class="form-group">
-                        <div class="input-icon-wrapper">
-                            <input type="text" name="nik_siswa" id="nik_siswa" class="form-control required"
-                                   placeholder="NIK Siswa" value="{{ old('nik_siswa') }}"
-                                   oninput="validateNIKSiswa(this)"
-                                   maxlength="16">
-
-                            <i class="fa fa-check-circle text-success-icon" id="icon-success-nik"></i>
-                            <i class="fa fa-times-circle text-danger-icon" id="icon-danger-nik"></i>
-                        </div>
-                        <small id="nik-hint" class="text-danger" style="display:none; text-align: left"></small>
-                    </div>
-                    <div class="form-group">
-                        <div class="input-icon-wrapper">
-                            <input type="text" name="nik_ortu" id="nik_ortu" class="form-control required"
-                                   placeholder="NIK Orang Tua" value="{{ old('nik_ortu') }}"
-                                   oninput="validateNIKOrtu(this)"
-                                   maxlength="16">
-
-                            <i class="fa fa-check-circle text-success-icon" id="icon-success-nik"></i>
-                            <i class="fa fa-times-circle text-danger-icon" id="icon-danger-nik"></i>
-                        </div>
-                        <small id="nik-ortu-hint" class="text-danger" style="display:none; text-align: left"></small>
-                    </div>
-
-                    @if (in_array($unit->name, ['KB-SURABAYA', 'TK-SURABAYA', 'TK-SIDOARJO']))
-                    <div class="form-group">
-                        <select name="class_option" class="form-control">
-                            <option value="" hidden selected disabled>PILIH KELAS</option>
-                            @if ($unit->name === 'KB-SURABAYA')
-                            <option value="KB A">KB A</option>
-                            <option value="KB B">KB B</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                             @else
-                            <option value="TK A">TK A</option>
-                            <option value="TK B">TK B</option>
+                                <div class="form-group">
+                                    <input type="text" name="origin_school" class="form-control uppercase-input required" placeholder="Sekolah Asal"
+                                           value="{{ old('origin_school') }}" onchange="getVals(this, 'origin_school');">
+                                </div>
                             @endif
-                        </select>
-                    </div>
-                    @endif
 
-                    <div class="form-group">
-                        <input type="password" name="password" class="form-control required" placeholder="Password"
-                               value="{{ old('password') }}" onchange="getVals(this, 'password');">
-                    </div>
-                    <div class="form-group">
-                        <input type="password" name="password_confirmation" class="form-control required"
-                               placeholder="Ulangi Password" value="{{ old('password_confirmation') }}"
-                               onchange="getVals(this, 'retype-password');">
-                    </div>
+                        @endif
 
-                    <fieldset {!! old(
+                        @if ($unit->isAgeLimitApplied)
+                            <div class="form-group">
+                                <input type="text" readonly="readonly" name="date_of_birth" class="form-control required"
+                                       placeholder="Tanggal Lahir"
+                                       value="{{ old('date_of_birth') }}" onchange="getVals(this, 'date_of_birth');">
+                            </div>
+                        @endif
+                        <div class="form-group">
+                            <input type="email" name="email" class="form-control required" placeholder="Email Orang Tua"
+                                   value="{{ old('email') }}" onchange="getVals(this, 'email');">
+                        </div>
+                        <div class="form-group">
+                            <input type="number" name="mobile_phone" class="form-control required"
+                                   placeholder="Nomor HP / Whatsapp Orang Tua" value="{{ old('mobile_phone') }}"
+                                   onchange="getVals(this, 'mobile_phone');">
+                        </div>
+
+                        <!-- https://aimsis.atlassian.net/browse/AIMSIS-10448 -->
+                        <div class="form-group">
+                            <div class="input-icon-wrapper">
+                                <input type="text" name="nik_siswa" id="nik_siswa" class="form-control required"
+                                       placeholder="NIK Siswa" value="{{ old('nik_siswa') }}"
+                                       oninput="validateNIKSiswa(this)"
+                                       maxlength="16">
+
+                                <i class="fa fa-check-circle text-success-icon" id="icon-success-nik"></i>
+                                <i class="fa fa-times-circle text-danger-icon" id="icon-danger-nik"></i>
+                            </div>
+                            <small id="nik-hint" class="text-danger" style="display:none; text-align: left"></small>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-icon-wrapper">
+                                <input type="text" name="nik_ortu" id="nik_ortu" class="form-control required"
+                                       placeholder="NIK Orang Tua" value="{{ old('nik_ortu') }}"
+                                       oninput="validateNIKOrtu(this)"
+                                       maxlength="16">
+
+                                <i class="fa fa-check-circle text-success-icon" id="icon-success-nik"></i>
+                                <i class="fa fa-times-circle text-danger-icon" id="icon-danger-nik"></i>
+                            </div>
+                            <small id="nik-ortu-hint" class="text-danger" style="display:none; text-align: left"></small>
+                        </div>
+
+                        @if (in_array($unit->name, ['KB-SURABAYA', 'TK-SURABAYA', 'TK-SIDOARJO']))
+                            <div class="form-group">
+                                <select name="class_option" class="form-control">
+                                    <option value="" hidden selected disabled>PILIH KELAS</option>
+                                    @if ($unit->name === 'KB-SURABAYA')
+                                        <option value="KB A">KB A</option>
+                                        <option value="KB B">KB B</option>
+                                    @else
+                                        <option value="TK A">TK A</option>
+                                        <option value="TK B">TK B</option>
+                                    @endif
+                                </select>
+                            </div>
+                        @endif
+
+                        <div class="form-group">
+                            <input type="password" name="password" class="form-control required" placeholder="Password"
+                                   value="{{ old('password') }}" onchange="getVals(this, 'password');">
+                        </div>
+                        <div class="form-group">
+                            <input type="password" name="password_confirmation" class="form-control required"
+                                   placeholder="Ulangi Password" value="{{ old('password_confirmation') }}"
+                                   onchange="getVals(this, 'retype-password');">
+                        </div>
+
+                        <fieldset {!! old(
                     'show_fieldset', 'false') == 'false' ? 'style="display: none"' : NULL !!}>
-                    <div class="alert alert-info">
-                        Usia anak Anda dibawah batas usia namun masih dapat mendaftar dengan melampirkan bukti potensi
-                        kecerdasan dan/atau bakat istimewa dan kesiapan psikis dari psikolog profesional. Informasi
-                        selengkapnya silakan menghubungi admin kami di nomor:
-                        {{ \App\Helpers\Helper::phoneWithLeadingZero($unit->phone) }}
+                            <div class="alert alert-info">
+                                Usia anak Anda dibawah batas usia namun masih dapat mendaftar dengan melampirkan bukti potensi
+                                kecerdasan dan/atau bakat istimewa dan kesiapan psikis dari psikolog profesional. Informasi
+                                selengkapnya silakan menghubungi admin kami di nomor:
+                                {{ \App\Helpers\Helper::phoneWithLeadingZero($unit->phone) }}
+                            </div>
+                        </fieldset>
+                        <br>
+                        <button type="submit" name="register" class="btn btn-register">Daftar</button>
                     </div>
-                    </fieldset>
-                    <br>
-                    <button type="submit" name="register" class="btn btn-register">Daftar</button>
                 </div>
                 @csrf
             </form>
@@ -253,6 +273,7 @@
         $('.uppercase-input').on('input', function() {
             this.value = this.value.toUpperCase();
         });
+
     })
     $('input[name=date_of_birth]').datepicker({
         uiLibrary: 'bootstrap4',
@@ -417,7 +438,36 @@
                 return false;
             }
         }
+
+
     }
 
+
+    $('#period_id').change(function (e) {
+        let val = $('#period_id').val();
+        let wrapper = $('#period_id').closest('.input-icon-wrapper');
+        let iconSuccess = wrapper.find('.icon-success');
+        let iconDanger = wrapper.find('.icon-danger');
+        let hint = $('#period-hint');
+
+        let fieldsContainer = $('#registration-fields');
+
+        if (val !== "") {
+            iconSuccess.fadeIn();
+            iconDanger.hide();
+            $('#period_id').css('border-color', '#28a745');
+            $('#period').val(val)
+            hint.html('<i class="fa fa-check"></i> Periode terpilih.').removeClass('text-info').addClass('text-success');
+            fieldsContainer.fadeIn(500);
+        } else {
+            // Jika kembali ke default
+            fieldsContainer.fadeOut(300);
+            iconSuccess.hide();
+            iconDanger.fadeIn();
+            $('#period_id').css('border-color', '#dc3545');
+            $('#period').val('')
+            hint.html('<i class="fa fa-exclamation-triangle"></i> Wajib memilih periode pendaftaran!').removeClass('text-info').addClass('text-danger');
+        }
+    });
 </script>
 @endpush

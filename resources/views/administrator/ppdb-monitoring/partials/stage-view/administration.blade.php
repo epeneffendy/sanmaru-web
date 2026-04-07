@@ -119,15 +119,8 @@
                             @endif
                         </icon>
                     </span>
-                    <br>
-                    <br>
-                    <span class="label label-info">Informasi Status Pembayaran (Lunas/Cicilan)</span>
-                    <br>
-                    <span class="label label-success">Voucher Free Product</span>
-
 
                     {{-- ACTION MODAL--}}
-
                     @if ($item['development_fee_option'] && !$item['isOrderConfirmed'])
                         <button data-toggle="modal"
                                 data-target="#reset-development-payment-modal"
@@ -212,6 +205,17 @@
                         </div>
                     @endif
 
+                    <br>
+                    <br>
+                    @if($item['development_fee_option'] != null)
+                        @if($item['development_fee_option'] == 'lunas')
+                            <span class="label label-info">Pembayaran Lunas</span>
+                            <br>
+                            {!! $item['voucher'] !!}
+                        @else
+                            <span class="label label-warning">Pembayaran Cicilan</span>
+                        @endif
+                    @endif
                 </td>
                 <td class="text-center">
                     <a href="{{ route('admin.ppdb.show', $item['id']) }}" title="Show"
@@ -225,3 +229,60 @@
         </tbody>
     </table>
 </div>
+
+<div id="modal-confirmation" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">&nbsp;</h4>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Batal</button>
+                <button type="button" id="btn-confirm-modal" class="btn btn-success">&nbsp;</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+    <script src="{{asset('js/sweet-alert/sweet-alert.min.js')}}"></script>
+    <script>
+        $(document).on('click', '.btn-modal-statement-letter', function (e) {
+            e.preventDefault();
+            var id = $(this).data('id'),
+                unitId = $(this).data('unit_id'),
+                fileUrl = "{{ route('show_file') }}";
+            var html = `<form role="form" action="{{ route("admin.ppdb.confirm-development-statement", ["id"=>null]) }}/` + id + `" method="POST" id="statement-letter-confirmation-form" class="form-horizontal">
+                        @csrf
+            <input type="hidden" name="id" value="` + id + `" />
+                        <div><h4 class="text-primary modal-form-label">` + $(this).data('name') + `</h4></div>
+                        <div>` + $(this).data('register_number') + `</div>
+                        <div>` + $(this).data('unit_name') + `</div>
+                        <div class="pull-right">
+                            <a href="{{ route("admin.ppdb.get-development-file", ["id"=>null]) }}/` + $(this).data('id') + `" target="_blank">
+                                open new tab
+                            </a>
+                        </div>
+                        <div class="margin-t-5 text-center">
+                        <iframe src="{{ route("admin.ppdb.get-development-file", ["id"=>null]) }}/` + $(this).data('id') + `" width="100%" height="300">
+                        <div>
+                    </form>
+                `;
+            $('#modal-confirmation .modal-title').html('Konfirmasi Surat Pernyataan Ini ?');
+            $('#modal-confirmation .modal-body').html(html);
+            $('#btn-confirm-modal').attr('data-id', id);
+            $('#btn-confirm-modal').html('Setujui');
+            $('#modal-confirmation').modal();
+        });
+
+        $(document).on('click', "#btn-confirm-modal", function (e) {
+            e.preventDefault();
+            var id = $(this).data('id');
+            $('#statement-letter-confirmation-form').submit();
+        });
+    </script>
+@endpush

@@ -1,69 +1,92 @@
-<div class="tab-content">
-    <input type="hidden" id="unit_id" value="5">
-    <input type="hidden" id="periode" value="178">
-    <div id="seleksi" class="tab-pane fade in active">
-        <div class="widget-header">
-            <h3>Seleksi Pendaftar</h3>
-        </div> <!-- /widget-header -->
-        <div class="widget-content seleksi-wrapper">
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="input-group">
-                        <div class="input-group-addon"><i class="fa fa-search   "></i></div>
-                        <input type="text" name="pencarian" class="form-control" placeholder="Cari ...">
+<div class="selection-card">
+    <div class="selection-header">
+        <ul class="nav nav-pills custom-pills" id="selection">
+            <li class="active">
+                <a href="#seleksi" data-toggle="pill">
+                    <i class="fa fa-users mr-2"></i> Seleksi Pendaftar
+                </a>
+            </li>
+            <li>
+                <a href="#manual" data-toggle="pill">
+                    <i class="fa fa-upload mr-2"></i> Import Data
+                </a>
+            </li>
+        </ul>
+    </div>
+    <div class="tab-content selection-body">
+        <input type="hidden" id="unit_id" value="{{$period->unit->id}}">
+        <input type="hidden" id="periode" value="{{$period->id}}">
+        <div id="seleksi" class="tab-pane fade in active">
+            <div class="widget-header">
+                <h3>Seleksi Pendaftar</h3>
+            </div> <!-- /widget-header -->
+            <div class="widget-content seleksi-wrapper">
+                <div class="action-bar row align-items-center mb-4">
+                    <div class="col-md-5">
+                        <div class="search-wrapper">
+                            <i class="fa fa-search"></i>
+                            <input type="text" name="pencarian" class="form-control shadow-none"
+                                   placeholder="Cari nama atau nomor pendaftaran...">
+                        </div>
+                    </div>
+                    <div class="col-md-7 text-right">
+                        <div class="total-badge total shadow-sm">
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-6 col-md-offset-2 pull-right total">
+                <br>
+
+                <div class="table-responsive">
+                    <table class="table table-custom table-hover align-middle">
+                        <thead>
+                        <tr>
+                            <th rowspan="2" class="text-center" width="60">NO</th>
+                            <th rowspan="2">INFORMASI PENDAFTAR</th>
+                            <th colspan="4" class="text-center border-bottom-0">STATUS SELEKSI</th>
+                            <th rowspan="2">KETERANGAN / CATATAN</th>
+                        </tr>
+                        <tr class="sub-header">
+                            <th class="text-center" width="70">NONE</th>
+                            <th class="text-center" width="70">PENDING</th>
+                            <th class="text-center" width="70">GAGAL</th>
+                            <th class="text-center" width="70">LOLOS</th>
+                        </tr>
+                        </thead>
+                        <tbody style="height: 300px; overflow-y: auto;">
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <table class="table table-responsive table-striped table-bordered">
-                <thead>
-                <tr>
-                    <th rowspan="2" class="text-center" style="width: 50px;">No</th>
-                    <th rowspan="2" class="text-center">Nama</th>
-                    <th colspan="4" class="text-center" style="width: 300px; ">Status</th>
-                    <th rowspan="2" class="text-center" style="width: 250px;">Keterangan</th>
-                </tr>
-                <tr>
-                    <th class="text-center" style="width: 75px">-</th>
-                    <th class="text-center" style="width: 75px">Pending</th>
-                    <th class="text-center" style="width: 75px">Tdk Lolos</th>
-                    <th class="text-center" style="width: 75px">Lolos</th>
-                </tr>
-                </thead>
-                <tbody style="height: 300px; overflow-y: auto;">
-                </tbody>
-            </table>
         </div>
-    </div>
-    <div id="manual" class="tab-pane fade">
-        <div class="widget-header">
-            <h3>Pengumuman Privasi</h3>
-        </div> <!-- /widget-header -->
-        <div class="widget-content">
-            <form action="{{ route('admin.stage.import-users', ['stage' => @$stage['id']]) }}" method="post"
-                  enctype="multipart/form-data">
-                @csrf
-                <div class="form-group">
-                    <input type="file" name="file" class="form-control form-control-radius"
-                           accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"/>
-                </div>
-                <div class="form-group">
-                    <div class="checkbox checkbox-circle checkbox-info">
-                        <input id="overwrite" name="type" type="checkbox" checked="true" value="overwrite"/>
-                        <label for="overwrite">Overwrite</label>
+        <div id="manual" class="tab-pane fade">
+            <div class="widget-header">
+                <h3>Pengumuman Privasi</h3>
+            </div> <!-- /widget-header -->
+            <div class="widget-content">
+                <form action="{{ route('admin.stage.import-users', ['stage' => @$stage['id']]) }}" method="post"
+                      enctype="multipart/form-data">
+                    @csrf
+                    <div class="form-group">
+                        <input type="file" name="file" class="form-control form-control-radius"
+                               accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"/>
                     </div>
-                </div>
-                <div class="form-group">
-                    download template dengan <a href="{{ route('admin.stage.export-users') }}" target="_blank" download>klik
-                        disini</a>
-                </div>
-                <div class="form-group">
-                    <button type="submit" class="btn btn-success btn-sm btn-insert">import</button>
-                </div>
+                    <div class="form-group">
+                        <div class="checkbox checkbox-circle checkbox-info">
+                            <input id="overwrite" name="type" type="checkbox" checked="true" value="overwrite"/>
+                            <label for="overwrite">Overwrite</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        download template dengan <a href="{{ route('admin.stage.export-users') }}" target="_blank"
+                                                    download>klik
+                            disini</a>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success btn-sm btn-insert">import</button>
+                    </div>
+            </div>
         </div>
     </div>
-</div>
 </div>
 
 @push('scripts')
@@ -80,7 +103,7 @@
                 title: "No Value"
             });
 
-            $(".nav-tabs a").click(function(){
+            $(".nav-tabs a").click(function () {
                 $(this).tab('show');
             });
 
@@ -96,13 +119,13 @@
                 $('.seleksi-wrapper').html('harap simpan data terlebih dahulu')
             }
             if ($(this).attr('id') == 'unit_id') {
-                $.get('{{ route('admin.stage.get-periods') }}/'+$(this).val(), function(data, status) {
+                $.get('{{ route('admin.stage.get-periods') }}/' + $(this).val(), function (data, status) {
                     $('#periode').html(`<option data-hidden="true"></option>`);
                     if (data.length) {
-                        $.each(data, function(index, value) {
+                        $.each(data, function (index, value) {
                             $('#periode').append(`
-                                <option value="${value.id}">${value.name}</option>
-                            `);
+                                    <option value="${value.id}">${value.name}</option>
+                                `);
                         });
                         $('#periode').selectpicker('refresh');
                     }
@@ -110,20 +133,20 @@
             }
         });
 
-        $(document).on('click', 'tbody .radio label', function() {
+        $(document).on('click', 'tbody .radio label', function () {
             let id = $(this).parent().parent().parent().data('id');
-            if ($('input[name="status['+id+']"]:checked').val() === '2') {
+            if ($('input[name="status[' + id + ']"]:checked').val() === '2') {
                 pendingTotal--;
-            } else if ($('input[name="status['+id+']"]:checked').val() === '1') {
+            } else if ($('input[name="status[' + id + ']"]:checked').val() === '1') {
                 passedTotal--;
-            } else if ($('input[name="status['+id+']"]:checked').val() === '0') {
+            } else if ($('input[name="status[' + id + ']"]:checked').val() === '0') {
                 notpassedTotal--;
             } else {
                 nullTotal--;
             }
         });
 
-        $(document).on('click', 'tbody input[type=radio]', function() {
+        $(document).on('click', 'tbody input[type=radio]', function () {
             let val = $(this).val();
             if (val === '1') {
                 $(this).parent().parent().parent().find('textarea').removeAttr('readonly');
@@ -142,16 +165,17 @@
             showTotal();
         })
 
-        $(document).on('input', 'input[name=pencarian]', function() {
+        $(document).on('input', 'input[name=pencarian]', function () {
             let val = $(this).val();
             if (!val) {
-                $('tr').show(); return;
+                $('tr').show();
+                return;
             }
-            $("tbody tr[data-name*='"+val+"' i]").show();
-            $("tbody tr:not([data-name*='"+val+"' i])").hide();
+            $("tbody tr[data-name*='" + val + "' i]").show();
+            $("tbody tr:not([data-name*='" + val + "' i])").hide();
         });
 
-        $(document).on('click', '.btn-konfirmasi', function(e) {
+        $(document).on('click', '.btn-konfirmasi', function (e) {
             e.preventDefault();
             $(this).attr('readonly', 'true');
             swal({
@@ -163,7 +187,7 @@
                     'Ya, Saya yakin!'
                 ],
                 dangerMode: false,
-            }).then(function(isConfirm) {
+            }).then(function (isConfirm) {
                 if (isConfirm) {
                     let statuses = {};
                     let notes = {};
@@ -173,10 +197,10 @@
                         passed_all = true;
                     }
 
-                    $('input[name^="status"]:checked').each(function() {
+                    $('input[name^="status"]:checked').each(function () {
                         statuses[$(this).data('id')] = $(this).val();
                     });
-                    $('textarea[name^="note"').each(function() {
+                    $('textarea[name^="note"').each(function () {
                         notes[$(this).data('id')] = $(this).val();
                     });
 
@@ -214,9 +238,9 @@
             }
 
             if (unit && period) {
-                $.get('{{ route('admin.stage.users-stage-json', ['stage' => @$stage['id']]) }}/'+ unit + '/' + period, function (data, status) {
+                $.get('{{ route('admin.stage.users-stage-json', ['stage' => @$stage['id']]) }}/' + unit + '/' + period, function (data, status) {
                     if (data.length) {
-                        $.each(data, function(index, value) {
+                        $.each(data, function (index, value) {
                             nullChecked = pendingChecked = notpassedChecked = passedChecked = textareaReadonly = '';
 
                             if (value.note == null) {
@@ -242,27 +266,27 @@
                             }
 
                             $('.seleksi-wrapper tbody').append(`
-                                <tr data-name="[${value.register_number}] ${value.name}" data-id="${value.id}">
-                                    <td style="width: 50px;" class="text-center">${no}</td>
-                                    <td><b>[${value.register_number}]</b> ${value.name}</td>
-                                    <td style="width: 75px;" class="text-center"><div class="radio"><input id="status_null_${value.id}" ${nullChecked} type="radio" data-id="${value.id}" name="status[${value.id}]" value="" /><label for="status_null_${value.id}"></label></div></td>
-                                    <td style="width: 75px;" class="text-center"><div class="radio radio-warning"><input id="status_pending_${value.id}" ${pendingChecked} data-id="${value.id}" type="radio" name="status[${value.id}]" value="2" /><label for="status_pending_${value.id}"></label></div></td>
-                                    <td style="width: 75px;" class="text-center"><div class="radio radio-danger"><input id="status_notpassed_${value.id}" ${notpassedChecked} type="radio" data-id="${value.id}" name="status[${value.id}]" value="0" /><label for="status_notpassed_${value.id}"></label></div></td>
-                                    <td style="width: 75px;" class="text-center"><div class="radio radio-success"><input id="status_passed_${value.id}" ${passedChecked} type="radio" name="status[${value.id}]" data-id="${value.id}" value="1" /><label for="status_passed_${value.id}"></label></div></td>
-                                    <td style="width: 250px;"><textarea class="form-control" ${textareaReadonly} name="note[${value.id}]" data-id="${value.id}">${value.note.replace('\\n', '&#013;')}</textarea></td>
-                                </tr>
-                            `);
+                                    <tr data-name="[${value.register_number}] ${value.name}" data-id="${value.id}">
+                                        <td style="width: 50px;" class="text-center">${no}</td>
+                                        <td><b>[${value.register_number}]</b> ${value.name}</td>
+                                        <td style="width: 75px;" class="text-center"><div class="radio"><input id="status_null_${value.id}" ${nullChecked} type="radio" data-id="${value.id}" name="status[${value.id}]" value="" /><label for="status_null_${value.id}"></label></div></td>
+                                        <td style="width: 75px;" class="text-center"><div class="radio radio-warning"><input id="status_pending_${value.id}" ${pendingChecked} data-id="${value.id}" type="radio" name="status[${value.id}]" value="2" /><label for="status_pending_${value.id}"></label></div></td>
+                                        <td style="width: 75px;" class="text-center"><div class="radio radio-danger"><input id="status_notpassed_${value.id}" ${notpassedChecked} type="radio" data-id="${value.id}" name="status[${value.id}]" value="0" /><label for="status_notpassed_${value.id}"></label></div></td>
+                                        <td style="width: 75px;" class="text-center"><div class="radio radio-success"><input id="status_passed_${value.id}" ${passedChecked} type="radio" name="status[${value.id}]" data-id="${value.id}" value="1" /><label for="status_passed_${value.id}"></label></div></td>
+                                        <td style="width: 250px;"><textarea class="form-control" ${textareaReadonly} name="note[${value.id}]" data-id="${value.id}">${value.note.replace('\\n', '&#013;')}</textarea></td>
+                                    </tr>
+                                `);
                         });
 
                         if (shopFeatureChecked) {
                             $('.seleksi-wrapper').append(`
-                                <div class="form-group">
-                                    <div class="checkbox checkbox-success">
-                                        <input id="passed_all" name="passed_all" type="checkbox" value="1" />
-                                        <label for="passed_all">Lolos semua</label>
+                                    <div class="form-group">
+                                        <div class="checkbox checkbox-success">
+                                            <input id="passed_all" name="passed_all" type="checkbox" value="1" />
+                                            <label for="passed_all">Lolos semua</label>
+                                        </div>
                                     </div>
-                                </div>
-                            `);
+                                `);
                         }
 
                         $('.seleksi-wrapper').append('<button class="btn btn-konfirmasi btn-success"><i class="fa fa-save"></i> simpan</button>');
@@ -277,7 +301,7 @@
         }
 
         function showTotal() {
-            let total = nullTotal+pendingTotal+notpassedTotal+passedTotal;
+            let total = nullTotal + pendingTotal + notpassedTotal + passedTotal;
             $('.total').html(`Total [ -: ${nullTotal}, pending: ${pendingTotal}, tdk lolos: ${notpassedTotal}, lolos: ${passedTotal}] = ${total} pendaftar`);
         }
     </script>

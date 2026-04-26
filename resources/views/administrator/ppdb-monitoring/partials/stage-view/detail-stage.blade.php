@@ -6,7 +6,7 @@
             .selection-card {
                 background: #fff;
                 border-radius: 12px;
-                box-shadow: 0 5px 25px rgba(0,0,0,0.05);
+                box-shadow: 0 5px 25px rgba(0, 0, 0, 0.05);
                 overflow: hidden;
                 margin-top: 20px;
             }
@@ -122,6 +122,18 @@
                 transform: translateY(-2px);
                 box-shadow: 0 4px 12px rgba(38, 112, 59, 0.3);
             }
+
+            .badge-status {
+                padding: 6px 12px;
+                border-radius: 50px;
+                font-size: 11px;
+                font-weight: 600;
+                display: inline-flex;
+                align-items: center;
+                transition: all 0.3s ease;
+            }
+            .bg-soft-success { background-color: rgba(25, 135, 84, 0.15); border: 1px solid rgba(25, 135, 84, 0.2); }
+            .bg-soft-danger { background-color: rgba(220, 53, 69, 0.15); border: 1px solid rgba(220, 53, 69, 0.2); }
         </style>
     @endpush
     <div class="page-header">
@@ -162,13 +174,26 @@
                                     <td>Unit : {{$period->unit->name}} </td>
                                 </tr>
                                 <tr>
-                                    <td>Tahap : {{ ($type == 'administration') ? "Administrasi" : $stage->name }}</td>
+                                    @if($type == 'last-stage' || $type == 'setting-class')
+                                        @if($type == 'last-stage')
+                                            <td>Tahap : Seleksi Penerimaan Akhir Siswa</td>
+                                        @else
+                                            <td>Tahap : Penetapan Kelas dan NISN Siswa</td>
+                                        @endif
+                                    @else
+                                        <td>Tahap : {{ ($type == 'administration') ? "Administrasi" : $stage->name }}</td>
+                                    @endif
+
                                 </tr>
                             </table>
                             </br>
                             <div class="row">
                                 @if(($type == 'administration') || ($type == 'development-statement'))
                                     @include('administrator.ppdb-monitoring.partials.stage-view.administration')
+                                @elseif($type == 'last-stage')
+                                    @include('administrator.ppdb-monitoring.partials.stage-view.last-stage')
+                                @elseif($type == 'setting-class')
+                                    @include('administrator.ppdb-monitoring.partials.stage-view.setting-class')
                                 @else
                                     @include('administrator.ppdb-monitoring.partials.stage-view.stage')
                                 @endif

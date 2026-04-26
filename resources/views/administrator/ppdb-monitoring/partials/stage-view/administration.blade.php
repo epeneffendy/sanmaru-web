@@ -29,11 +29,12 @@
                     <label class="label label-warning label-sm">no
                         registrasi: {{$item['register_number']}}</label><br/>
                     <label
-                        class="label label-danger label-sm">{{$item['unit_name']}}</label><br/>
+                            class="label label-danger label-sm">{{$item['unit_name']}}</label><br/>
                     <label class="label label-info label-xs">{{ $item['periode_name'] }}</label><br/>
                     <label class="label label-xs"
                            style="background-color: gray">{{ $item['origin_school'] }}</label><br/>
-                    <small>phone: {{$item['mobile_phone']}}</small><br/>
+                    <small>phone: {{$item['mobile_phone']}}</small>
+                    <br/>
                     {{$item['gender']}}
                 </td>
                 <td class="text-center">
@@ -42,73 +43,56 @@
                     {!! $item['status_stage'] !!}
                 </td>
                 <td class="text-center">
-                    <span class="btn btn-circle btn-sm {{ $item['isEmailVerified'] ? "btn-success" : "btn-danger" }}">
-                        <icon class="icon-plus">
-                            @if ($item['isEmailVerified'])
-                                <i class="fa fa-check" title="Email Verified"></i>
-                            @else
-                                <i class="fa fa-times" title="Email belum Verified"></i>
-                            @endif
-                        </icon>
+                    <span class="badge-status {{ $item['isEmailVerified'] ? 'bg-soft-success text-success' : 'bg-soft-danger text-danger' }}">
+                        <i class="fa {{ $item['isEmailVerified'] ? 'fa-check-circle' : 'fa-times-circle' }} me-1"></i> {{ $item['isEmailVerified'] ? ' Email Verified' : ' Email Belum Verified' }}
                     </span>
                     @if (!$item['isEmailVerified'])
                         <br/>
                         <br/>
                         <span class="btn btn-sm btn-default send-confirmation" data-id="{{ $item['id'] }}"><i
-                                class="fa fa-envelope"></i></span>
+                                    class="fa fa-envelope"></i></span>
                     @endif
                 </td>
                 <td class="text-center">
+
                     @if($item['payment_date'] == '')
-                        <span class="btn btn-circle btn-sm btn-danger">
-                            <icon class="icon-times"><i class="fa fa-times"
-                                                        title="Belum melakukan pembayaran"></i></icon>
+                        <span class="badge-status bg-soft-danger text-danger">
+                            <i class="fa fa-times-circle me-1"></i> Pembayaran Melakukan Pembayaran
                         </span>
                     @else
-                        <span class="btn btn-circle btn-sm btn-success">
-                            <icon class="icon-times"><i class="fa fa-check" title="Pembayaran Terkonfirmasi"></i></icon>
+                        <span class="badge-status bg-soft-success text-success">
+                            <i class="fa fa-check-circle me-1"></i> Pembayaran Terkonfirmasi
                         </span>
+                        {{--<span class="btn btn-circle btn-sm btn-success">--}}
+                            {{--<icon class="icon-times"><i class="fa fa-check" title="Pembayaran Terkonfirmasi"></i></icon>--}}
+                        {{--</span>--}}
                         <br/>
                         <br/>
                         <span
-                            class="label label-info">Pembayaran Terkonfirmasi</span>
+                                class="label label-info">Pembayaran Terkonfirmasi</span>
                         <br>
                         <span
-                            class="label label-success">Rp.{{number_format($item['total_payment_form'])}}</span>
+                                class="label label-success">Rp.{{number_format($item['total_payment_form'])}}</span>
                     @endif
                 </td>
 
                 <td class="text-center">
-                    <span
-                        class="btn btn-circle btn-sm {{ $item['isComplite'] ? "btn-success" : "btn-danger" }}">
-                        <icon class="icon-plus">
-                            @if ($item['isComplite'])
-                                <i class="fa fa-check" title="Lengkap"></i>
-                            @else
-                                <i class="fa fa-times" title="Belum Lengkap"></i>
-                            @endif
-                        </icon>
+                    <span class="badge-status {{ $item['isComplite'] ? 'bg-soft-success text-success' : 'bg-soft-danger text-danger' }}">
+                        <i class="fa {{ $item['isComplite'] ? 'fa-check-circle' : 'fa-times-circle' }} me-1"></i> {{ $item['isComplite'] ? ' Lengkap' : ' Belum Lengkap' }}
+                    </span>
+                </td>
+                <td class="text-center">
+                    <span class="badge-status {{ $item['isParent'] ? 'bg-soft-success text-success' : 'bg-soft-danger text-danger' }}">
+                        <i class="fa {{ $item['isParent'] ? 'fa-check-circle' : 'fa-times-circle' }} me-1"></i> {{ $item['isParent'] ? ' Lengkap' : ' Belum Lengkap' }}
                     </span>
                 </td>
                 <td class="text-center">
                     <span
-                        class="btn btn-circle btn-sm {{ $item['isParent'] ? "btn-success" : "btn-danger" }}">
-                        <icon class="icon-plus">
-                            @if ($item['isParent'])
-                                <i class="fa fa-check" title="Lengkap"></i>
-                            @else
-                                <i class="fa fa-times" title="Belum Lengkap"></i>
-                            @endif
-                        </icon>
-                    </span>
-                </td>
-                <td class="text-center">
-                    <span
-                        class="btn btn-circle btn-sm {{ $item['IsStatementLetterUploaded'] ? ($item['IsStatementLetterConfirmed'] ? "btn-success btn-modal-statement-letter-success" : "btn-warning btn-modal-statement-letter") : "btn-danger" }}"
-                        data-id="{{$item['id']}}" data-name="{{$item['name']}}"
-                        data-register_number="{{$item['register_number']}}"
-                        data-unit_id="{{$item['unit_id']}}"
-                        data-unit_name="{{$item['unit_name']}}">
+                            class="btn btn-circle btn-sm {{ $item['IsStatementLetterUploaded'] ? ($item['IsStatementLetterConfirmed'] ? "btn-success btn-modal-statement-letter-success" : "btn-warning btn-modal-statement-letter") : "btn-danger" }}"
+                            data-id="{{$item['id']}}" data-name="{{$item['name']}}"
+                            data-register_number="{{$item['register_number']}}"
+                            data-unit_id="{{$item['unit_id']}}"
+                            data-unit_name="{{$item['unit_name']}}">
                         <icon class="icon-plus">
                             @if ($item['IsStatementLetterConfirmed'])
                                 <i class="fa fa-check"></i>
@@ -142,8 +126,8 @@
                                     </div>
                                     <div class="modal-body">
                                         <form
-                                            action="{{ route('admin.ppdb.reset-development-payment-method', $item) }}"
-                                            method="POST">
+                                                action="{{ route('admin.ppdb.reset-development-payment-method', $item) }}"
+                                                method="POST">
                                             @csrf
                                             <p style="text-align: left;">Silahkan isi alasan
                                                 mereset surat pernyataan.</p>
@@ -216,6 +200,13 @@
                             <span class="label label-warning">Pembayaran Cicilan</span>
                         @endif
                     @endif
+                    <br>
+                    @if($item['IsStageDevelopment'])
+                        <button type="button" class="btn btn-sm ">
+                            <i class="fa fa-sync me-2"></i> Sync Data
+                        </button>
+                    @endif
+
                 </td>
                 <td class="text-center">
                     <a href="{{ route('admin.ppdb.show', $item['id']) }}" title="Show"
@@ -258,7 +249,7 @@
                 fileUrl = "{{ route('show_file') }}";
             var html = `<form role="form" action="{{ route("admin.ppdb.confirm-development-statement", ["id"=>null]) }}/` + id + `" method="POST" id="statement-letter-confirmation-form" class="form-horizontal">
                         @csrf
-            <input type="hidden" name="id" value="` + id + `" />
+                <input type="hidden" name="id" value="` + id + `" />
                         <div><h4 class="text-primary modal-form-label">` + $(this).data('name') + `</h4></div>
                         <div>` + $(this).data('register_number') + `</div>
                         <div>` + $(this).data('unit_name') + `</div>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\PPDBStageTemplateExport;
 use App\Lib\DbTrx;
 use App\Models\Unit;
 use App\Models\Stage;
@@ -186,9 +187,9 @@ class StageController extends Controller
 
                     if ($user) {
                         $stage_status = 'pending';
-                        if($data == 0){
+                        if ($data == 0) {
                             $stage_status = 'not_passed';
-                        }else if($data == 1){
+                        } else if ($data == 1) {
                             $stage_status = 'passed';
                         }
                         $user->stages_id = $stage->id;
@@ -208,6 +209,15 @@ class StageController extends Controller
     public function export()
     {
         $userStageExport = new UserStagesExport();
+        $title = "Template Import daftar seleksi.xlsx";
+
+        return $userStageExport->download($title);
+    }
+
+    public function exportWithStudent(Request $request)
+    {
+
+        $userStageExport = new PPDBStageTemplateExport($request->all());
         $title = "Template Import daftar seleksi.xlsx";
 
         return $userStageExport->download($title);
@@ -242,6 +252,42 @@ class StageController extends Controller
         }
 
         return redirect()->route('admin.stage.edit', ['stage' => $stage->id])->with($sessionFlash);
+    }
+
+    public function importStudent(
+        $stage,
+        ImportExcelRequest $request
+    )
+    {
+        $sessionFlash = [];
+        $stage = Stage::byUserRole()->where('id', $stage)->firstOrFail();
+
+        $input = $request->validated();
+        $userStagesImport = new UserStagesImport($stage);
+        if ($input['type'] === 'overwrite') {
+            $userStagesImport->setOverwrite(true);
+        }
+
+        $userStagesImport->import($input['file']);
+        $reports = $userStagesImport->getReport();
+
+        $sessionFlash = [
+            'message' => count($reports['success']) . ' data berhasil diimport',
+        ];
+
+        if (isset($reports['failure']) && count($reports['failure'])) {
+            $sessionFlash['errors'] = new MessageBag([
+                'errors' => [
+                    count($reports['failure']) . ' data gagal diimport<br/>' . implode('<br/>', $reports['failure'])
+                ]
+            ]);
+        }
+
+        return redirect()->route('admin.ppdb-monitoring.show-detail-stage', [
+            'id'       => $stage->periode,
+            'type'     => 'stage',
+            'stage_id' => $stage->id
+        ])->with($sessionFlash);
     }
 
     public function getUsersStage($stage, $unit, $period)

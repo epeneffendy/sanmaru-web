@@ -29,6 +29,7 @@ class PPDBUser extends Authenticatable
     const STATUS_SUBMITTED = 'submitted'; // sudah memenuhi semua persyaratan, menunggu validasi data
     const STATUS_REJECTED = 'rejected'; // setelah validasi data, ada data yang kurang
     const STATUS_ACCEPTED = 'accepted'; // peserta diterima
+    const STATUS_NOT_SELECTED= 'not_selected'; // peserta tidka diterima
 
     const ORDER_STATUS_ORDERED = 'ordered';
     const ORDER_STATUS_NOT_ORDERED = 'not_ordered';

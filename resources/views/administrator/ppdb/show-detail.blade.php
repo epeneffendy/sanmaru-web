@@ -632,6 +632,16 @@
                                 <p class="text-muted small m-0">{{ ($data->status == \App\Models\PPDBUser::STATUS_ACCEPTED) ? 'Telah Diterima Sebegai Siswa' :'Belum Diterima Sebagai Siswa' }} </p>
                             </div>
                         </div>
+
+                        <div class="timeline-item {{ (($data->status == \App\Models\PPDBUser::STATUS_ACCEPTED) && $data->user->type == 'siswa') ? 'completed' :'pending' }}">
+                            <div class="timeline-icon">
+                                <i class="fa {{ (($data->status == \App\Models\PPDBUser::STATUS_ACCEPTED) && $data->user->type == 'siswa') ?  'fa-check'  :'fa-question' }}"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h5 class="m-0">Kelas & NISN</h5>
+                                <p class="text-muted small m-0">{{ (($data->status == \App\Models\PPDBUser::STATUS_ACCEPTED) && $data->user->type == 'siswa') ? 'Kelas & NISN sudah ditentukan' :'Kelas & NISN belum ditentukan' }} </p>
+                            </div>
+                        </div>
                     </div>
 
                     <hr class="my-4" style="opacity: 0.1;">

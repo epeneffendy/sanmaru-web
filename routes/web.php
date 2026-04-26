@@ -54,6 +54,7 @@ Route::group(['domain' => $routeService->getPpdbSubdomain()], function () use ($
         Route::get("/$prefix/faq-ppdb", 'PPDBController@faqPpdb')->name('ppdb.faq-ppdb');
         Route::get("/$prefix/notifikasi-ppdb", 'PPDBController@notifikasiPpdb')->name('ppdb.notifikasi-ppdb');
         Route::get("/$prefix/data-siswa-ppdb", 'PPDBController@dataSiswaPpdb')->name('ppdb.data-siswa-ppdb');
+        Route::get("/$prefix/finance-ppdb", 'PPDBController@financePpdb')->name('ppdb.finance-ppdb');
         Route::get("/$prefix/profile-siswa-ppdb", 'PPDBController@profileSiswa')->name('ppdb.profile-siswa');
         Route::get("/$prefix/change-password", 'PPDBController@newPassword')->name('ppdb.change-password.form');
         Route::post("/$prefix/change-password", 'PPDBController@updatePassword')->name('ppdb.change-password.update');
@@ -701,16 +702,21 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
         Route::get('/administrator/ppdb/export', 'Admin\PPDBController@export')->name('admin.ppdb.export');
         Route::get('/administrator/ppdb/get-development-file/{id}', 'Admin\PPDBController@getDevelopmentStatementLetterFile')->name('admin.ppdb.get-development-file');
         Route::post('/administrator/ppdb/{ppdbUser}/reset-development-payment-method/', 'Admin\PPDBController@resetDevelopmentPaymentMethod')->name('admin.ppdb.reset-development-payment-method');
-        Route::post('/administrator/ppdb/{ppdbUser}/accept-student/','Admin\PPDBController@confirm')->name('admin.ppdb.accept');
-        Route::get('/administrator/ppdb/check-inquiry-status/{id}','Admin\PPDBController@checkInquiryStatus')->name('admin.ppdb.check-inquiry-status');
-        Route::get('/administrator/ppdb/download-template','Admin\PPDBController@downloadTemplate')->name('admin.ppdb.download-template');
-        Route::post('/administrator/ppdb/import','Admin\PPDBController@import')->name('admin.ppdb.import');
+        Route::post('/administrator/ppdb/{ppdbUser}/accept-student/', 'Admin\PPDBController@confirm')->name('admin.ppdb.accept');
+        Route::get('/administrator/ppdb/check-inquiry-status/{id}', 'Admin\PPDBController@checkInquiryStatus')->name('admin.ppdb.check-inquiry-status');
+        Route::get('/administrator/ppdb/download-template', 'Admin\PPDBController@downloadTemplate')->name('admin.ppdb.download-template');
+        Route::post('/administrator/ppdb/import', 'Admin\PPDBController@import')->name('admin.ppdb.import');
 
         //MONITORING PPDB
         Route::prefix('administrator/ppdb-monitoring')->name('admin.ppdb-monitoring.')->namespace('Admin')->group(function () {
             Route::get('', 'PPDBMonitoringController@index')->name('index');
             Route::get('show-detail-period/{id}', 'PPDBMonitoringController@showDetailPeriod')->name('show-detail-period');
             Route::get('show-detail-stage/{id}/{type}/{stage_id}', 'PPDBMonitoringController@showDetailStage')->name('show-detail-stage');
+            Route::get('users-last-stage/{id}', 'PPDBMonitoringController@userLastStage')->name('users-last-stage');
+            Route::post('post-users/{id}', 'PPDBMonitoringController@postUsers')->name('post-users');
+            Route::get('import-users-last-stage/{id}', 'PPDBMonitoringController@importUsers')->name('import-users-last-stage');
+            Route::get('template-setting-class', 'PPDBMonitoringController@templateSettingClass')->name('template-setting-class');
+            Route::post('import-users-student/{id}', 'PPDBMonitoringController@importUserStudent')->name('import-users-student');
         });
 
         // AGE LIMIT
@@ -749,8 +755,10 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::post('post-users/{stage}', 'StageController@postUsers')->name('post-users');
             Route::post('post-mass/{stage}', 'StageController@postMass')->name('post-mass');
 
-            Route::get('export-users', 'StageController@export')->name('export-users');
+            Route::get('export-users/{stage}/{unit?}/{period?}', 'StageController@export')->name('export-users');
+            Route::get('export-student', 'StageController@exportWithStudent')->name('export-student');
             Route::post('import-users/{stage}', 'StageController@import')->name('import-users');
+            Route::post('import-users-student/{stage}', 'StageController@importStudent')->name('import-users-student');
         });
 
         // EXPORT DATA
@@ -847,24 +855,24 @@ Route::group(['domain' => $routeService->getWebSubdomain()], function () use ($r
 
     //PPDB ONLINE
     Route::group(['middleware' => 'web'], function () use ($prefix) {
-        Route::get($prefix. '/', 'Front\HomeController@index' )->name('web.home');
-        Route::get($prefix. '/about', 'Front\AboutController@index' )->name('web.about.index');
-        Route::get($prefix. '/about/{categorySlug}', 'Front\AboutController@showByCategory' )->name('web.about.category.show');
-        Route::get($prefix. '/about/{categorySlug}/{slug}', 'Front\AboutController@show' )->name('web.about.show');
-        Route::get($prefix. '/santa-angela', 'Front\SantaAngelaController@index' )->name('web.santa-angela.index');
-        Route::get($prefix. '/santa-angela/regula', 'Front\SantaAngelaController@regula' )->name('web.santa-angela.regula');
-        Route::get($prefix. '/santa-angela/nasehat', 'Front\SantaAngelaController@nasehat' )->name('web.santa-angela.nasehat');
-        Route::get($prefix. '/santa-angela/warisan', 'Front\SantaAngelaController@warisan' )->name('web.santa-angela.warisan');
-        Route::get($prefix. '/news', 'Front\NewsController@index' )->name('web.news.index');
-        Route::get($prefix. '/news/all', 'Front\NewsController@all' )->name('web.news.all');
-        Route::get($prefix. '/news/{slug}', 'Front\NewsController@show' )->name('web.news.show');
-        Route::get($prefix. '/admission/beasiswa', 'Front\AdmissionController@beasiswa' )->name('web.admission.beasiswa');
-        Route::get($prefix. '/admission/faq', 'Front\AdmissionController@faq' )->name('web.admission.faq');
-        Route::get($prefix. '/campuses', 'Front\CampusesController@index' )->name('web.campuses.index');
-        Route::get($prefix. '/campuses/unit/{campusUnitId}', 'Front\CampusesController@showCampusUnit' )->name('web.campus.unit.show');
-        Route::get($prefix. '/school-life', 'Front\SchoolLifeController@index' )->name('web.school-life.index');
-        Route::get($prefix. '/school-life/{categorySlug}', 'Front\SchoolLifeController@showByCategory' )->name('web.school-life.category.show');
-        Route::get($prefix. '/school-life/{categorySlug}/{slug}', 'Front\SchoolLifeController@show' )->name('web.school-life.show');
+        Route::get($prefix . '/', 'Front\HomeController@index')->name('web.home');
+        Route::get($prefix . '/about', 'Front\AboutController@index')->name('web.about.index');
+        Route::get($prefix . '/about/{categorySlug}', 'Front\AboutController@showByCategory')->name('web.about.category.show');
+        Route::get($prefix . '/about/{categorySlug}/{slug}', 'Front\AboutController@show')->name('web.about.show');
+        Route::get($prefix . '/santa-angela', 'Front\SantaAngelaController@index')->name('web.santa-angela.index');
+        Route::get($prefix . '/santa-angela/regula', 'Front\SantaAngelaController@regula')->name('web.santa-angela.regula');
+        Route::get($prefix . '/santa-angela/nasehat', 'Front\SantaAngelaController@nasehat')->name('web.santa-angela.nasehat');
+        Route::get($prefix . '/santa-angela/warisan', 'Front\SantaAngelaController@warisan')->name('web.santa-angela.warisan');
+        Route::get($prefix . '/news', 'Front\NewsController@index')->name('web.news.index');
+        Route::get($prefix . '/news/all', 'Front\NewsController@all')->name('web.news.all');
+        Route::get($prefix . '/news/{slug}', 'Front\NewsController@show')->name('web.news.show');
+        Route::get($prefix . '/admission/beasiswa', 'Front\AdmissionController@beasiswa')->name('web.admission.beasiswa');
+        Route::get($prefix . '/admission/faq', 'Front\AdmissionController@faq')->name('web.admission.faq');
+        Route::get($prefix . '/campuses', 'Front\CampusesController@index')->name('web.campuses.index');
+        Route::get($prefix . '/campuses/unit/{campusUnitId}', 'Front\CampusesController@showCampusUnit')->name('web.campus.unit.show');
+        Route::get($prefix . '/school-life', 'Front\SchoolLifeController@index')->name('web.school-life.index');
+        Route::get($prefix . '/school-life/{categorySlug}', 'Front\SchoolLifeController@showByCategory')->name('web.school-life.category.show');
+        Route::get($prefix . '/school-life/{categorySlug}/{slug}', 'Front\SchoolLifeController@show')->name('web.school-life.show');
         //Route::get($prefix. '/school-life/pembelajaran-daring', 'Front\SchoolLifeController@pembelajaranDaring' )->name('web.school-life.pembelajaran-daring');
     });
 });
@@ -878,15 +886,15 @@ Route::group(['domain' => $routeService->getWebUnitSubdomain(), 'where' => ['web
 
     //WEB KB-TK
     Route::group(['middleware' => 'web', 'where' => ['webunit' => $webUnitAllowed], 'as' => 'webunit.'], function () use ($prefix, $webUnitAllowed) {
-        Route::get($prefix. '/', 'WebUnit\HomeController@index' )->name('home');
-        Route::get($prefix. '/about/history', 'WebUnit\AboutController@history' )->name('about.history');
-        Route::get($prefix. '/about/about', 'WebUnit\AboutController@about' )->name('about.about');
-        Route::get($prefix. '/about/welcome', 'WebUnit\AboutController@welcome' )->name('about.welcome');
-        Route::get($prefix. '/about/core-values', 'WebUnit\AboutController@coreValues' )->name('about.core-values');
-        Route::get($prefix. '/news', 'WebUnit\NewsController@index' )->name('news');
-        Route::get($prefix. '/news/all', 'WebUnit\NewsController@all' )->name('news.all');
-        Route::get($prefix. '/news/show/{slug}', 'WebUnit\NewsController@show' )->name('news.show');
-        Route::get($prefix. '/facilities', 'WebUnit\FacilitiesController@index' )->name('facilities');
+        Route::get($prefix . '/', 'WebUnit\HomeController@index')->name('home');
+        Route::get($prefix . '/about/history', 'WebUnit\AboutController@history')->name('about.history');
+        Route::get($prefix . '/about/about', 'WebUnit\AboutController@about')->name('about.about');
+        Route::get($prefix . '/about/welcome', 'WebUnit\AboutController@welcome')->name('about.welcome');
+        Route::get($prefix . '/about/core-values', 'WebUnit\AboutController@coreValues')->name('about.core-values');
+        Route::get($prefix . '/news', 'WebUnit\NewsController@index')->name('news');
+        Route::get($prefix . '/news/all', 'WebUnit\NewsController@all')->name('news.all');
+        Route::get($prefix . '/news/show/{slug}', 'WebUnit\NewsController@show')->name('news.show');
+        Route::get($prefix . '/facilities', 'WebUnit\FacilitiesController@index')->name('facilities');
     });
 });
 
@@ -897,29 +905,29 @@ Route::group(['domain' => $routeService->getKantinSubdomain()], function () use 
     }
 
     Route::group(['middleware' => 'web'], function () use ($prefix) {
-        Route::get($prefix. '/', 'WebKantin\HomeController@index' )->name('kantin.index');
-        Route::get($prefix. '/login', 'WebKantin\LoginController@landing' )->name('kantin.login');
-        Route::post($prefix. '/login', 'WebKantin\LoginController@login' )->name('kantin.submit');
+        Route::get($prefix . '/', 'WebKantin\HomeController@index')->name('kantin.index');
+        Route::get($prefix . '/login', 'WebKantin\LoginController@landing')->name('kantin.login');
+        Route::post($prefix . '/login', 'WebKantin\LoginController@login')->name('kantin.submit');
         Route::get($prefix . '/fetch-product-detail/{product?}', 'WebKantin\HomeController@fetchProductDetail')->name('kantin.fetch-product-detail');
-        Route::get($prefix. '/search', 'WebKantin\HomeController@search' )->name('kantin.search');
-        Route::get($prefix. '/search/not-found', 'WebKantin\HomeController@notFound' )->name('kantin.search.notFound');
+        Route::get($prefix . '/search', 'WebKantin\HomeController@search')->name('kantin.search');
+        Route::get($prefix . '/search/not-found', 'WebKantin\HomeController@notFound')->name('kantin.search.notFound');
     });
     Route::group(['middleware' => ['web']], function () use ($prefix) {
-        Route::get($prefix. '/cart/{type?}', 'WebKantin\CartController@index' )->name('kantin.cart.index');
-        Route::get($prefix. '/', 'WebKantin\HomeController@index' )->name('kantin.index');
+        Route::get($prefix . '/cart/{type?}', 'WebKantin\CartController@index')->name('kantin.cart.index');
+        Route::get($prefix . '/', 'WebKantin\HomeController@index')->name('kantin.index');
         Route::post($prefix . '/cart/add', 'WebKantin\CartController@add')->name('kantin.cart.add');
         Route::post($prefix . '/cart/delete/', 'WebKantin\CartController@delete')->name('kantin.cart.delete');
         Route::post($prefix . '/cart/checkout', 'WebKantin\CartController@checkout')->name('kantin.cart.checkout');
 
-        Route::get($prefix. '/history', 'WebKantin\OrderHistoryController@index')->name('kantin.history');
-        Route::get($prefix. '/history/detail/{id?}', 'WebKantin\OrderHistoryController@show')->name('kantin.history.order.detail');
-        Route::post($prefix. '/history/upload/file', 'WebKantin\OrderHistoryController@upload_file')->name('kantin.history.upload.file');
-        Route::get($prefix. '/order/{id}/pdf', 'WebKantin\OrderHistoryController@showPdf')->name('kantin.history.order.pdf');
-        Route::get($prefix. '/logout', 'WebKantin\LoginController@logout' )->name('kantin.logout');
+        Route::get($prefix . '/history', 'WebKantin\OrderHistoryController@index')->name('kantin.history');
+        Route::get($prefix . '/history/detail/{id?}', 'WebKantin\OrderHistoryController@show')->name('kantin.history.order.detail');
+        Route::post($prefix . '/history/upload/file', 'WebKantin\OrderHistoryController@upload_file')->name('kantin.history.upload.file');
+        Route::get($prefix . '/order/{id}/pdf', 'WebKantin\OrderHistoryController@showPdf')->name('kantin.history.order.pdf');
+        Route::get($prefix . '/logout', 'WebKantin\LoginController@logout')->name('kantin.logout');
     });
 });
 
-Route::group(['domain' => $routeService->getPaymentsSubdomain(), 'middleware' => ['cors']], function() use ($routeService, $helper) {
+Route::group(['domain' => $routeService->getPaymentsSubdomain(), 'middleware' => ['cors']], function () use ($routeService, $helper) {
     $prefix = 'payment/';
     // if ($routeService->isProduction()) {
     //     $prefix = '';
@@ -927,19 +935,19 @@ Route::group(['domain' => $routeService->getPaymentsSubdomain(), 'middleware' =>
 
     if ($helper->isApiVaBcaEnable()) {
         // TEMP
-        Route::post($prefix. 'api/auth/token', 'Payment\PaymentBCAController@authToken' )->name('payment.api.token');
-        Route::post($prefix. 'va/status', 'Payment\PaymentBCAController@inquiryStatus' )->name('payment.api.status');
-        Route::post($prefix. 'va/bills', 'Payment\PaymentBCAController@inquiryList' )->name('payment.api.inquiry');
-        Route::post($prefix. 'va/payments', 'Payment\PaymentBCAController@paymentFlag' )->name('payment.api.payments');
+        Route::post($prefix . 'api/auth/token', 'Payment\PaymentBCAController@authToken')->name('payment.api.token');
+        Route::post($prefix . 'va/status', 'Payment\PaymentBCAController@inquiryStatus')->name('payment.api.status');
+        Route::post($prefix . 'va/bills', 'Payment\PaymentBCAController@inquiryList')->name('payment.api.inquiry');
+        Route::post($prefix . 'va/payments', 'Payment\PaymentBCAController@paymentFlag')->name('payment.api.payments');
 
-        Route::post($prefix. 'v1.0/access-token/generate-signature', 'Payment\OpenApi\v1\PaymentBCAController@getSignature')->name('payment.api.token');
-        Route::post($prefix. 'v1.0/access-token/b2b', 'Payment\OpenApi\v1\PaymentBCAController@authTokenNew')->name('payment.api.token');
-        Route::post($prefix. 'v1.0/transfer-va/inquiry', 'Payment\OpenApi\v1\PaymentBCAController@inquiryList' )->name('payment.api.inquiry');
-        Route::post($prefix. 'v1.0/transfer-va/payment', 'Payment\OpenApi\v1\PaymentBCAController@paymentFlag' )->name('payment.api.payments');
-        Route::post($prefix. 'v1.0/transfer-va/status', 'Payment\OpenApi\v1\PaymentBCAController@inquiryStatus' )->name('payment.api.status');
+        Route::post($prefix . 'v1.0/access-token/generate-signature', 'Payment\OpenApi\v1\PaymentBCAController@getSignature')->name('payment.api.token');
+        Route::post($prefix . 'v1.0/access-token/b2b', 'Payment\OpenApi\v1\PaymentBCAController@authTokenNew')->name('payment.api.token');
+        Route::post($prefix . 'v1.0/transfer-va/inquiry', 'Payment\OpenApi\v1\PaymentBCAController@inquiryList')->name('payment.api.inquiry');
+        Route::post($prefix . 'v1.0/transfer-va/payment', 'Payment\OpenApi\v1\PaymentBCAController@paymentFlag')->name('payment.api.payments');
+        Route::post($prefix . 'v1.0/transfer-va/status', 'Payment\OpenApi\v1\PaymentBCAController@inquiryStatus')->name('payment.api.status');
 
-        Route::post($prefix. 'v1.0/access-token/get-signature-token', 'Payment\OpenApi\v1\PaymentBCAController@getSignatureToken' )->name('payment.api.token');
-        Route::post($prefix. 'v1.0/access-token/verif-signature-token', 'Payment\OpenApi\v1\PaymentBCAController@verifSignatureToken' )->name('payment.api.token');
-        Route::post($prefix. 'v1.0/access-token/get-inquiry-status', 'Payment\OpenApi\v1\PaymentBCAController@getInquiryStatus' )->name('payment.api.token');
+        Route::post($prefix . 'v1.0/access-token/get-signature-token', 'Payment\OpenApi\v1\PaymentBCAController@getSignatureToken')->name('payment.api.token');
+        Route::post($prefix . 'v1.0/access-token/verif-signature-token', 'Payment\OpenApi\v1\PaymentBCAController@verifSignatureToken')->name('payment.api.token');
+        Route::post($prefix . 'v1.0/access-token/get-inquiry-status', 'Payment\OpenApi\v1\PaymentBCAController@getInquiryStatus')->name('payment.api.token');
     }
 });

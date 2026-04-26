@@ -175,6 +175,7 @@ class PPDBUserService
 
     public function confirm($id, $params): bool
     {
+        dd($params);
         try {
             DB::beginTransaction();
             DB::connection('mysql_erp')->beginTransaction();
@@ -506,5 +507,75 @@ class PPDBUserService
             $userStage->save();
         }
         return true;
+    }
+
+    public function acceptedStudent($id, $params): bool
+    {
+        try {
+            DB::beginTransaction();
+            DB::connection('mysql_erp')->beginTransaction();
+            $ppdbUser = PPDBUser::where('id', $id)->byUserRole()->where('status', PPDBUser::STATUS_SUBMITTED)->doesntHave('student')->firstOrFail();
+
+            $unit_code = str_pad($params['unit_id'],2,"0",STR_PAD_LEFT);
+
+            if ($this->generateStudent($ppdbUser, $params)) {
+                $this->transferDevelopmentFinance($ppdbUser);
+                $user = $ppdbUser->user;
+                $ppdbUser->status = PPDBUser::STATUS_ACCEPTED;
+                $ppdbUser->save();
+
+                // change type user to student
+                // so user ppdb can login to dashboard student sanmaru
+                $user->user_account = $params['nis'].'.'.$unit_code;
+                $user->type = User::STUDENT;
+                $user->save();
+
+                DB::commit();
+                DB::connection('mysql_erp')->commit();
+                $template = (new RegistrantConfirmed($user, $ppdbUser));
+                (new EmailService())->sendMail($template, $user->email);
+                return true;
+            }
+        } catch (Exception $e) {
+            DB::rollBack();
+            DB::connection('mysql_erp')->rollBack();
+            Log::error($e->getMessage());
+        }
+        return false;
+    }
+
+    public function confirmFromImport($id, $params): bool
+    {
+        try {
+            DB::beginTransaction();
+            DB::connection('mysql_erp')->beginTransaction();
+            $ppdbUser = PPDBUser::where('id', $id)->byUserRole()->where('status', PPDBUser::STATUS_ACCEPTED)->doesntHave('student')->firstOrFail();
+
+            $unit_code = str_pad($params['unit_id'],2,"0",STR_PAD_LEFT);
+
+            if ($this->generateStudent($ppdbUser, $params)) {
+                $this->transferDevelopmentFinance($ppdbUser);
+                $user = $ppdbUser->user;
+                $ppdbUser->status = PPDBUser::STATUS_ACCEPTED;
+                $ppdbUser->save();
+
+                // change type user to student
+                // so user ppdb can login to dashboard student sanmaru
+                $user->user_account = $params['nis'].'.'.$unit_code;
+                $user->type = User::STUDENT;
+                $user->save();
+
+                DB::commit();
+                DB::connection('mysql_erp')->commit();
+                $template = (new RegistrantConfirmed($user, $ppdbUser));
+                (new EmailService())->sendMail($template, $user->email);
+                return true;
+            }
+        } catch (Exception $e) {
+            DB::rollBack();
+            DB::connection('mysql_erp')->rollBack();
+            Log::error($e->getMessage());
+        }
+        return false;
     }
 }

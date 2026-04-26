@@ -18,6 +18,15 @@
         <input type="hidden" id="periode" value="{{$period->id}}">
         <div id="seleksi" class="tab-pane fade in active">
             <div class="widget-header">
+                @if (count($errors) > 0)
+                    <div class="alert alert-danger">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
                 <h3>Seleksi Pendaftar</h3>
             </div> <!-- /widget-header -->
             <div class="widget-content seleksi-wrapper">
@@ -63,7 +72,7 @@
                 <h3>Pengumuman Privasi</h3>
             </div> <!-- /widget-header -->
             <div class="widget-content">
-                <form action="{{ route('admin.stage.import-users', ['stage' => @$stage['id']]) }}" method="post"
+                <form action="{{ route('admin.stage.import-users-student', ['stage' => @$stage['id']]) }}" method="post"
                       enctype="multipart/form-data">
                     @csrf
                     <div class="form-group">
@@ -77,10 +86,28 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        download template dengan <a href="{{ route('admin.stage.export-users') }}" target="_blank"
-                                                    download>klik
-                            disini</a>
+                        download template dengan <a href="{{ route('admin.stage.export-student', [
+                            'stage'=>@$stage['id'],
+                            'unit'=>@$period->unit->id,
+                            'period'=>@$period->id,
+                         ]) }}" target="_blank" download>klik disini</a>
                     </div>
+
+                    <div class="form-group">
+                        <div class="alert alert-info border-0 shadow-sm" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="fa fa-info-circle me-3 fa-lg"> Panduan Pengisian Template</i>
+                                <div>
+                                    <span>Silahkan kolom <strong>Status</strong> diisi dengan:
+                                        <span class="badge bg-success">lolos</span>,
+                                        <span class="badge bg-warning text-dark">pending</span>, atau
+                                        <span class="badge bg-danger">tidak lolos</span>.
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="form-group">
                         <button type="submit" class="btn btn-success btn-sm btn-insert">import</button>
                     </div>
@@ -289,7 +316,7 @@
                                 `);
                         }
 
-                        $('.seleksi-wrapper').append('<button class="btn btn-konfirmasi btn-success"><i class="fa fa-save"></i> simpan</button>');
+                        $('.seleksi-wrapper').append('<br><button class="btn btn-konfirmasi btn-success"><i class="fa fa-save"></i> simpan</button>');
                         showTotal();
                     } else {
                         $('#seleksi').html('tidak ada data pendaftar');

@@ -49,6 +49,13 @@
                     </a>
                 </div>
                 <div class="row">
+                    <a href="{{route('ppdb.finance-ppdb')}}" class="sidebar-menu-item {{ isset($nav) ? ( $nav['parent'] == 'finance' ? 'active' : '' ) : '' }}">
+                        <img class="icon-normal" src="{{asset('frontend-ppdb-online/img/Icon/Data-Normal.png')}}" alt="">
+                        <img class="icon-active" src="{{asset('frontend-ppdb-online/img/Icon/Data-Active.png')}}" alt="">
+                        <span class="text-title-2 text-white">Keuangan</span>
+                    </a>
+                </div>
+                <div class="row">
                     <a href="{{route('ppdb.embed-product.index')}}" class="sidebar-menu-item {{ isset($nav) ? ($nav['parent']=='product'?'active':'') : '' }}">
                         <img class="icon-normal" src="{{asset('frontend-ppdb-online/img/Icon/Shop-Normal.png')}}" alt="">
                         <img class="icon-active" src="{{asset('frontend-ppdb-online/img/Icon/Shop-Active.png')}}" alt="">

@@ -163,7 +163,8 @@
                 <div class="date-badge-container">
                     <span class="badge-date-label">Periode</span>
                     <span
-                        class="badge-date-value"> {{ \Carbon\Carbon::parse($period->start_date)->format('d M Y') }} - {{ \Carbon\Carbon::parse($period->start_end)->format('d M Y') }}  </span>
+                            class="badge-date-value"> {{ \Carbon\Carbon::parse($period->start_date)->format('d M Y') }}
+                        - {{ \Carbon\Carbon::parse($period->start_end)->format('d M Y') }}  </span>
                 </div>
 
                 <div class="pe-5">
@@ -208,24 +209,24 @@
                             <div class="timeline-content">
 
                                 <p class="text-muted large mb-0">Tahap {{$tahap++}}</p>
-                                <h3 class="fw-bold text-dark fs-5 mb-1">{{$stage->name. ' -- '. $stage->id .' -- '}}</h3>
+                                <h3 class="fw-bold text-dark fs-5 mb-1">{{$stage->name}}</h3>
                                 @if(isset($detailStages[$stage->id]))
 
                                     <p class="text-secondary small">Total Siswa di tahap ini
                                         : {{$detailStages[$stage->id]['total']}}</p>
                                     <label
-                                        class="label label-info label-xs">{{ $detailStages[$stage->id]['passed'] }}
+                                            class="label label-info label-xs">{{ $detailStages[$stage->id]['passed'] }}
                                         Siswa
                                         Lolos</label><br>
                                     <label
-                                        class="label label-primary label-xs">{{ $detailStages[$stage->id]['not_passed'] }}
+                                            class="label label-primary label-xs">{{ $detailStages[$stage->id]['not_passed'] }}
                                         Siswa
                                         Tidak Lolos</label><br>
                                     <label
-                                        class="label label-warning label-xs">{{ $detailStages[$stage->id]['pending'] }}
+                                            class="label label-warning label-xs">{{ $detailStages[$stage->id]['pending'] }}
                                         Pending</label><br>
                                     <label
-                                        class="label label-danger label-xs">{{ $detailStages[$stage->id]['not_confirm'] }}
+                                            class="label label-danger label-xs">{{ $detailStages[$stage->id]['not_confirm'] }}
                                         Belum Terkonfirmasi</label>
 
                                     <div class="progress-container-wrapper" style="max-width: 350px;">
@@ -253,6 +254,59 @@
                             </div>
                         </div>
                     @endforeach
+
+                    <div class="timeline-item">
+                        <div class="timeline-line"></div>
+                        <div class="timeline-marker bg-success">
+                            <i class="bi bi-check2 text-white"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <p class="text-muted large mb-0">Tahap {{$tahap}}</p>
+                            <h3 class="fw-bold text-dark fs-5 mb-1">Seleksi Akhir PPDB</h3>
+                            <p class="text-secondary small">Seleksi tahap akhir untuk memnentukan siswa diterima
+                                di {{$period->unit->name}}</p>
+                            <label class="label label-info label-xs">{{$lastStage['confirm']}} Siswa
+                                Diterima</label><br>
+                            <label class="label label-danger label-xs">{{ $lastStage['not_confirm'] }} Siswa
+                                Tidak Diterima</label><br>
+                            <label class="label label-warning label-xs">{{ $lastStage['not_specified'] }} Siswa
+                                Belum Ditentukan</label>
+                            <h3 class="fw-bold text-dark fs-5 mb-1"></h3>
+                            <div class="d-flex gap-6 mt-2">
+                                <a href="{{ route('admin.ppdb-monitoring.show-detail-stage', [$period['id'], 'last-stage', 'xx']) }}"
+                                   title="Detail Seleksi Akhir"
+                                   class="btn btn-ld btn-success">
+                                    Detail
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-line"></div>
+                        <div class="timeline-marker bg-success">
+                            <i class="bi bi-check2 text-white"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <p class="text-muted large mb-0">Tahap {{$tahap + 1}}</p>
+                            <h3 class="fw-bold text-dark fs-5 mb-1">Penuntuan Kelas dan NISN Siswa</h3>
+                            <p class="text-secondary small">Penentuan kelas dan NISN siswa baru
+                                di {{$period->unit->name}}</p>
+                            <label class="label label-info label-xs">{{$lastStage['confirm']}} Siswa
+                                Terkonfirmasi</label><br>
+                            <label class="label label-warning label-xs">{{ $lastStage['not_confirm'] }} Siswa
+                                Belum Terkonfirmasi</label><br>
+
+                            <h3 class="fw-bold text-dark fs-5 mb-1"></h3>
+                            <div class="d-flex gap-6 mt-2">
+                                <a href="{{ route('admin.ppdb-monitoring.show-detail-stage', [$period['id'], 'setting-class', 'xx']) }}"
+                                   title="Penentuan Kelas dan NISN"
+                                   class="btn btn-ld btn-success">
+                                    Detail
+                                </a>
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
             </div>

@@ -418,7 +418,7 @@ class PPDBController extends Controller
             'ppdbUser' => $user_ppdb,
             'cities' => $cities,
             'stepper' => $arr_stepper,
-            'provinces'=>$provinces,
+            'provinces' => $provinces,
             'nav' => ['parent' => 'data', 'child' => 'Data Siswa']
         );
 
@@ -490,7 +490,7 @@ class PPDBController extends Controller
                 $ppdb = PPDBUser::where('user_id', $user['id'])->firstOrFail();
 
                 $new_generate_voucher = false;
-                if(!empty($ppdb->development_statement)){
+                if (!empty($ppdb->development_statement)) {
                     if ($ppdb->gender != $input['gender']) {
                         (new VoucherService)->removeGeneratedFreeVouchersForOlahRagaProduct($ppdb);
                         $new_generate_voucher = true;
@@ -531,7 +531,7 @@ class PPDBController extends Controller
             'wali' => Parents::where('children_id', $user['id'])->where('type', 'wali')->first(),
             'ppdb' => $ppdb,
             'stepper' => $arr_stepper,
-            'provinces'=>$provinces,
+            'provinces' => $provinces,
             'nav' => ['parent' => 'data', 'child' => 'Data Siswa']
         );
 
@@ -604,7 +604,6 @@ class PPDBController extends Controller
             'phone' => $text,
             'mobile' => $text,
         ]);
-
 
 
         if ($validator->fails()) {
@@ -1732,14 +1731,19 @@ class PPDBController extends Controller
     public function getCities(Request $request)
     {
         //cari provisi
-        $getProvince = Provinces::where('name',$request->province_id)->first();
-        if(isset($getProvince)){
+        $getProvince = Provinces::where('name', $request->province_id)->first();
+        if (isset($getProvince)) {
             $cities = Regencies::where('province_id', $getProvince->id)
                 ->orderBy('name', 'asc')
                 ->get(['id', 'name']);
         }
 
         return response()->json($cities);
+    }
+
+    public function financePpdb(Request $request)
+    {
+        return view('ppdb-online.finance.form-finance-ppdb');
     }
 
 }

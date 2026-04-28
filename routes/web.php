@@ -668,6 +668,10 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::post('import', 'FinanceController@import')->name('import');
         });
 
+        Route::prefix('administrator/system-configuration')->name('admin.system-configuration.')->namespace('Admin')->group(function () {
+//            Route::get('', 'FinanceController@index')->name('index');
+        });
+
         // CLASS SCHEDULE
         Route::prefix('administrator/class-schedule')->name('admin.class-schedule.')->namespace('Admin')->group(function () {
             Route::get('/', 'ClassScheduleController@index')->name('index');

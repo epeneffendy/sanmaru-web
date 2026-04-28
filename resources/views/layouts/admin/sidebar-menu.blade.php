@@ -87,6 +87,9 @@
                         <li><a href="{{ route('admin.finance.index') }}"
                                class="{{($nav['child']=='finance')?'active':''}}"><span
                                     class="icon color12"><i class="fa fa-money"></i></span>Keuangan</a></li>
+                        <li><a href="#"
+                                   class="{{($nav['child']=='finance')?'active':''}}"><span
+                                            class="icon color12"><i class="fa fa-sliders"></i></span>Konfigurasi Pembiayaan</a></li>
                         <li><a href="{{ route('admin.class-schedule.index') }}"
                                class="{{($nav['child']=='class-schedule')?'active':''}}"><span
                                     class="icon color12"><i class="fa fa-calendar"></i></span>Jadwal Pelajaran Siswa</a>

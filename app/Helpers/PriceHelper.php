@@ -78,7 +78,7 @@ class PriceHelper
 
     public static function development($model, $withFormat = false, $year = null, $getModel = false)
     {
-        return self::collect($model, 'development', 15000000, $withFormat, $year, $getModel);
+        return self::collect($model, 'development', 0, $withFormat, $year, $getModel);
     }
 
     public static function uniform($model, $withFormat = false, $year = null, $getModel = false)

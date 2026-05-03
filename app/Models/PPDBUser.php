@@ -157,6 +157,7 @@ class PPDBUser extends Authenticatable
 
         'kms',
         'kartu_golongan_darah',
+        'is_cost',
     ];
 
     /**

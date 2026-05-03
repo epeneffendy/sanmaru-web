@@ -119,7 +119,7 @@ class PPDBController extends Controller
         return view('ppdb-online.' . $view, $data);
     }
 
-    public function welcomeStudentSubmit(Request $request)
+    public function welcomeStudentSubmit(Request $request, PPDBUserService $ppdbUserService)
     {
         $user = $request->session()->get('user');
         $user_ppdb = PPDBUser::where('user_id', $user['id'])->first();
@@ -130,10 +130,29 @@ class PPDBController extends Controller
         ];
 
         if ($user_ppdb->isReadyToSubmit) {
-            $response = [
-                'status' => 'success'
-            ];
-            $user_ppdb->update(['status' => PPDBUser::STATUS_SUBMITTED]);
+            try {
+                $bills = $ppdbUserService->studentBills($user_ppdb);
+
+                if(count($bills) > 0){
+                    $user_ppdb->update([
+                        'status' => PPDBUser::STATUS_SUBMITTED,
+                        'is_cost' => 1
+                    ]);
+                }else{
+                    $user_ppdb->update(['status' => PPDBUser::STATUS_SUBMITTED]);
+                }
+
+                $response = [
+                    'status' => 'success'
+                ];
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Error welcomeStudentSubmit: " . $e->getMessage());
+                $response = [
+                    'status' => 'error',
+                    'message' => 'Terjadi kesalahan sistem saat menyimpan data administrasi, silakan coba lagi.'
+                ];
+            }
+
         }
 
         return response()->json($response);
@@ -141,30 +160,29 @@ class PPDBController extends Controller
 
     public function dataSiswaPpdb(Request $request)
     {
+            $user = $request->session()->get('user');
+            $user_ppdb = PPDBUser::where('user_id', $user['id'])
+                ->where('status', '<>', 'incomplete')
+                //->where('status', '<>', 'complete')
+                ->with('unit')
+                ->firstOrFail();
 
-        $user = $request->session()->get('user');
-        $user_ppdb = PPDBUser::where('user_id', $user['id'])
-            ->where('status', '<>', 'incomplete')
-            //->where('status', '<>', 'complete')
-            ->with('unit')
-            ->firstOrFail();
+            $stageResults = $user_ppdb->stages();
+            $data = array(
+                'user' => $user_ppdb,
+                'stages' => $stageResults,
+                'nav' => ['parent' => 'data', 'child' => 'Data Siswa']
+            );
 
-        $stageResults = $user_ppdb->stages();
-        $data = array(
-            'user' => $user_ppdb,
-            'stages' => $stageResults,
-            'nav' => ['parent' => 'data', 'child' => 'Data Siswa']
-        );
+            if ($user_ppdb->status == 'complete') {
+                return response()->view('ppdb-online/embed/noaccess', $data, 403);
+            }
 
-        if ($user_ppdb->status == 'complete') {
-            abort(response()->view('ppdb-online/embed/noaccess', $data));
-        }
+            $data['customForms'] = CustomForm::where('unit_id', $user_ppdb->unit_id)->whereHas('periods', function ($q) use ($user_ppdb) {
+                $q->where('id', $user_ppdb->periode);
+            })->get();
 
-        $data['customForms'] = CustomForm::where('unit_id', $user_ppdb->unit_id)->whereHas('periods', function ($q) use ($user_ppdb) {
-            $q->where('id', $user_ppdb->periode);
-        })->get();
-
-        return view('ppdb-online.welcome', $data);
+            return view('ppdb-online.welcome', $data);
     }
 
     public function informasiPpdb(Request $request)
@@ -1741,9 +1759,31 @@ class PPDBController extends Controller
         return response()->json($cities);
     }
 
-    public function financePpdb(Request $request)
+    public function financeBills(Request $request, PPDBUserService $ppdbUserService)
     {
-        return view('ppdb-online.finance.form-finance-ppdb');
+        $user = $request->session()->get('user');
+
+        $bills = $ppdbUserService->getBills($user['ppdb']['id']);
+
+        $data = array(
+            'bills' => $bills['bills'],
+            'bill_amount' => $bills['bill_amount'],
+            'ppdb'=>$user['ppdb'],
+            'nav' => ['parent' => 'data', 'child' => 'Data Siswa']
+        );
+
+        return view('ppdb-online.finance.form-finance-bills', $data);
+    }
+
+    public function registrationPaymentReceipt($id){
+        $ppdb = PPDBUser::where('id', $id)->first();
+
+        $data = array(
+            'data' => $ppdb,
+            'nav' => ['parent' => 'data', 'child' => 'Data Siswa']
+        );
+
+        return view('ppdb-online.finance.partial._registration_receipt', $data);
     }
 
 }

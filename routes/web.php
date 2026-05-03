@@ -54,7 +54,7 @@ Route::group(['domain' => $routeService->getPpdbSubdomain()], function () use ($
         Route::get("/$prefix/faq-ppdb", 'PPDBController@faqPpdb')->name('ppdb.faq-ppdb');
         Route::get("/$prefix/notifikasi-ppdb", 'PPDBController@notifikasiPpdb')->name('ppdb.notifikasi-ppdb');
         Route::get("/$prefix/data-siswa-ppdb", 'PPDBController@dataSiswaPpdb')->name('ppdb.data-siswa-ppdb');
-        Route::get("/$prefix/finance-ppdb", 'PPDBController@financePpdb')->name('ppdb.finance-ppdb');
+        Route::get("/$prefix/finance-bills", 'PPDBController@financeBills')->name('ppdb.finance-bills');
         Route::get("/$prefix/profile-siswa-ppdb", 'PPDBController@profileSiswa')->name('ppdb.profile-siswa');
         Route::get("/$prefix/change-password", 'PPDBController@newPassword')->name('ppdb.change-password.form');
         Route::post("/$prefix/change-password", 'PPDBController@updatePassword')->name('ppdb.change-password.update');
@@ -91,6 +91,7 @@ Route::group(['domain' => $routeService->getPpdbSubdomain()], function () use ($
         Route::get("/$prefix/detail/registration/{id?}", 'PPDBController@getPaymentRegistration')->name('ppdb.payment-registration');
         Route::post("/$prefix/repayment-registration", 'PPDBController@repaymentRegistration')->name('ppdb.repayment-registration');
         Route::get("/$prefix/get-cities", 'PPDBController@getCities')->name('ppdb.get-cities');
+        Route::get("/$prefix/registration-payment-receipt/{id}", 'PPDBController@registrationPaymentReceipt')->name('ppdb.registration-payment-receipt');
 
         Route::prefix("/$prefix/notification")->name("ppdb.notification.")->group(function () {
             Route::get('/', 'PPDBController@notificationIndex')->name('index');
@@ -721,6 +722,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::get('import-users-last-stage/{id}', 'PPDBMonitoringController@importUsers')->name('import-users-last-stage');
             Route::get('template-setting-class', 'PPDBMonitoringController@templateSettingClass')->name('template-setting-class');
             Route::post('import-users-student/{id}', 'PPDBMonitoringController@importUserStudent')->name('import-users-student');
+            Route::get('sync-stage-development/{id}/{stage_id}', 'PPDBMonitoringController@syncStageDevelopment')->name('sync-stage-development');
         });
 
         // AGE LIMIT

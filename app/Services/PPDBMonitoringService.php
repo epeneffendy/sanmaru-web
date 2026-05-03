@@ -145,9 +145,9 @@ class PPDBMonitoringService
         if ($isList) {
             foreach ($ppdbUser as $user) {
                 if (($user->isDataCompleteWhitoutBca) && ($user->isParentsComplete)) {
-                    $status_confirm = '<label class="label label-success">Dokumen Sudah Lengkap</label>';
+                     $status_confirm = '<span class="badge-modern badge-soft-info" title="Periode"> Dokumen Lengkap</span>';
                 } else {
-                    $status_confirm = '<label class="label label-warning">Dokumen Belum Lengkap</label>';
+                    $status_confirm = '<span class="badge-modern badge-soft-warning" title="Periode"> Dokumen Belum Lengkap </span>';
                 }
 
                 $stage_status = '';
@@ -168,11 +168,12 @@ class PPDBMonitoringService
                         ->where('active', 1)
                         ->exists();
                     if ($check) {
-                        $voucher = '<label class="label label-success"> Free Voucher : ' . $checkVoucher . '</label>';
+                        $voucher = '<span class="badge-modern badge-soft-success">Free Voucher: ' .$checkVoucher. '</span>';
                     }
                 }
 
                 if ($flag == 'development-statement') {
+                    
                     if (!empty($user->IsStatementLetterUploaded)) {
                         $collection[$user->id] = [
                             'id' => $user->id,
@@ -231,7 +232,7 @@ class PPDBMonitoringService
                             'payment_date' => $user->payment_date,
                             'total_payment_form' => $user->total_payment_form,
                             'status_stage' => $stage_status,
-                            'voucher' => $voucher
+                            'voucher' => $voucher,
                         ];
                     }
                 } elseif ($flag == 'setting-class') {
@@ -299,11 +300,13 @@ class PPDBMonitoringService
                         ->first();
 
                     $is_stage_development = false;
+                    $stage_id = 0;
                     if (isset($checkStage)) {
-//                        if (empty($user->IsStatementLetterUploaded)){
-                        if ($checkStage->passed == 1) {
-                            $is_stage_development = true;
-//                            }
+                        if (empty($user->IsStatementLetterUploaded)){
+                            if ($checkStage->passed == 1) {
+                                $is_stage_development = true;
+                                $stage_id = $checkStage->stage_id;
+                            }
                         }
                     }
 
@@ -334,7 +337,11 @@ class PPDBMonitoringService
                         'total_payment_form' => $user->total_payment_form,
                         'status_stage' => $stage_status,
                         'voucher' => $voucher,
-                        'IsStageDevelopment' => $is_stage_development
+                        'IsStageDevelopment' => $is_stage_development,
+                        'stage_id'=>$stage_id,
+                        'status_student'=>$user->user->type,
+                        'nis'=> isset($user->user->student)? $user->user->student->nis : '-',
+                        'class_name'=> isset($user->user->student->class) ? $user->user->student->class->name : '-',
                     ];
 
 

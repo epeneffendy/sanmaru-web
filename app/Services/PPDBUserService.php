@@ -21,6 +21,8 @@ use App\Models\Student;
 use App\Models\Unit;
 use App\Models\User;
 use App\Lib\DbTrx;
+use App\Models\Finance;
+use App\Models\StudentBills;
 use Exception;
 
 class PPDBUserService
@@ -104,6 +106,8 @@ class PPDBUserService
         $ppdb = PPDBUser::byUserRole()->findOrFail($id);
         $ppdb->status = PPDBUser::STATUS_CONFIRMED;
         $user = $ppdb->user;
+
+        // $student_bills
 
         $template = (new PaymentConfirmed($user, $ppdb));
         (new EmailService())->sendMail($template, $user->email);
@@ -577,5 +581,121 @@ class PPDBUserService
             Log::error($e->getMessage());
         }
         return false;
+    }
+
+    public function syncStageDevelopmnet($id, $stage_id){
+        $ppdb = PPDBUser::where('id', $id)->byUserRole()->firstOrFail();
+
+        $stageUser = PPDBUserStage::where('ppdb_user_id', $id)->where('stage_id', $stage_id)->first();
+        if($stageUser){
+            if($stageUser->passed == 1){
+                $stageUser->passed = 0;
+                $stageUser->save();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function studentBills($ppdb){
+        $categories = [
+            'registrasi',
+            'activity',
+            'development',
+            'tuition',
+            'other'
+        ];
+        $createdBills = [];
+
+        foreach($categories as $category){
+            switch ($category) {
+                case 'registrasi':
+                    $price = \App\Helpers\PriceHelper::registration($ppdb, false, null, true);
+                    break;
+
+                case 'activity':
+                    $price = \App\Helpers\PriceHelper::activity($ppdb, true, null, true);
+                    break;
+
+                case 'development':
+                    $price = \App\Helpers\PriceHelper::development($ppdb, true, null, true);
+                    break;
+
+                case 'tuition':
+                    $price = \App\Helpers\PriceHelper::tuition($ppdb, true, null, true);
+                    break;
+
+                case 'other':
+                    $price = \App\Helpers\PriceHelper::others($ppdb, true, null, true);
+                    break;
+
+                default:
+                    $price = '';
+                    break;
+            }
+
+            if(!empty($price)){
+                $finance = Finance::where('code', $price['code'])->first();
+
+                if ($finance) {
+                    $is_payment_method = StudentBills::PAYMENT_METHOD_UNPAID;
+                    $is_payment_term = '';
+                    if($category == 'registrasi'){
+                        $is_payment_method = StudentBills::PAYMENT_METHOD_PAID;
+                        $is_payment_term = StudentBills::PAYMENT_TERM_FULL;
+                    }
+
+                    $checkBils = StudentBills::where('ppdb_user_id', $ppdb->id)->where('finance_id', $finance->id)->first();
+
+                    if(empty($checkBils)){
+                        $bills = new StudentBills();
+                        $bills->ppdb_user_id = $ppdb->id;
+                        $bills->finance_id = $finance->id;
+                        $bills->type = $category;
+                        $bills->amount = $price['nominal_default'];
+                        $bills->due_date = $finance->start_date;
+                        $bills->payment_method = $is_payment_method;
+                        $bills->payment_term = $is_payment_term;
+                        $bills->save();
+
+                        $createdBills[] = $bills;
+                    } else {
+                        $createdBills[] = $checkBils;
+                    }
+
+                }
+            }
+        }
+
+        return $createdBills;
+    }
+
+    public function getBills($id){
+        $bills = StudentBills::where('ppdb_user_id', $id)->get();
+
+        $dataBills = [];
+        $totalBill = $billedFull = 0;
+        foreach($bills as $bill){
+            $dataBills[$bill->type]['ppdb_user_id'] = $bill->ppdb_user_id;
+            $dataBills[$bill->type]['finance_id'] = $bill->finance_id;
+            $dataBills[$bill->type]['type'] = $bill->type;
+            $dataBills[$bill->type]['amount'] = $bill->amount;
+            $dataBills[$bill->type]['payment_method'] = $bill->payment_method;
+            $dataBills[$bill->type]['payment_term'] = $bill->payment_term;
+            $dataBills[$bill->type]['due_date'] = $bill->due_date;
+
+            $totalBill += $bill->amount;
+            if($bill->payment_method == StudentBills::PAYMENT_METHOD_PAID){
+                $billedFull += $bill->amount;
+            }
+        }
+
+        $billAmount = [
+            'total_bill'=> $totalBill,
+            'billed_full'=> $billedFull
+        ];
+
+        return ['bills' => $bills,'bill_amount'=> $billAmount];
     }
 }

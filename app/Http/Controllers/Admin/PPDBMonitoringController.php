@@ -272,5 +272,20 @@ class PPDBMonitoringController extends Controller
 
     }
 
-}
+    public function syncStageDevelopment(Request $request, $id, $stage_id, PPDBUserService $ppdbUserService)
+    {
+        $syncStage = $ppdbUserService->syncStageDevelopmnet($id, $stage_id);
 
+        if ($syncStage) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Data berhasil disinkronisasi.'
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Gagal melakukan sinkronisasi data.'
+        ]);
+    }
+}

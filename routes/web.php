@@ -684,6 +684,14 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::get('/unit-class/{unitId}', 'ClassScheduleController@unitClass')->name('unit-class');
             Route::get('/calendar-data/{classId}', 'ClassScheduleController@calendarData')->name('calendar-data');
         });
+
+        Route::prefix('administrator/report')->name('admin.report.')->namespace('Admin')->group(function () {
+            Route::prefix('development-report')->name('development-report.')->group(function () {
+                Route::get('/', 'DevelopmentReportController@index')->name('index');
+                Route::get('/export', 'DevelopmentReportController@export')->name('export');
+            });
+
+        });
     });
 
     Route::group(['middleware' => ['web', 'auth', 'ppdb']], function () {

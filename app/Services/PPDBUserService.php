@@ -23,6 +23,7 @@ use App\Models\User;
 use App\Lib\DbTrx;
 use App\Models\Finance;
 use App\Models\StudentBills;
+use App\Models\Voucher;
 use Exception;
 
 class PPDBUserService
@@ -697,5 +698,78 @@ class PPDBUserService
         ];
 
         return ['bills' => $bills,'bill_amount'=> $billAmount];
+    }
+
+    public function getDevelopmentReport($params){
+        $ppdbUser = PPDBUser::where(['unit_id'=>$params['unit'],'school_year'=> $params['year']])->get();
+
+        $arr_data = [];
+        foreach($ppdbUser as $ppdb){
+
+                $checkVoucher = '';
+                $voucher = '';
+                if ($ppdb->development_fee_option == 'lunas') {
+                    $checkVoucher = $this->checkVocuher($ppdb);
+                    //cari voucher
+                    $check = Voucher::where('code', $checkVoucher)
+                        ->whereJsonContains('user_id', $ppdb->user_id)// Mengecek apakah 15706 ada dalam array user_id
+                        ->where('active', 1)
+                        ->exists();
+                    if ($check) {
+                        $voucher = $checkVoucher;
+                    }
+                }
+
+                $label_payment = 'Belum Upload Surat Pernyataan';
+                $payment = '<span class="badge-modern badge-soft-warning">Belum Upload Surat Pernyataan</span>';
+                if($ppdb->development_fee_option == 'lunas'){
+                    $payment = '<span class="badge-modern badge-soft-success">Pembayaran Lunas</span>';
+                    $label_payment = 'Pembayaran Lunas';
+                }else if($ppdb->development_fee_option  == 'cicilan'){
+                    $payment = '<span class="badge-modern badge-soft-info">Pembayaran Cicilan</span>';
+                    $label_payment = 'Pembayaran Cicilan';
+                }
+
+                $label_status = 'Belum Terkonfirmasi';
+                $status = '<span class="badge-modern badge-soft-warning">Belum Terkonfirmasi</span>';
+                if($ppdb->IsStatementLetterConfirmed){
+                    $label_status = 'Sudah Terkonfirmasi';
+                    $status = '<span class="badge-modern badge-soft-success">Sudah Terkonfirmasi</span>';
+                }
+
+                $arr_data[$ppdb->id]['name'] = $ppdb->name;
+                $arr_data[$ppdb->id]['register_number'] = $ppdb->register_number;
+                $arr_data[$ppdb->id]['unit'] = $ppdb->unit->name;
+                $arr_data[$ppdb->id]['school_year'] = $ppdb->school_year;
+                $arr_data[$ppdb->id]['payment'] = $payment;
+                $arr_data[$ppdb->id]['label_payment'] = $label_payment;
+                $arr_data[$ppdb->id]['voucher'] = $voucher;
+                $arr_data[$ppdb->id]['status'] = $status;
+                $arr_data[$ppdb->id]['label_status'] = $label_status;
+        }
+
+        return $arr_data;
+    }
+
+    function checkVocuher($user)
+    {
+        $code = "";
+        $unit = 0;
+        $periode = 0;
+        if ($user->unit_id) {
+            $unit = (int)$user->unit_id;
+        }
+        if ($user->register_number) {
+            $periode = (int)substr($user->register_number, 0, 2);
+        }
+
+        $code = $code . sprintf("%02d%02d%02d", $unit, $periode, ($periode + 1));
+        if ($user->gender && $user->gender === 'female') {
+            $code = $code . 'PI';
+        } else {
+            $code = $code . 'PA';
+        }
+
+        return $code;
     }
 }

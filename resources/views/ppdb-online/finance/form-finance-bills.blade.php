@@ -272,7 +272,8 @@
                                 <h4 class="fw-bold px-3 mb-1" style="color: #1a4d2e; font-size: calc(1.2rem + 0.5vw);">
                                     Rincian Biaya Pendidikan
                                 </h4>
-                                <p class="text-muted small mb-2">Tahun Ajaran 2025/2026</p>
+                                <p class="text-muted small mb-2">Tahun Ajaran
+                                    {{ $ppdb['school_year'] . ' - ' . ($ppdb['school_year'] + 1) }}</p>
                                 <div class="header-accent mx-auto"></div>
                             </div>
 
@@ -839,7 +840,7 @@
 
     <div class="modal fade" id="receiptModal" tabindex="-1" role="dialog" aria-labelledby="receiptModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <!-- Konten _registration_receipt.blade.php akan dimuat di sini menggunakan AJAX -->
             </div>

@@ -93,9 +93,6 @@
                         <li><a href="{{ route('admin.finance.index') }}"
                                 class="{{ $nav['child'] == 'finance' ? 'active' : '' }}"><span
                                     class="icon color12"><i class="fa fa-money"></i></span>Keuangan</a></li>
-                        <li><a href="#" class="{{ $nav['child'] == 'finance' ? 'active' : '' }}"><span
-                                    class="icon color12"><i class="fa fa-sliders"></i></span>Konfigurasi
-                                Pembiayaan</a></li>
                         <li><a href="{{ route('admin.class-schedule.index') }}"
                                 class="{{ $nav['child'] == 'class-schedule' ? 'active' : '' }}"><span
                                     class="icon color12"><i class="fa fa-calendar"></i></span>Jadwal Pelajaran
@@ -245,6 +242,26 @@
                             class="{{ $nav['child'] == 'development-fee' ? 'active' : '' }}"><span
                                 class="icon color12"><i class="fa fa-money"></i></span>Laporan Dana Pengembangan</a>
                     </li>
+                </ul>
+            </li>
+        @endif
+
+        @if (\App\Helpers\Helper::isPpdbRole())
+            <li class="treeview {{ $nav['parent'] == 'finance-configuration' ? 'active menu-open' : '' }}">
+                <a href="#" class="{{ $nav['parent'] == 'finance-configuration' ? 'active' : '' }}">
+                    <span class="icon color12"><i class="fa fa fa-money"></i></span>Keuangan
+                    <span class="pull-right-container"><i class="fa fa-angle-right"></i></span></a>
+                <ul class="treeview-menu">
+                    <li><a href="{{ route('admin.system-configuration.index') }}"
+                            class="{{ $nav['child'] == 'system-configuration' ? 'active' : '' }}"><span
+                                class="icon color12"><i class="fa fa-sliders"></i></span>Konfigurasi
+                            Pembiayaan</a></li>
+
+                    <li><a href="{{ route('admin.dispensation.index') }}"
+                            class="{{ $nav['child'] == 'dispensations' ? 'active' : '' }}"><span
+                                class="icon color12"><i class="fa fa-calculator"></i></span>Kelola Dispensasi</a>
+                    </li>
+
                 </ul>
             </li>
         @endif

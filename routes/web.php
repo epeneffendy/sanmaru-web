@@ -99,6 +99,13 @@ Route::group(['domain' => $routeService->getPpdbSubdomain()], function () use ($
             Route::get('/{notification}/delete', 'PPDBController@notificationDelete')->name('delete');
         });
 
+        Route::prefix("/$prefix/bills")->name('ppdb.bills.')->group(function () {
+            Route::get('/choise-payment', 'PPDBPaymentController@choisePayment')->name('choise-payment');
+            Route::post('store', 'PPDBPaymentController@store')->name('store');
+            Route::get('/payment-bill-list', 'PPDBPaymentController@paymentBillList')->name('payment-bill-list');
+        });
+
+
         Route::prefix("/$prefix/embed-product")->name('ppdb.embed-product.')->group(function () {
             Route::get('/', 'PPDBController@embedProduct')->name('index');
             Route::get('/cart', 'PPDBController@embedProductCart')->name('cart');
@@ -670,7 +677,19 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
         });
 
         Route::prefix('administrator/system-configuration')->name('admin.system-configuration.')->namespace('Admin')->group(function () {
-//            Route::get('', 'FinanceController@index')->name('index');
+           Route::get('/', 'FinanceSystemConfigurationController@index')->name('index');
+           Route::get('/add', 'FinanceSystemConfigurationController@add')->name('add');
+           Route::post('/store', 'FinanceSystemConfigurationController@store')->name('store');
+           Route::get('/update', 'FinanceSystemConfigurationController@update')->name('update');
+        });
+
+        Route::prefix('administrator/dispensation')->name('admin.dispensation.')->namespace('Admin')->group(function () {
+           Route::get('/', 'PaymentDispensationController@index')->name('index');
+           Route::get('/add', 'PaymentDispensationController@add')->name('add');
+           Route::post('/store', 'PaymentDispensationController@store')->name('store');
+           Route::get('/update', 'PaymentDispensationController@update')->name('update');
+           Route::get('fetch-student', 'PaymentDispensationController@fetchStudent')->name('fetch-student');
+           Route::get('fetch-anual-cost', 'PaymentDispensationController@fetchAnualCost')->name('fetch-anual-cost');
         });
 
         // CLASS SCHEDULE

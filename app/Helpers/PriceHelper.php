@@ -211,18 +211,6 @@ class PriceHelper
         $unitCode = null;
         $typePayment = null;
         $kodeBiller = null;
-        if (!Helper::isVaBcaEnable()) {
-            $paymentOption = null;
-        }
-
-        if ($model instanceof Student) {
-            if ($model->class) {
-                if ($model->class->unit) {
-                    $unit = $model->class->unit;
-                }
-            }
-            $registrationNumber = $model->nis;
-        }
 
         if ($model instanceof PPDBUser) {
             $unit = $model->unit;

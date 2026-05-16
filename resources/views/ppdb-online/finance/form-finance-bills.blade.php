@@ -392,12 +392,11 @@
                                                                     Bukti Lunas
                                                                 </button>
                                                             @else
-                                                                <button class="btn btn-sm btn-outline-green px-3"
-                                                                    style="font-size: 0.75rem; font-weight: 600;"
-                                                                    type="button" data-bs-toggle="collapse"
-                                                                    data-bs-target="#caraBayar{{ $item['id'] }}">
-                                                                    Cara Bayar <i class="fa fa-chevron-down ms-1"></i>
-                                                                </button>
+                                                                <a href="{{ route('ppdb.bills.choise-payment') }}"
+                                                                    class="btn btn-sm btn-outline-green px-3"
+                                                                    style="font-size: 0.75rem; font-weight: 600;">
+                                                                    Cara Bayar <i class="fa fa-chevron-right ms-1"></i>
+                                                                </a>
                                                             @endif
                                                         </div>
                                                     </div>
@@ -481,7 +480,6 @@
                                                                 <span
                                                                     class="text-muted x-small d-block pe-md-4 mt-1">Pembangunan
                                                                     sarana, prasarana, dan fasilitas gedung</span>
-
                                                                 <div class="row">
                                                                     @if ($item['payment_method'] == 'paid')
                                                                         <div
@@ -511,13 +509,23 @@
                                                                                 <i class="fa fa-check-circle"></i> Lunas
                                                                             </span>
                                                                         </div>
-                                                                    @elseif($item['payment_term'] == 'partial_payment')
+                                                                    @else
                                                                         <div
                                                                             style="margin-bottom: 4px; padding-left: 12px;">
                                                                             <span class="badge-modern badge-soft-secondary"
                                                                                 style="border-radius: 20px;">
                                                                                 <i class="fa fa-check-circle"></i> Cicilan
                                                                             </span>
+                                                                        </div>
+                                                                    @endif
+
+                                                                    @if ($is_dispensation)
+                                                                        <div
+                                                                            style="margin-bottom: 4px; padding-left: 12px;">
+                                                                            <span class="badge-modern badge-soft-success"
+                                                                                style="border-radius: 20px;">
+                                                                                <i class="fa fa-check-circle"></i> Anda
+                                                                                menerima potongan pembayaran </span>
                                                                         </div>
                                                                     @endif
 
@@ -528,10 +536,24 @@
                                                         <!-- Nominal & Tombol Aksi -->
                                                         <div
                                                             class="text-md-end w-100 w-md-auto mt-2 mt-md-0 border-top-mobile pt-md-0 pt-2 d-flex flex-row flex-md-column justify-content-between align-items-center align-items-md-end">
-                                                            <div class="fw-bold text-dark mb-md-2"
-                                                                style="font-size: 1.15rem;">
-                                                                Rp {{ number_format($item['amount'], 0, ',', '.') }}
-                                                            </div>
+                                                            @if ($is_dispensation)
+                                                                <div class="fw-bold text-dark mb-md-2"
+                                                                    style="font-size: 1.15rem;">
+                                                                    Rp
+                                                                    {{ number_format($dispensation->total_final_fee, 0, ',', '.') }}
+                                                                </div>
+                                                                <div class="fw-bold text-muted mb-md-2"
+                                                                    style="font-size: 0.95rem; text-decoration: line-through;">
+                                                                    Rp {{ number_format($item['amount'], 0, ',', '.') }}
+                                                                </div>
+                                                            @else
+                                                                <div class="fw-bold text-dark mb-md-2"
+                                                                    style="font-size: 1.15rem;">
+                                                                    Rp {{ number_format($item['amount'], 0, ',', '.') }}
+                                                                </div>
+                                                            @endif
+
+
 
                                                             @if ($item['payment_method'] == 'paid')
                                                                 <button class="btn btn-sm btn-light text-muted border px-3"
@@ -539,12 +561,11 @@
                                                                     <i class="fa fa-file-text-o me-1"></i> Bukti Lunas
                                                                 </button>
                                                             @else
-                                                                <button class="btn btn-sm btn-outline-green px-3"
-                                                                    style="font-size: 0.75rem; font-weight: 600;"
-                                                                    type="button" data-bs-toggle="collapse"
-                                                                    data-bs-target="#caraBayar{{ $item['id'] }}">
-                                                                    Cara Bayar <i class="fa fa-chevron-down ms-1"></i>
-                                                                </button>
+                                                                <a href="{{ route('ppdb.bills.choise-payment') }}"
+                                                                    class="btn btn-sm btn-outline-green px-3"
+                                                                    style="font-size: 0.75rem; font-weight: 600;">
+                                                                    Cara Bayar <i class="fa fa-chevron-right ms-1"></i>
+                                                                </a>
                                                             @endif
                                                         </div>
                                                     </div>
@@ -686,12 +707,11 @@
                                                                     <i class="fa fa-file-text-o me-1"></i> Bukti Lunas
                                                                 </button>
                                                             @else
-                                                                <button class="btn btn-sm btn-outline-green px-3"
-                                                                    style="font-size: 0.75rem; font-weight: 600;"
-                                                                    type="button" data-bs-toggle="collapse"
-                                                                    data-bs-target="#caraBayar{{ $item['id'] }}">
-                                                                    Cara Bayar <i class="fa fa-chevron-down ms-1"></i>
-                                                                </button>
+                                                                <a href="{{ route('ppdb.bills.choise-payment') }}"
+                                                                    class="btn btn-sm btn-outline-green px-3"
+                                                                    style="font-size: 0.75rem; font-weight: 600;">
+                                                                    Cara Bayar <i class="fa fa-chevron-right ms-1"></i>
+                                                                </a>
                                                             @endif
                                                         </div>
                                                     </div>

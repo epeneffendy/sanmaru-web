@@ -2,55 +2,57 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\InputCollectionHelper;
+use App\Helpers\PriceHelper;
+use App\Helpers\ProductHelper;
+use App\Http\Controllers\Controller;
 use App\Http\Requests\ComplaintOrderRequest;
+use App\Http\Requests\NewPasswordRequest;
 use App\Http\Requests\PPDBImportRequest;
+use App\Models\Cart;
 use App\Models\ComplaintCategory;
 use App\Models\ComplaintOrders;
 use App\Models\ComplaintPeriode;
-use App\Models\ProductOrderDetail;
-use App\Models\Provinces;
-use App\Models\Regencies;
-use App\Models\Stage;
-use App\Models\UniformDeadline;
-use App\Models\User;
-use App\Models\VoucherUsage;
-use App\Services\ComplaintOrderService;
-use App\Services\PPDBUserService;
-use App\Services\ProductOrderComplaintService;
-use App\Services\VoucherService;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
-use App\Http\Requests\NewPasswordRequest;
-use App\Helpers\InputCollectionHelper;
-use App\Helpers\ProductHelper;
-use App\Services\ProductOrderService;
-use App\Http\Controllers\Controller;
-use App\Models\ProductUserFitting;
-use App\Helpers\PriceHelper;
-use App\Models\ProductFitting;
-use App\Services\CartService;
-use App\Models\PPDBUserStage;
-use App\Services\UserService;
-use Illuminate\Http\Request;
-use App\Models\ProductOrder;
-use App\Traits\ImageHandler;
-use App\Models\PPDBUser;
-use App\Models\Parents;
-use App\Models\Product;
-use App\Models\Voucher;
-use App\Models\Unit;
-use App\Models\Cart;
 use App\Models\CustomForm;
 use App\Models\CustomFormInput;
 use App\Models\Faq;
 use App\Models\Notification;
+use App\Models\Parents;
+use App\Models\PaymentDispensations;
+use App\Models\PPDBUser;
+use App\Models\PPDBUserStage;
+use App\Models\Product;
+use App\Models\ProductFitting;
+use App\Models\ProductOrder;
+use App\Models\ProductOrderDetail;
+use App\Models\ProductUserFitting;
+use App\Models\Provinces;
+use App\Models\Regencies;
+use App\Models\Stage;
+use App\Models\UniformDeadline;
+use App\Models\Unit;
+use App\Models\User;
+use App\Models\Voucher;
+use App\Models\VoucherUsage;
+use App\Services\CartService;
+use App\Services\ComplaintOrderService;
 use App\Services\NotificationService;
-use Illuminate\Validation\ValidationException;
+use App\Services\PaymentDispensationsService;
+use App\Services\PPDBUserService;
+use App\Services\ProductOrderComplaintService;
+use App\Services\ProductOrderService;
+use App\Services\UserService;
+use App\Services\VoucherService;
+use App\Traits\ImageHandler;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class PPDBController extends Controller
 {
@@ -1759,16 +1761,26 @@ class PPDBController extends Controller
         return response()->json($cities);
     }
 
-    public function financeBills(Request $request, PPDBUserService $ppdbUserService)
+    public function financeBills(Request $request, PPDBUserService $ppdbUserService, PaymentDispensationsService $paymentDispensationsService)
     {
         $user = $request->session()->get('user');
 
         $bills = $ppdbUserService->getBills($user['ppdb']['id']);
 
+        $dispensation = $paymentDispensationsService->getByUserPpdb($user['ppdb']['id']);
+
+        $is_dispensation = false;
+        if($dispensation){
+            if($dispensation->dispensation_mode != PaymentDispensations::MODE_REAL_PAYMENT){
+                $is_dispensation = true;
+            }
+        }
         $data = array(
             'bills' => $bills['bills'],
             'bill_amount' => $bills['bill_amount'],
             'ppdb'=>$user['ppdb'],
+            'is_dispensation'=>$is_dispensation,
+            'dispensation'=>$dispensation,
             'nav' => ['parent' => 'data', 'child' => 'Data Siswa']
         );
 

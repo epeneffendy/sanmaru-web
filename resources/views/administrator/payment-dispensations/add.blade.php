@@ -1,0 +1,339 @@
+@extends('layouts.admin.main')
+@section('content')
+    @if (@$status == 'edit')
+        @php($action = route('admin.dispensation.update', [@$dispensation['id']]))
+        @php($status_btn = 'Update')
+        @php($status_header = 'Edit')
+    @else
+        @php($action = route('admin.dispensation.store'))
+        @php($status_btn = 'Save')
+        @php($status_header = 'Tambah')
+    @endif
+    <!-- Start Page Header -->
+    <div class="page-header">
+        <h1 class="title">Kelola Dispensasi Pembayaran Siswa</h1>
+        <ol class="breadcrumb">
+            <li>Keuangan</li>
+            <li><a href="{{ route('admin.dispensation.index') }}">Kelola Dispensasi Pembayaran Siswa</a></li>
+            <li class="active">{{ $status_header }}</li>
+        </ol>
+    </div>
+    <!-- End Page Header -->
+
+    <!-- START CONTAINER -->
+    <div class="container-padding">
+        <!-- Start Row -->
+        <div class="row">
+            <!-- Start Panel -->
+            <div class="col-md-12">
+                <div class="widget ">
+                    <div class="widget-header">
+                        <h3>{{ $status_header }} Data</h3>
+                    </div> <!-- /widget-header -->
+                    <div class="widget-content">
+                        @if (count($errors) > 0)
+                            <div class="alert alert-danger">
+                                <ul>
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+                        <form role="form" method="POST" action="{{ $action }}" class="form-horizontal"
+                            enctype="multipart/form-data">
+                            <input type="hidden" value="{{ @$dispensation['id'] }}" name="id" />
+
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">Tahun Ajaran</label>
+                                <div class="col-sm-10">
+                                    <select name="school_year" id="school_year" class="form-control selectpicker"
+                                        data-style="btn-success">
+                                        <option value="">Pilih Tahun Ajaran</option>
+                                        @foreach ($school_year ?? [] as $year)
+                                            <option value="{{ $year }}"
+                                                {{ @$dispensation['school_year'] == $year ? 'selected' : '' }}>
+                                                {{ $year }} - {{ $year + 1 }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">Unit</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control selectpicker" name="unit_id" id="unit_id"
+                                        data-style="btn-success">
+                                        <option value="">Pilih Unit</option>
+                                        @foreach ($units ?? [] as $unit)
+                                            <option value="{{ $unit->id }}"
+                                                {{ @$dispensation['unit_id'] == $unit->id ? 'selected' : '' }}>
+                                                {{ $unit->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">Siswa</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control selectpicker" name="ppdb_user_id" id="ppdb_user_id"
+                                        data-style="btn-success" data-live-search="true" required>
+                                        <option value="">Pilih Siswa</option>
+                                    </select>
+                                </div>
+
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label" style="display: none">Jenis Dispensasi</label>
+                                <div class="col-sm-10">
+                                    <input type="hidden" class="form-control" name="dispensation_type"
+                                        id="dispensation_type" value="development" required
+                                        placeholder="Contoh: Uang Gedung, SPP">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">Biaya Sebenarnya</label>
+                                <div class="col-sm-10">
+                                    <input type="hidden" name="actual_cost" id="actual_cost"
+                                        value="{{ @$dispensation['actual_cost'] }}">
+                                    <input type="text" class="form-control" id="actual_cost_display"
+                                        value="{{ @$dispensation['actual_cost'] ? number_format(@$dispensation['actual_cost'], 0, ',', '.') : '' }}"
+                                        required placeholder="0" readonly>
+                                    <small id="actual_cost_info" class="help-block text-warning font-weight-bold"
+                                        style="display: none;"></small>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">Total Akhir</label>
+                                <div class="col-sm-10">
+                                    <input type="hidden" name="total_final_fee" id="total_final_fee"
+                                        value="{{ @$dispensation['total_final_fee'] }}">
+                                    <input type="text" class="form-control" id="total_final_fee_display"
+                                        value="{{ @$dispensation['total_final_fee'] ? number_format(@$dispensation['total_final_fee'], 0, ',', '.') : '' }}"
+                                        required placeholder="0">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">Mode Dispensasi</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control" name="dispensation_mode" id="dispensation_mode" required>
+                                        <option value="">Pilih Mode Dispensasi</option>
+                                        <option value="full_setup"
+                                            {{ @$dispensation['dispensation_mode'] == 'full_setup' ? 'selected' : '' }}>
+                                            Full Setup (Admin Tentukan Cicilan)</option>
+                                        <option value="only_discount"
+                                            {{ @$dispensation['dispensation_mode'] == 'only_discount' ? 'selected' : '' }}>
+                                            Hanya Potongan (Siswa Pilih Skema)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="form-full-setup" style="display: none">
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">Nominal DP (Bisa 0)</label>
+                                    <div class="col-sm-10">
+                                        <input type="hidden" name="down_payment" id="down_payment"
+                                            value="{{ @$dispensation['down_payment'] }}">
+                                        <input type="text" class="form-control" id="down_payment_display"
+                                            value="{{ @$dispensation['down_payment'] ? number_format(@$dispensation['down_payment'], 0, ',', '.') : '' }}"
+                                            placeholder="0">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">Jumlah Cicilan (Tenor)</label>
+                                    <div class="col-sm-10">
+                                        <input type="number" class="form-control" name="tenor"
+                                            value="{{ @$dispensation['tenor'] }}" placeholder="0">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-offset-2 col-sm-10">
+                                    <button type="submit" class="btn btn-success">{{ $status_btn }}</button>
+                                    <a href="{{ route('admin.dispensation.index') }}" class="btn btn-default">Batal</a>
+                                </div>
+                            </div>
+                            <!-- /bottom-wizard -->
+                            @csrf
+                        </form>
+                    </div>
+                </div> <!-- /widget-content -->
+            </div>
+            <!-- End Panel -->
+        </div>
+        <!-- End Row -->
+    </div>
+    <!-- END CONTAINER -->
+@endsection
+
+@push('styles')
+    <link rel="stylesheet" type="text/css"
+        href="{{ asset('css/plugin/bootstrap-wysihtml5/bootstrap-wysihtml5.css') }}" />
+    <link rel="stylesheet" type="text/css" href="{{ asset('css/plugin/bootstrap-select/bootstrap-select.css') }}" />
+@endpush
+@push('scripts')
+    <script src="{{ asset('js/bootstrap-select/bootstrap-select.js') }}"></script>
+    <script>
+        $(document).ready(function() {
+            $('.selectpicker').selectpicker({
+                liveSearch: true,
+                dropupAuto: false,
+                title: "No Value"
+            });
+        });
+
+        $(document).on('change', '#dispensation_mode', function(e) {
+            var mode = $('#dispensation_mode').val();
+            if (mode === 'full_setup') {
+                $('#form-full-setup').show();
+            } else {
+                $('#form-full-setup').hide();
+            }
+        });
+
+        $(document).on('change', '#unit_id', function(e) {
+            e.preventDefault();
+            var unit_id = $('#unit_id').val();
+            var school_year = $('#school_year').val();
+            fetchStudent(unit_id, school_year)
+        });
+
+        $(document).on('change', '#ppdb_user_id', function(e) {
+            e.preventDefault();
+            var ppdb_user_id = $('#ppdb_user_id').val();
+            var type = $('#dispensation_type').val();
+            fetchAnualCost(ppdb_user_id, type)
+        });
+
+        $(document).on('keyup', '#total_final_fee_display', function(e) {
+            let val = $(this).val().replace(/[^0-9]/g, '');
+
+            if (val === '') {
+                $('#total_final_fee').val('');
+                $(this).val('');
+                return;
+            }
+
+            let parsedVal = parseInt(val, 10);
+            let actualCost = parseInt($('#actual_cost').val() || 0, 10);
+
+            if ($('#actual_cost').val() !== '' && parsedVal > actualCost) {
+                alert('Total Akhir tidak boleh lebih besar dari Biaya Sebenarnya.');
+                parsedVal = actualCost;
+            }
+
+            $('#total_final_fee').val(parsedVal);
+            $(this).val(formatRupiah(parsedVal));
+
+            let downPayment = parseInt($('#down_payment').val() || 0, 10);
+            if (downPayment > parsedVal) {
+                $('#down_payment').val(parsedVal);
+                $('#down_payment_display').val(formatRupiah(parsedVal));
+            }
+        });
+
+        $(document).on('keyup', '#down_payment_display', function(e) {
+            let val = $(this).val().replace(/[^0-9]/g, '');
+
+            if (val === '') {
+                $('#down_payment').val('');
+                $(this).val('');
+                return;
+            }
+
+            let parsedVal = parseInt(val, 10);
+            let totalFinalFee = parseInt($('#total_final_fee').val() || 0, 10);
+
+            if (parsedVal > totalFinalFee) {
+                alert('Nominal DP tidak boleh lebih besar dari Total Akhir.');
+                parsedVal = totalFinalFee;
+            }
+
+            $('#down_payment').val(parsedVal);
+            $(this).val(formatRupiah(parsedVal));
+        });
+
+        function fetchStudent(unit_id, school_year) {
+            $("#ppdb_user_id").empty();
+            $("#ppdb_user_id").append('<option value="">Pilih Siswa</option>');
+
+            $.get("{{ route('admin.dispensation.fetch-student') }}", {
+                unit_id: unit_id,
+                school_year: school_year
+            }, function(students) {
+                var selectedStudent = '{{ @$arr_student ?? '' }}';
+                var arrStudent = [];
+                selectedStudent.split(',').forEach(function(v) {
+                    arrStudent.push(v)
+                });
+
+                $.each(students, function(index, student) {
+                    var element = '';
+                    if (jQuery.inArray(index.toString(), arrStudent) >= 0) {
+                        element = '<option value="' + index + '" selected >' + student + '</option>'
+                    } else {
+                        element = '<option value="' + index + '"  >' + student + '</option>'
+                    }
+
+                    $("#ppdb_user_id").append(element)
+                })
+                $("#ppdb_user_id").selectpicker("refresh")
+            }, 'json')
+        }
+
+        function fetchAnualCost(ppdb_user_id, type) {
+            if (!ppdb_user_id) {
+                $('#actual_cost').val('');
+                $('#actual_cost_display').val('');
+                $('#actual_cost_info').hide().text('');
+                return;
+            }
+
+            $.get("{{ route('admin.dispensation.fetch-anual-cost') }}", {
+                ppdb_user_id: ppdb_user_id,
+                type: type
+            }, function(data) {
+                console.log(data)
+                console.log(data.actual_cost)
+                if (data.status === 'success') {
+                    let costValue = data.actual_cost.toString();
+                    let parsedCost = parseFloat(costValue);
+                    $('#actual_cost').val(parsedCost);
+                    $('#actual_cost_display').val(formatRupiah(parsedCost));
+
+                    if (data.message !== '') {
+                        $('#actual_cost_info').text(data.message).show();
+                    } else {
+                        $('#actual_cost_info').hide().text('');
+                    }
+                } else {
+                    $('#actual_cost').val('');
+                    $('#actual_cost_display').val('');
+                    $('#actual_cost_info').hide().text('');
+                    alert(data.message);
+                }
+            }, 'json').fail(function() {
+                $('#actual_cost').val('');
+                $('#actual_cost_display').val('');
+                $('#actual_cost_info').hide().text('');
+                alert('Terjadi kesalahan pada server saat mengambil data biaya.');
+            });
+        }
+
+        /**
+         * Fungsi untuk memformat angka menjadi format ribuan standar Indonesia (id-ID)
+         * @param {number} number Angka yang akan diformat
+         */
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID').format(number);
+        }
+    </script>
+@endpush

@@ -8,6 +8,7 @@ use App\Models\PaymentDispensationDetails;
 use App\Models\PaymentDispensations;
 use App\Models\PPDBUser;
 use App\Models\StudentBills;
+use Carbon\Carbon;
 
 class PaymentDispensationsService {
 
@@ -103,7 +104,7 @@ class PaymentDispensationsService {
                 'installment_number' => $key,
                 'virtual_account' => $virtual_account_number,
                 'nominal' => $value,
-                'status' => PaymentDispensationDetails::MODE_UNPAID,
+                'status' => PaymentDispensationDetails::STATUS_UNPAID,
             ];
         }
 
@@ -174,5 +175,101 @@ class PaymentDispensationsService {
         ];
 
         return $fillable;
+    }
+
+    public function confirmPayment($id, $detail_id, $virtual_account, $type, $nominal){
+
+        $status = false;
+        $detail = PaymentDispensationDetails::where('id', $detail_id)->first();
+        if($detail){
+            $status_payment = PaymentDispensationDetails::STATUS_PARTIAL;
+            if($detail->nominal == $nominal){
+                $status_payment = PaymentDispensationDetails::STATUS_PAID;
+            }
+
+            $detail->amount_paid = $nominal;
+            $detail->status = $status_payment;
+            $detail->date = Carbon::now()->format('Y-m-d'); // atau Carbon::now()->toDateString();
+            $detail->save();
+
+            $dispensation = PaymentDispensations::where('id', $id)->first();
+            if($dispensation){
+
+                $remaining_balance = $dispensation->remaining_balance - $nominal;
+                $dispensation->remaining_balance = $remaining_balance;
+                $dispensation->status_payment = PaymentDispensations::PAYMENT_STATUS_UNPAID;
+                $is_paid = StudentBills::PAYMENT_METHOD_PARTIAL;
+                if($remaining_balance <= 0){
+                    $is_paid = StudentBills::PAYMENT_METHOD_PAID;
+                    $dispensation->status_payment = PaymentDispensations::PAYMENT_STATUS_PAID;
+                }
+                $dispensation->save();
+
+                $bill = StudentBills::where('ppdb_user_id', $dispensation->ppdb_user_id)->where('type', StudentBills::BILL_TYPE_DEVELOPMENT)->orderBy('id', 'desc')->first();
+                if($bill){
+                    $bill->payment_method = $is_paid;
+                    $bill->save();
+
+                    $status = true;
+                }
+            }
+        }
+        return $status;
+    }
+
+    public function confirmPaymentPartial($id, $virtual_account, $type, $nominal){
+
+        $status = false;
+        $dispensation = PaymentDispensations::where('id', $id)->first();
+
+        if($dispensation){
+            $remaining_balance = $dispensation->remaining_balance - $nominal;
+            $dispensation->remaining_balance = $remaining_balance;
+            $dispensation->status_payment = PaymentDispensations::PAYMENT_STATUS_UNPAID;
+
+            $is_paid = StudentBills::PAYMENT_METHOD_PARTIAL;
+            if($remaining_balance <= 0){
+                $is_paid = StudentBills::PAYMENT_METHOD_PAID;
+                $dispensation->status_payment = PaymentDispensations::PAYMENT_STATUS_PAID;
+            }
+            $dispensation->save();
+
+            $details = PaymentDispensationDetails::where('payment_dispensation_id', $id)
+                        ->whereIn('status', [PaymentDispensationDetails::STATUS_UNPAID, PaymentDispensationDetails::STATUS_PARTIAL])
+                        ->orderBy('installment_number', 'asc')
+                        ->get();
+
+            $remaining_nominal = $nominal;
+
+            foreach($details as $detail){
+                if($remaining_nominal <= 0){
+                    break;
+                }
+
+                $detail_remaining_balance = $detail->nominal - $detail->amount_paid;
+
+                if($remaining_nominal >= $detail_remaining_balance){
+                    $detail->amount_paid = $detail->nominal;
+                    $detail->status = PaymentDispensationDetails::STATUS_PAID;
+                    $remaining_nominal -= $detail_remaining_balance;
+                } else {
+                    $detail->amount_paid = $detail->amount_paid + $remaining_nominal;
+                    $detail->status = PaymentDispensationDetails::STATUS_PARTIAL;
+                    $remaining_nominal = 0;
+                }
+                $detail->date = Carbon::now()->format('Y-m-d');
+                $detail->save();
+            }
+
+            $bill = StudentBills::where('ppdb_user_id', $dispensation->ppdb_user_id)->where('type', StudentBills::BILL_TYPE_DEVELOPMENT)->orderBy('id', 'desc')->first();
+            if($bill){
+                $bill->payment_method = $is_paid;
+                $bill->save();
+            }
+
+            $status = true;
+        }
+
+        return $status;
     }
 }

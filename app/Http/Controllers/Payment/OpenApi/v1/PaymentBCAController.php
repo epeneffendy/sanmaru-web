@@ -208,6 +208,21 @@ class PaymentBCAController extends Controller
                                 case '07':
                                     $data = $paymentBCAService->getPpdbRegistration($orderId, $unitId, $data, $result);
                                     break;
+                                case '21': //Pengembangan Lunas
+                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $data, $result);
+                                    break;
+                                case '22': //Pengembangan DP
+                                    $data = $paymentBCAService->getPpdbRegistration($orderId, $unitId, $data, $result);
+                                    break;
+                                case '23': //Pengembangan Cicilan
+                                    $data = $paymentBCAService->getPpdbRegistration($orderId, $unitId, $data, $result);
+                                    break;
+                                case '98': //Pengembangan Pembayaran Partial
+                                    $data = $paymentBCAService->getPpdbRegistration($orderId, $unitId, $data, $result);
+                                    break;
+                                case '99': //Pengembangan Pembayaran Full
+                                    $data = $paymentBCAService->getPpdbRegistration($orderId, $unitId, $data, $result);
+                                    break;
                                 default:
                                     $result->setresponseCode("4042412");
                                     $result->setresponseMessage("Invalid Bill/Virtual Account [Not Found]");
@@ -759,7 +774,7 @@ class PaymentBCAController extends Controller
         $arrFill = $this->fillParams($request->toArray(), $isBills);
         $signature = $this->generateSignature('POST', $relativeUrl, $headerToken, $ClientSecret, $headerTimestamp, $arrFill);
         $getToken = $this->authenticationToken($headerToken);
-        
+
         if ($getToken) {
             if ($signature['signature'] == $headerSignature) {
                 $validateTimestap = $this->validateDate($headerTimestamp);

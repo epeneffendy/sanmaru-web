@@ -134,7 +134,8 @@
                                 </div>
                             </div>
 
-                            <div id="form-full-setup" style="display: none">
+                            <div id="form-full-setup"
+                                style="display: {{ @$dispensation['dispensation_mode'] == 'full_setup' ? 'block' : 'none' }}">
                                 <div class="form-group">
                                     <label class="col-sm-2 control-label">Nominal DP (Bisa 0)</label>
                                     <div class="col-sm-10">
@@ -149,8 +150,16 @@
                                 <div class="form-group">
                                     <label class="col-sm-2 control-label">Jumlah Cicilan (Tenor)</label>
                                     <div class="col-sm-10">
-                                        <input type="number" class="form-control" name="tenor"
+                                        <input type="number" class="form-control" name="tenor" id="tenor"
                                             value="{{ @$dispensation['tenor'] }}" placeholder="0">
+                                    </div>
+                                </div>
+
+                                <div class="form-group" id="simulation-container" style="display: none;">
+                                    <label class="col-sm-2 control-label">Simulasi Cicilan</label>
+                                    <div class="col-sm-10">
+                                        <div class="alert alert-info" id="simulation-result" style="margin-bottom: 0;">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -188,12 +197,14 @@
                 dropupAuto: false,
                 title: "No Value"
             });
+            calculateSimulation();
         });
 
         $(document).on('change', '#dispensation_mode', function(e) {
             var mode = $('#dispensation_mode').val();
             if (mode === 'full_setup') {
                 $('#form-full-setup').show();
+                calculateSimulation();
             } else {
                 $('#form-full-setup').hide();
             }
@@ -238,6 +249,7 @@
                 $('#down_payment').val(parsedVal);
                 $('#down_payment_display').val(formatRupiah(parsedVal));
             }
+            calculateSimulation();
         });
 
         $(document).on('keyup', '#down_payment_display', function(e) {
@@ -259,7 +271,40 @@
 
             $('#down_payment').val(parsedVal);
             $(this).val(formatRupiah(parsedVal));
+            calculateSimulation();
         });
+
+        $(document).on('keyup change', '#tenor', function(e) {
+            calculateSimulation();
+        });
+
+        function calculateSimulation() {
+            let mode = $('#dispensation_mode').val();
+            let totalFinalFee = parseInt($('#total_final_fee').val() || 0, 10);
+            let downPayment = parseInt($('#down_payment').val() || 0, 10);
+            let tenor = parseInt($('#tenor').val() || 0, 10);
+
+            if (mode === 'full_setup' && totalFinalFee > 0 && tenor > 0) {
+                let remaining = totalFinalFee - downPayment;
+                let installment = Math.round(remaining / tenor);
+
+                let html = '<ul class="list-unstyled" style="margin-bottom: 0;">';
+                html += '<li><strong>Total Akhir:</strong> Rp ' + formatRupiah(totalFinalFee) + '</li>';
+                html += '<li><strong>DP:</strong> Rp ' + formatRupiah(downPayment) + '</li>';
+                html += '<li><strong>Sisa Tagihan:</strong> Rp ' + formatRupiah(remaining) + '</li>';
+                html +=
+                    '<li style="margin-top: 10px; border-top: 1px dashed #bce8f1; padding-top: 10px;"><strong>Cicilan Per Bulan (' +
+                    tenor + 'x):</strong> <span class="text-danger" style="font-weight: bold; font-size: 1.1em;">Rp ' +
+                    formatRupiah(installment) + '</span> / bln</li>';
+                html += '</ul>';
+
+                $('#simulation-result').html(html);
+                $('#simulation-container').slideDown();
+            } else {
+                $('#simulation-container').slideUp();
+                $('#simulation-result').html('');
+            }
+        }
 
         function fetchStudent(unit_id, school_year) {
             $("#ppdb_user_id").empty();

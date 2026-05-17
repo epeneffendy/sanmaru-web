@@ -509,7 +509,8 @@
                                                                                 <i class="fa fa-check-circle"></i> Lunas
                                                                             </span>
                                                                         </div>
-                                                                    @else
+                                                                    @endif
+                                                                    @if ($item['payment_term'] == 'installment_payment')
                                                                         <div
                                                                             style="margin-bottom: 4px; padding-left: 12px;">
                                                                             <span class="badge-modern badge-soft-secondary"

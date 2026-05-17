@@ -982,5 +982,8 @@ Route::group(['domain' => $routeService->getPaymentsSubdomain(), 'middleware' =>
         Route::post($prefix . 'v1.0/access-token/get-signature-token', 'Payment\OpenApi\v1\PaymentBCAController@getSignatureToken')->name('payment.api.token');
         Route::post($prefix . 'v1.0/access-token/verif-signature-token', 'Payment\OpenApi\v1\PaymentBCAController@verifSignatureToken')->name('payment.api.token');
         Route::post($prefix . 'v1.0/access-token/get-inquiry-status', 'Payment\OpenApi\v1\PaymentBCAController@getInquiryStatus')->name('payment.api.token');
+
+        Route::post($prefix . 'v1.0/transfer-va/inquiry-test', 'Payment\OpenApi\v1\PaymentBCATestController@inquiryList')->name('payment.api.inquiry-test');
+        Route::post($prefix . 'v1.0/transfer-va/payment-test', 'Payment\OpenApi\v1\PaymentBCATestController@paymentFlag')->name('payment.api.payments-test');
     }
 });

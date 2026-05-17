@@ -18,9 +18,9 @@ class PaymentDispensationDetails extends Model
         'status',
     ];
 
-    const MODE_UNPAID = 'unpaid';
-    const MODE_PAID = 'paid';
-    const MODE_PARTIAL = 'partial';
+    const STATUS_UNPAID = 'unpaid';
+    const STATUS_PAID = 'paid';
+    const STATUS_PARTIAL = 'partial';
 
     const DISPENSATION_TYPE_DEVELOPMENT = 'development';
     const DISPENSATION_TYPE_ACTIVITY = 'activity';

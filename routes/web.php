@@ -102,8 +102,10 @@ Route::group(['domain' => $routeService->getPpdbSubdomain()], function () use ($
         Route::prefix("/$prefix/bills")->name('ppdb.bills.')->group(function () {
             Route::get('/choise-payment', 'PPDBPaymentController@choisePayment')->name('choise-payment');
             Route::post('store', 'PPDBPaymentController@store')->name('store');
-            Route::get('/payment-bill-list', 'PPDBPaymentController@paymentBillList')->name('payment-bill-list');
+            Route::get('/payment-now', 'PPDBPaymentController@paymentNow')->name('payment-now');
+            Route::get('/payment-cancel', 'PPDBPaymentController@paymentCancel')->name('payment-cancel');
         });
+
 
 
         Route::prefix("/$prefix/embed-product")->name('ppdb.embed-product.')->group(function () {

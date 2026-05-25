@@ -702,7 +702,7 @@
                                                                 Rp {{ number_format($item['amount'], 0, ',', '.') }}
                                                             </div>
 
-                                                            @if ($item['payment_method'] == 'paid')
+                                                            {{-- @if ($item['payment_method'] == 'paid')
                                                                 <button class="btn btn-sm btn-light text-muted border px-3"
                                                                     style="font-size: 0.75rem; font-weight: 600;">
                                                                     <i class="fa fa-file-text-o me-1"></i> Bukti Lunas
@@ -713,7 +713,7 @@
                                                                     style="font-size: 0.75rem; font-weight: 600;">
                                                                     Cara Bayar <i class="fa fa-chevron-right ms-1"></i>
                                                                 </a>
-                                                            @endif
+                                                            @endif --}}
                                                         </div>
                                                     </div>
 
@@ -787,7 +787,7 @@
                                     </div>
 
                                     <!-- Summary / Rekapitulasi Pembayaran -->
-                                    <div class="p-3 p-md-4 mt-2">
+                                    {{-- <div class="p-3 p-md-4 mt-2">
                                         <div class="summary-box p-4 rounded-4 shadow-sm">
                                             <div class="row align-items-center">
                                                 <div class="col-12 col-md-7 mb-3 mb-md-0 border-end-md">
@@ -824,7 +824,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> --}}
 
                                 </div>
                             </div>

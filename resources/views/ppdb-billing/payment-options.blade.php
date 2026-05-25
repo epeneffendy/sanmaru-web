@@ -254,6 +254,15 @@
                             <span id="textHargaBarang">Rp {{ number_format($total_bill ?? 0, 0, ',', '.') }}</span>
                         </div>
 
+                        <!-- Only visible when Lunas is selected -->
+                        <div id="lunasSummary" style="display: none;">
+                            <div class="summary-item text-success fw-medium">
+                                <span>Diskon Pelunasan (5%)</span>
+                                <span id="textDiskonLunas">- Rp 0</span>
+                                <input type="hidden" id="nominal_diskon_lunas" name="nominal_diskon_lunas" value="0">
+                            </div>
+                        </div>
+
                         <!-- Only visible when Cicilan is selected -->
                         <div id="installmentSummary" style="display: none;">
                             <div class="summary-item text-primary fw-medium">
@@ -301,6 +310,7 @@
                 const $paymentOptions = $('.payment-option');
                 const $installmentSettings = $('#installmentSettings');
                 const $installmentSummary = $('#installmentSummary');
+                const $lunasSummary = $('#lunasSummary');
                 const $tenorSelect = $('#tenorSelect');
                 const $dpSelect = $('#dpSelect');
 
@@ -309,6 +319,7 @@
                 const $textSisaHutang = $('#textSisaHutang');
                 const $textTenorLabel = $('#textTenorLabel');
                 const $textCicilanPerBulan = $('#textCicilanPerBulan');
+                const $textDiskonLunas = $('#textDiskonLunas');
                 const $textTotalBayarSekarang = $('#textTotalBayarSekarang');
                 const $btnSubmit = $('#btnSubmit');
                 const $summaryTotal = $('.summary-total');
@@ -334,16 +345,30 @@
                         // Sembunyikan form dan rincian cicilan
                         $installmentSettings.slideUp(300);
                         $installmentSummary.slideUp(300);
+
+                        // Tampilkan rincian pelunasan
+                        const diskonLunas = TOTAL_BILL * 0.05;
+                        const totalBayarSekarang = TOTAL_BILL - diskonLunas;
+
+                        $textDiskonLunas.text('- ' + formatRupiah(diskonLunas));
+                        $('#nominal_diskon_lunas').val(diskonLunas);
+                        $lunasSummary.slideDown(300);
+
                         $summaryTotal.slideDown(300);
 
-                        // Total yang harus dibayar saat ini adalah total penuh
-                        $textTotalBayarSekarang.text(formatRupiah(TOTAL_BILL));
+                        // Total yang harus dibayar saat ini adalah total penuh dikurangi diskon
+                        $textTotalBayarSekarang.text(formatRupiah(totalBayarSekarang));
 
                         $btnSubmit.html('Bayar Sekarang <i class="fa-solid fa-arrow-right ms-2"></i>');
                     } else if (paymentType === 'cicilan') {
                         $('#nominal_dp').val(0);
                         $('#sisa_hutang').val(0);
                         $('#cicilan_per_bulan').val(0);
+                        $('#nominal_diskon_lunas').val(0);
+
+                        // Sembunyikan rincian pelunasan
+                        $lunasSummary.slideUp(300);
+
                         // Tampilkan form dan rincian cicilan
                         $installmentSettings.slideDown(300);
                         $installmentSummary.slideDown(300);

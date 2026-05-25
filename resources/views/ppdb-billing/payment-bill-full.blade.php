@@ -146,6 +146,24 @@
             </div>
         @endif
 
+        @if ($dispensation->status_payment == 'unpaid')
+            <div class="custom-card p-3">
+                <div class="deadline-box" style="background-color: #fff3cd;">
+                    <div class="deadline-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div>
+                        <div class="text-dark fw-bold" style="font-size: 1rem;">Segera Lakukan Pembayaran Sebelum</div>
+                        <div class="fw-bold text-danger" id="deadline-time">
+                            {{ isset($virtual_account_unpaid) ? \Carbon\Carbon::parse($virtual_account_unpaid->expired_at)->translatedFormat('l, d F Y - H:i') : '' }}
+                            WIB
+                        </div>
+                        <div class="fw-bold text-danger mt-1" id="countdown-timer"></div>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <!-- Detail Virtual Account -->
         <div class="custom-card p-3 p-md-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -158,7 +176,7 @@
             <div class="mb-3">
                 <span class="text-muted d-block mb-1">Nomor Virtual Account</span>
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                    <span class="va-number text-break" id="va-number">{{ $va_full }}</span>
+                    <span class="va-number text-break" id="va-number">{{ $virtual_account_number }}</span>
                     <button class="btn-copy flex-shrink-0"
                         onclick="copyText('va-number', 'Nomor Virtual Account disalin!')">
                         Salin <i class="bi bi-files"></i>
@@ -172,7 +190,7 @@
                 <span class="text-muted d-block mb-1">Total Tagihan</span>
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                     <span class="total-amount text-break" id="total-amount">Rp
-                        {{ number_format($dispensation->remaining_balance, 0, '.', ',') }}</span>
+                        {{ number_format($virtual_account_unpaid->total_payment, 0, '.', ',') }}</span>
                     <button class="btn-copy flex-shrink-0" onclick="copyText('total-amount', 'Nominal disalin!')">
                         Salin <i class="bi bi-files"></i>
                     </button>
@@ -180,38 +198,17 @@
             </div>
         </div>
 
-        {{-- <!-- Cara Pembayaran (Accordion) -->
-        <div class="custom-card">
-            <div class="accordion accordion-flush" id="accordionInstructions">
-                <div class="accordion-item" style="border-radius: 12px; overflow: hidden;">
-                    <h2 class="accordion-header" id="headingOne">
-                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                            Cara Pembayaran
-                        </button>
-                    </h2>
-                    <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne"
-                        data-bs-parent="#accordionInstructions">
-                        <div class="accordion-body text-muted" style="font-size: 0.9rem;">
-                            <ol class="mb-0 ps-3">
-                                <li class="mb-2">Buka aplikasi Mobile Banking Mandiri Anda.</li>
-                                <li class="mb-2">Pilih menu <strong>Bayar</strong> > <strong>Multipayment</strong>.</li>
-                                <li class="mb-2">Pilih penyedia jasa atau masukkan kode perusahaan.</li>
-                                <li class="mb-2">Masukkan nomor Virtual Account di atas.</li>
-                                <li>Pastikan nominal tagihan sesuai lalu konfirmasi PIN Anda.</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div> --}}
-
         <!-- Tombol Aksi -->
         <div class="mt-4">
             <a href={{ route('ppdb.bills.choise-payment') }}
                 class="btn btn-primary btn-block text-white font-weight-bold py-2 shadow-sm"
                 style="background-color: #0d6efd; border-radius: 8px; border: none;">
                 Saya Sudah Bayar </a>
+
+            <a href="{{ route('ppdb.bills.payment-cancel', ['virtual_account_number' => $virtual_account_number]) }}"
+                class="btn btn-outline-danger btn-block mt-3 font-weight-bold py-2 shadow-sm" style="border-radius: 8px;"
+                onclick="return confirm('Apakah Anda yakin ingin membatalkan pembayaran ini?');">
+                Batalkan Pembayaran </a>
 
             <a href={{ route('ppdb.finance-bills') }} class="btn btn-block text-secondary mt-3"
                 style="background: transparent; border: none; font-weight: 500;">
@@ -259,6 +256,40 @@
                     console.error('Gagal menyalin teks: ', err);
                 });
             }
+
+            @if (isset($virtual_account_unpaid))
+                // Countdown Timer
+                const expiredAt = new Date("{{ $virtual_account_unpaid->expired_at }}").getTime();
+
+                const countdownInterval = setInterval(function() {
+                    const now = new Date().getTime();
+                    const distance = expiredAt - now;
+
+                    if (distance < 0) {
+                        clearInterval(countdownInterval);
+                        const countdownEl = document.getElementById("countdown-timer");
+                        if (countdownEl) {
+                            countdownEl.innerHTML = "Waktu pembayaran telah habis";
+                        }
+                        return;
+                    }
+
+                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    let countdownText = "";
+                    if (days > 0) {
+                        countdownText += days + " Hari ";
+                    }
+
+                    document.getElementById("countdown-timer").innerHTML = "Sisa Waktu: " + countdownText +
+                        hours.toString().padStart(2, '0') + ":" +
+                        minutes.toString().padStart(2, '0') + ":" +
+                        seconds.toString().padStart(2, '0');
+                }, 1000);
+            @endif
         </script>
     @endpush
 @endsection

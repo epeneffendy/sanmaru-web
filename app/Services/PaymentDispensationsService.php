@@ -24,6 +24,20 @@ class PaymentDispensationsService {
         return $data;
     }
 
+    public function getById($id){
+        $data = PaymentDispensations::where('id', $id)->where('status', PaymentDispensations::STATUS_ACTIVE)->orderBy('id', 'desc')->first();
+        return $data;
+    }
+
+    public function getDetailById($id){
+        $data = PaymentDispensations::select('payment_dispensations.*', 'payment_dispensation_details.virtual_account', 'payment_dispensation_details.nominal', 'payment_dispensation_details.id as detail_id')
+            ->join('payment_dispensation_details', 'payment_dispensations.id', '=', 'payment_dispensation_details.payment_dispensation_id')
+            ->where('payment_dispensation_details.id', $id)
+            ->where('payment_dispensations.status', PaymentDispensations::STATUS_ACTIVE)
+            ->first();
+
+        return $data;
+    }
 
     public function create($params, $ppdb, $operator = 'user'){
         return \Illuminate\Support\Facades\DB::transaction(function () use ($params, $ppdb, $operator) {
@@ -90,7 +104,7 @@ class PaymentDispensationsService {
         }
 
         foreach($arr_calculate as $key => $value){
-            $virtual_account_number = $this->virtualAccountNumber($ppdb, PaymentDispensations::TYPE_FULL);
+            $virtual_account_number = $this->virtualAccountNumber($ppdb, PaymentDispensations::TYPE_PENGEMBANGAN_LUNAS);
             if($is_installment){
                 $const_type = PaymentDispensations::TYPE_PENGEMBANGAN_CICILAN;
                 if($key == 0){

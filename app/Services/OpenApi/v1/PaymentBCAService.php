@@ -1234,7 +1234,7 @@ class PaymentBCAService
         return $result;
     }
 
-    public function getBillPaymentDevelopment($ppdbId, $unitId, $typeCode, PaymentBcaBillRequest $data, PaymentBcaBillResponse $result)
+    public function getBillPaymentDevelopment($ppdbId, $unitId, $typeCode, PaymentBcaBillRequest $data, PaymentBcaBillResponse $result, $type)
     {
         $unit = Unit::where('unit_code', $unitId)->first();
 
@@ -1249,7 +1249,28 @@ class PaymentBCAService
             $result->setvirtualAccountData($failedResponse->toArray());
         } else {
             $ppdbUser = PpdbUser::where('register_number', $ppdbId)->first();
-            $dispensations = PaymentDispensations::select(
+
+            if(($type == '98') || ($type == '99')){
+                $dispensations = PaymentDispensations::select(
+                    'payment_dispensations.*',
+                )
+                ->where('payment_dispensations.ppdb_user_id', $ppdbUser->id)
+                ->where('payment_dispensations.status', PaymentDispensations::STATUS_ACTIVE)
+                ->orderBy('payment_dispensations.id', 'desc')->first();
+
+                $arr_value = json_decode($dispensations->value);
+                $dispensation_status = $dispensations->status_payment;
+                $virtual_account_number = isset($arr_value->va_partial) ? $arr_value->va_partial : 0;
+                if($type == '99'){
+                    $virtual_account_number = isset($arr_value->va_full_statement) ? $arr_value->va_full_statement : 0;
+                }
+                if($type == '98'){
+                    if(substr($data->getpaidAmount()['value'], 0, -3) > substr($dispensations->remaining_balance, 0, -3)){
+                        $is_continue_amount = false;
+                    }
+                }
+            }else{
+                $dispensations = PaymentDispensations::select(
                     'payment_dispensations.*',
                     'payment_dispensation_details.id as detail_id',
                     'payment_dispensation_details.virtual_account',
@@ -1263,7 +1284,13 @@ class PaymentBCAService
                 ->where('payment_dispensations.status', PaymentDispensations::STATUS_ACTIVE)
                 ->orderBy('payment_dispensations.id', 'desc')->first();
 
-            if (!$dispensations) {
+                if (!empty($dispensations)) {
+                    $virtual_account_number = $dispensations->virtual_account;
+                    $dispensation_status = $dispensations->detail_status;
+                }
+            }
+
+            if ($virtual_account_number == 0) {
                 $result->setresponseCode("4042412");
                 $result->setresponseMessage("Invalid Bill/Virtual Account [Not Found]");
                 $reason = array(
@@ -1275,9 +1302,13 @@ class PaymentBCAService
             } else {
                 if (($data->getpartnerServiceId() . $data->getcustomerNo()) == $data->getvirtualAccountNo()) {
                     $currentDateTime = Carbon::now();
-                    if($dispensations->detail_status == 'unpaid'){
-                        $totalAmount = $dispensations->nominal;
-
+                    if($dispensation_status == 'unpaid'){
+                        if($type == 99){
+                            $totalAmount = $dispensations->remaining_balance;
+                        }else{
+                            $totalAmount = $dispensations->nominal;
+                        }
+                        
                         $this->inquiryRequestBill($dispensations->detail_id, $data->getinquiryRequestId(), 'development');
 
                         $virtualAccount = new PaymentVirtualAccountDataResponse();
@@ -1388,8 +1419,7 @@ class PaymentBCAService
                 ->where('payment_dispensations.status', PaymentDispensations::STATUS_ACTIVE)
                 ->orderBy('payment_dispensations.id', 'desc')->first();
 
-
-                if (!$dispensations) {
+                if (!empty($dispensations)) {
                     $virtual_account_number = $dispensations->virtual_account;
                     $dispensation_status = $dispensations->detail_status;
                 }

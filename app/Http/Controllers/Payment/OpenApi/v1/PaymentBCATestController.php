@@ -94,19 +94,19 @@ class PaymentBCATestController extends Controller
                                     $data = $paymentBCAService->getPpdbRegistration($orderId, $unitId, $data, $result);
                                     break;
                                 case '21': //Pengembangan Lunas
-                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $typeCode, $data, $result);
+                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $typeCode, $data, $result, $paymentCode);
                                     break;
                                 case '22': //Pengembangan DP
-                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $typeCode, $data, $result);
+                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $typeCode, $data, $result, $paymentCode);
                                     break;
                                 case '23': //Pengembangan Cicilan
-                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $typeCode, $data, $result);
+                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $typeCode, $data, $result, $paymentCode);
                                     break;
                                 case '98': //Pengembangan Pembayaran Partial
-                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $typeCode, $data, $result);
+                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $typeCode, $data, $result, $paymentCode);
                                     break;
                                 case '99': //Pengembangan Pembayaran Full
-                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $typeCode, $data, $result);
+                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $typeCode, $data, $result, $paymentCode);
                                     break;
                                 default:
                                     $result->setresponseCode("4042412");
@@ -183,6 +183,7 @@ class PaymentBCATestController extends Controller
                 $paymentBCAService->log('v1.0/transfer-va/inquiry', $request->toArray(), $response);
                 return response()->json($response, 400);
             } catch (\Exception $e) {
+                dd($e);
                 $result->setresponseCode("4002402");
                 $result->setresponseMessage("Internal server error");
                 $reason = array(

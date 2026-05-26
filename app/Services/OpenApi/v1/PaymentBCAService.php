@@ -16,12 +16,14 @@ use App\Models\OpenApi\v1\PaymentBcaInvocationRequest;
 use App\Models\OpenApi\v1\PaymentBcaInvocationResponse;
 use App\Models\PaymentDispensationDetails;
 use App\Models\PaymentDispensations;
+use App\Models\PaymentVirtualAccounts;
 use App\Models\PPDBUser;
 use App\Models\ProductOrder;
 use App\Models\ProductOrderPayment;
 use App\Models\TokenApiLog;
 use App\Models\Unit;
 use App\Services\PaymentDispensationsService;
+use App\Services\PaymentVirtualAccountsService;
 use App\Services\ProductOrderService;
 use App\Services\PPDBUserService;
 use Carbon\Carbon;
@@ -56,12 +58,12 @@ class PaymentBCAService
         6020 => 'Shared Biller',
     );
 
-    public function __construct(ProductOrderService $productOrderService, PPDBUserService $ppdbUserService, PaymentDispensationsService $paymentDispensationsService)
+    public function __construct(ProductOrderService $productOrderService, PPDBUserService $ppdbUserService, PaymentVirtualAccountsService $paymentVirtualAccountsService)
     {
         $this->debug = env('PAYMENT_BCA_DEBUG', false);
         $this->productOrderService = $productOrderService;
         $this->ppdbUserService = $ppdbUserService;
-        $this->paymentDispensationsService = $paymentDispensationsService;
+        $this->paymentVirtualAccountsService = $paymentVirtualAccountsService;
         $this->settings = array(
             'apiUrl' => env('PAYMENT_BCA_API_URL', 'https://devapi.klikbca.com:443/'),
             'clientId' => env('PAYMENT_BCA_CLIENT_ID', 'e305a76a-78d3-4f92-b734-c23ae58c97d8'),
@@ -753,12 +755,12 @@ class PaymentBCAService
             $ppdbUser->payment_inquiry_id = $inquiryId;
             $ppdbUser->save();
         }elseif($flag == 'development'){
-            $despensation = PaymentDispensationDetails::where([
-                'id' => $orderId,
-                'status' => PaymentDispensationDetails::STATUS_UNPAID
-            ])->firstOrFail();
-            $despensation->payment_inquiry_id = $inquiryId;
-            $despensation->save();
+            $virtualAccount = PaymentVirtualAccounts::where([
+                        'id' => $orderId,
+                        'status' => PaymentVirtualAccounts::STATUS_UNPAID
+                    ])->firstOrFail();
+            $virtualAccount->payment_inquiry_id = $inquiryId;
+            $virtualAccount->save();
         }else{
             $productOrder = ProductOrder::where([
                         'id' => $orderId,
@@ -1249,48 +1251,12 @@ class PaymentBCAService
             $result->setvirtualAccountData($failedResponse->toArray());
         } else {
             $ppdbUser = PpdbUser::where('register_number', $ppdbId)->first();
+            $virtual_account_unpaid = PaymentVirtualAccounts::where([
+                'ppdb_user_id' => $ppdbUser->id,
+                'virtual_account_number'=> $data->getvirtualAccountNo()
+                ])->orderBy('id', 'desc')->first();
 
-            if(($type == '98') || ($type == '99')){
-                $dispensations = PaymentDispensations::select(
-                    'payment_dispensations.*',
-                )
-                ->where('payment_dispensations.ppdb_user_id', $ppdbUser->id)
-                ->where('payment_dispensations.status', PaymentDispensations::STATUS_ACTIVE)
-                ->orderBy('payment_dispensations.id', 'desc')->first();
-
-                $arr_value = json_decode($dispensations->value);
-                $dispensation_status = $dispensations->status_payment;
-                $virtual_account_number = isset($arr_value->va_partial) ? $arr_value->va_partial : 0;
-                if($type == '99'){
-                    $virtual_account_number = isset($arr_value->va_full_statement) ? $arr_value->va_full_statement : 0;
-                }
-                if($type == '98'){
-                    if(substr($data->getpaidAmount()['value'], 0, -3) > substr($dispensations->remaining_balance, 0, -3)){
-                        $is_continue_amount = false;
-                    }
-                }
-            }else{
-                $dispensations = PaymentDispensations::select(
-                    'payment_dispensations.*',
-                    'payment_dispensation_details.id as detail_id',
-                    'payment_dispensation_details.virtual_account',
-                    'payment_dispensation_details.nominal',
-                    'payment_dispensation_details.amount_paid',
-                    'payment_dispensation_details.status as detail_status'
-                )
-                ->join('payment_dispensation_details', 'payment_dispensations.id', '=', 'payment_dispensation_details.payment_dispensation_id')
-                ->where('payment_dispensation_details.virtual_account', $data->getvirtualAccountNo())
-                ->where('payment_dispensations.ppdb_user_id', $ppdbUser->id)
-                ->where('payment_dispensations.status', PaymentDispensations::STATUS_ACTIVE)
-                ->orderBy('payment_dispensations.id', 'desc')->first();
-
-                if (!empty($dispensations)) {
-                    $virtual_account_number = $dispensations->virtual_account;
-                    $dispensation_status = $dispensations->detail_status;
-                }
-            }
-
-            if ($virtual_account_number == 0) {
+            if (!$virtual_account_unpaid) {
                 $result->setresponseCode("4042412");
                 $result->setresponseMessage("Invalid Bill/Virtual Account [Not Found]");
                 $reason = array(
@@ -1302,49 +1268,56 @@ class PaymentBCAService
             } else {
                 if (($data->getpartnerServiceId() . $data->getcustomerNo()) == $data->getvirtualAccountNo()) {
                     $currentDateTime = Carbon::now();
-                    if($dispensation_status == 'unpaid'){
-                        if($type == 99){
-                            $totalAmount = $dispensations->remaining_balance;
-                        }else{
-                            $totalAmount = $dispensations->nominal;
-                        }
-                        
-                        $this->inquiryRequestBill($dispensations->detail_id, $data->getinquiryRequestId(), 'development');
-
-                        $virtualAccount = new PaymentVirtualAccountDataResponse();
-                        $virtualAccount->setinquiryStatus("00");
-                        $virtualAccount->setinquiryReason(array(
-                            "english" => "Success",
-                            "indonesia" => "Sukses"
-                        ));
-                        $virtualAccount->setpartnerServiceId($data->getpartnerServiceId());
-                        $virtualAccount->setcustomerNo($data->getcustomerNo());
-                        $virtualAccount->setvirtualAccountNo($data->getvirtualAccountNo());
-                        $virtualAccount->setvirtualAccountName($ppdbUser->name);
-                        $virtualAccount->setvirtualAccountEmail($ppdbUser->user->email);
-                        $virtualAccount->setvirtualAccountPhone((string)$ppdbUser->user->mobile_phone);
-                        $virtualAccount->setinquiryRequestId($data->getinquiryRequestId());
-                        $virtualAccount->settotalAmount(array(
-                            "value" => (string)number_format($totalAmount, 2, '.', ''),
-                            "currency" => "IDR"
-                        ));
-                        $virtualAccount->setsubCompany("00000");
-                        $virtualAccount->setbillDetails(array());
-                        $virtualAccount->setfreeTexts(array());
-                        $virtualAccount->setvirtualAccountTrxType("C");
-                        $virtualAccount->setfeeAmount(null);
-                        $virtualAccount->setadditionalInfo((object)array());
-
-                        $result->setvirtualAccountData($virtualAccount->toArray());
-                    }else{
-                        $result->setresponseCode("4042414");
-                        $result->setresponseMessage("Paid Bill");
+                    if($currentDateTime > $virtual_account_unpaid->expired_at){
+                        $result->setresponseCode("4042419");
+                        $result->setresponseMessage("Bill expired");
                         $reason = array(
-                            'english' => 'Paid Bill',
-                            'indonesia' => 'Tagihan telah dibayar',
+                            'english' => 'Bill expired',
+                            'indonesia' => 'Tagihan kadarluwarsa',
                         );
                         $failedResponse = $this->failedResponse($data, $result, $reason);
                         $result->setvirtualAccountData($failedResponse->toArray());
+                    }else{
+                        if($virtual_account_unpaid->status == PaymentVirtualAccounts::STATUS_UNPAID){
+                            $totalAmount = $virtual_account_unpaid->total_payment;
+
+                            $this->inquiryRequestBill($virtual_account_unpaid->id, $data->getinquiryRequestId(), 'development');
+
+                            $virtualAccount = new PaymentVirtualAccountDataResponse();
+                            $virtualAccount->setinquiryStatus("00");
+                            $virtualAccount->setinquiryReason(array(
+                                "english" => "Success",
+                                "indonesia" => "Sukses"
+                            ));
+                            $virtualAccount->setpartnerServiceId($data->getpartnerServiceId());
+                            $virtualAccount->setcustomerNo($data->getcustomerNo());
+                            $virtualAccount->setvirtualAccountNo($data->getvirtualAccountNo());
+                            $virtualAccount->setvirtualAccountName($ppdbUser->name);
+                            $virtualAccount->setvirtualAccountEmail($ppdbUser->user->email);
+                            $virtualAccount->setvirtualAccountPhone((string)$ppdbUser->user->mobile_phone);
+                            $virtualAccount->setinquiryRequestId($data->getinquiryRequestId());
+                            $virtualAccount->settotalAmount(array(
+                                "value" => (string)number_format($totalAmount, 2, '.', ''),
+                                "currency" => "IDR"
+                            ));
+                            $virtualAccount->setsubCompany("00000");
+                            $virtualAccount->setbillDetails(array());
+                            $virtualAccount->setfreeTexts(array());
+                            $virtualAccount->setvirtualAccountTrxType("C");
+                            $virtualAccount->setfeeAmount(null);
+                            $virtualAccount->setadditionalInfo((object)array());
+
+                            $result->setvirtualAccountData($virtualAccount->toArray());
+                        }else{
+                            $result->setresponseCode("4042414");
+                            $result->setresponseMessage("Paid Bill");
+                            $reason = array(
+                                'english' => 'Paid Bill',
+                                'indonesia' => 'Tagihan telah dibayar',
+                            );
+                            $failedResponse = $this->failedResponse($data, $result, $reason);
+                            $result->setvirtualAccountData($failedResponse->toArray());
+                        }
                     }
 
                 } else {
@@ -1368,10 +1341,8 @@ class PaymentBCAService
             'english' => '',
             'indonesia' => '',
         );
-        $virtual_account_number = 0;
-        $dispensation_status = '';
-        $is_continue_amount = true;
         $unit = Unit::where('unit_code', $unitId)->first();
+
         if (!$unit) {
             $status = '01';
             $reason = array(
@@ -1384,48 +1355,15 @@ class PaymentBCAService
             $result->setresponseMessage("Invalid Bill/Virtual Account [Not Found]");
             $result = $this->paymentFailedResponse($data, $result, $status, $reason);
         } else {
+
             $ppdbUser = PpdbUser::where('register_number', $ppdbId)->first();
-            if(($type == '98') || ($type == '99')){
-                $dispensations = PaymentDispensations::select(
-                    'payment_dispensations.*',
-                )
-                ->where('payment_dispensations.ppdb_user_id', $ppdbUser->id)
-                ->where('payment_dispensations.status', PaymentDispensations::STATUS_ACTIVE)
-                ->orderBy('payment_dispensations.id', 'desc')->first();
 
-                $arr_value = json_decode($dispensations->value);
-                $dispensation_status = $dispensations->status_payment;
-                $virtual_account_number = isset($arr_value->va_partial) ? $arr_value->va_partial : 0;
-                if($type == '99'){
-                    $virtual_account_number = isset($arr_value->va_full_statement) ? $arr_value->va_full_statement : 0;
-                }
-                if($type == '98'){
-                    if(substr($data->getpaidAmount()['value'], 0, -3) > substr($dispensations->remaining_balance, 0, -3)){
-                        $is_continue_amount = false;
-                    }
-                }
-            }else{
-                $dispensations = PaymentDispensations::select(
-                    'payment_dispensations.*',
-                    'payment_dispensation_details.id as detail_id',
-                    'payment_dispensation_details.virtual_account',
-                    'payment_dispensation_details.nominal',
-                    'payment_dispensation_details.amount_paid',
-                    'payment_dispensation_details.status as detail_status'
-                )
-                ->join('payment_dispensation_details', 'payment_dispensations.id', '=', 'payment_dispensation_details.payment_dispensation_id')
-                ->where('payment_dispensation_details.virtual_account', $data->getvirtualAccountNo())
-                ->where('payment_dispensations.ppdb_user_id', $ppdbUser->id)
-                ->where('payment_dispensations.status', PaymentDispensations::STATUS_ACTIVE)
-                ->orderBy('payment_dispensations.id', 'desc')->first();
+            $virtual_account_unpaid = PaymentVirtualAccounts::where([
+                'ppdb_user_id' => $ppdbUser->id,
+                'virtual_account_number'=> $data->getvirtualAccountNo()
+                ])->orderBy('id', 'desc')->first();
 
-                if (!empty($dispensations)) {
-                    $virtual_account_number = $dispensations->virtual_account;
-                    $dispensation_status = $dispensations->detail_status;
-                }
-            }
-
-            if ($virtual_account_number == 0) {
+            if (!$virtual_account_unpaid) {
                 $status = '01';
                 $reason = array(
                     'english' => 'Invalid Bill/Virtual Account [Not Found]',
@@ -1439,31 +1377,27 @@ class PaymentBCAService
             } else {
                 if (($data->getpartnerServiceId() . $data->getcustomerNo()) == $data->getvirtualAccountNo()) {
                     $currentDateTime = Carbon::now();
-                    if($dispensation_status == 'unpaid'){
-                        if($is_continue_amount){
-                            $totalAmount = $dispensations->nominal;
-                            $is_continue_amount = false;
+                    if($currentDateTime > $virtual_account_unpaid->expired_at){
+                        $status = '01';
+                        $reason = array(
+                            'english' => 'Bill expired',
+                            'indonesia' => 'Tagihan kadarluwasa',
+                        );
+                        $logExternal = $this->insertLogExternal($external_id, $data->getpaymentRequestId(), 'payments', $reason['english'], $reason['indonesia'], '01');
+                        $result->setresponseCode("4042519");
+                        $result->setresponseMessage("Bill expired");
 
-                            if($type == '98'){
-                                $is_continue_amount = true;
-                            }else{
-                                if (((substr($totalAmount, 0, -3)) == (substr($data->getpaidAmount()['value'], 0, -3))) && (substr($totalAmount, 0, -3)) == (substr($data->gettotalAmount()['value'], 0, -3))) {
-                                    $is_continue_amount = true;
-                                }
-                            }
-
-                            if ($is_continue_amount) {
+                        $result = $this->paymentFailedResponse($data, $result, $status, $reason);
+                    }else{
+                        if($virtual_account_unpaid->status == PaymentVirtualAccounts::STATUS_UNPAID){
+                            $totalAmount = $virtual_account_unpaid->total_payment;
+                            if (((substr($totalAmount, 0, -3)) == (substr($data->getpaidAmount()['value'], 0, -3))) && (substr($totalAmount, 0, -3)) == (substr($data->gettotalAmount()['value'], 0, -3))) {
                                 if ($data->getflagAdvise() == 'N') {
-                                    // $validateExternal = $this->ExternalID($external_id, $data->getpaymentRequestId(), 'payments', 1);
-                                    $validateExternal['success'] = true;
+
+                                    $validateExternal = $this->ExternalID($external_id, $data->getpaymentRequestId(), 'payments', 1);
+
                                     if ($validateExternal['success']) {
-                                        if($type == '98'){
-
-                                            $confirmed = $this->paymentDispensationsService->confirmPaymentPartial($dispensations->id, $data->getvirtualAccountNo(), $type, (substr($data->getpaidAmount()['value'], 0, -3)));
-                                        }else{
-                                            $confirmed = $this->paymentDispensationsService->confirmPayment($dispensations->id, $dispensations->detail_id, $data->getvirtualAccountNo(), $type, $totalAmount);
-                                        }
-
+                                        $confirmed = $this->paymentVirtualAccountsService->confirmDevelopment($virtual_account_unpaid->id, $totalAmount, $type);
                                         if ($confirmed) {
                                             $detail = new PaymentBcaInvocationDetailResponse();
                                             $detail->setpartnerServiceId($data->getpartnerServiceId());
@@ -1488,7 +1422,7 @@ class PaymentBCAService
                                             $detail->setfreeTexts(array());
                                             $result->setvirtualAccountData($detail);
                                             $result->setadditionalInfo((object)array());
-                                            // $logExternal = $this->insertLogExternal($external_id, $data->getpaymentRequestId(), 'payments', 'Success', 'Sukses', '00');
+                                            $logExternal = $this->insertLogExternal($external_id, $data->getpaymentRequestId(), 'payments', 'Success', 'Sukses', '00');
 
                                         } else {
                                             $status = '01';
@@ -1530,28 +1464,15 @@ class PaymentBCAService
                         }else{
                             $status = '01';
                             $reason = array(
-                                'english' => 'Invalid Amount',
-                                'indonesia' => 'Jumlah tidak valid',
+                                'english' => 'Paid Bill',
+                                'indonesia' => 'Tagihan telah di bayar',
                             );
                             $logExternal = $this->insertLogExternal($external_id, $data->getpaymentRequestId(), 'payments', $reason['english'], $reason['indonesia'], '01');
-
-                            $result->setresponseCode("4042513");
-                            $result->setresponseMessage("Invalid Amount");
+                            $result->setresponseCode("4042514");
+                            $result->setresponseMessage("Paid Bill");
                             $result = $this->paymentFailedResponse($data, $result, $status, $reason);
                         }
-
-                    }else{
-                        $status = '01';
-                        $reason = array(
-                            'english' => 'Paid Bill',
-                            'indonesia' => 'Tagihan telah di bayar',
-                        );
-                        $logExternal = $this->insertLogExternal($external_id, $data->getpaymentRequestId(), 'payments', $reason['english'], $reason['indonesia'], '01');
-                        $result->setresponseCode("4042514");
-                        $result->setresponseMessage("Paid Bill");
-                        $result = $this->paymentFailedResponse($data, $result, $status, $reason);
                     }
-
 
                 } else {
                     $status = '01';
@@ -1567,8 +1488,8 @@ class PaymentBCAService
                 }
             }
         }
-        // $validateExternal = $this->ExternalID($external_id, $data->getpaymentRequestId(), 'payments');
-        $validateExternal['success'] = true;
+        $validateExternal = $this->ExternalID($external_id, $data->getpaymentRequestId(), 'payments');
+
         if ($validateExternal['success'] == false) {
             if ($validateExternal['count'] > 0) {
                 $status = $validateExternal['code'];

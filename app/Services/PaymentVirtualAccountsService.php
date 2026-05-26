@@ -1,15 +1,21 @@
 <?php
 
 namespace App\Services;
+use \Illuminate\Support\Facades\DB;
+use \Illuminate\Support\Facades\Log;
+use App\Models\PaymentDispensations;
+use App\Models\PaymentVirtualAccounts;
 
 
 class PaymentVirtualAccountsService
 {
     protected $paymentVirtualAccountsModel;
+    protected $paymentDispensationsService;
 
-    public function __construct(\App\Models\PaymentVirtualAccounts $paymentVirtualAccountsModel)
+    public function __construct(\App\Models\PaymentVirtualAccounts $paymentVirtualAccountsModel, PaymentDispensationsService $paymentDispensationsService)
     {
         $this->paymentVirtualAccountsModel = $paymentVirtualAccountsModel;
+        $this->paymentDispensationsService = $paymentDispensationsService;
     }
 
     public function create($data)
@@ -51,5 +57,59 @@ class PaymentVirtualAccountsService
             'expired_at' => now()->addDays(1),
         ];
     }
-}
 
+    public function confirmDevelopment($id, $nominal, $type)
+    {
+        DB::beginTransaction();
+        try {
+            $paymentVirtualAccount = $this->findById($id);
+            if (!$paymentVirtualAccount) {
+                DB::rollBack();
+                return false;
+            }
+
+            $detail_id = 0;
+            $virtual_account_number = $paymentVirtualAccount->virtual_account_number;
+            $nominal = $paymentVirtualAccount->total_payment;
+
+            $paymentVirtualAccount->status = PaymentVirtualAccounts::STATUS_PAID;
+            $paymentVirtualAccount->payment_date = now();
+
+            $confirmed = false;
+            if ($paymentVirtualAccount->save()) {
+                $dispensation = $this->paymentDispensationsService->getByUserPpdb($paymentVirtualAccount->ppdb_user_id);
+
+                if ($dispensation) {
+
+                    // 99 = full payment, 98 = partial payment, 22 = down payment, 23 = installment payment
+                    if($type == 21){
+                        $detail_id = $dispensation->details[0]->id;
+                        $confirmed = $this->paymentDispensationsService->confirmPayment($dispensation->id, $detail_id, $virtual_account_number, $nominal);
+                    }
+
+                    if(($type == 98) || ($type == 99)){
+                        $confirmed = $this->paymentDispensationsService->confirmPaymentPartial($dispensation->id, $virtual_account_number, $nominal);
+                    }
+
+                    if(($type == 22) || ($type == 23)){
+                        $dispensation_detail = $this->paymentDispensationsService->getByUserPpdbWithVirtualAccount($paymentVirtualAccount->ppdb_user_id, $virtual_account_number);
+                        $detail_id = $dispensation_detail ? $dispensation_detail->detail_id : 0;
+                        $confirmed = $this->paymentDispensationsService->confirmPayment($dispensation->id, $detail_id, $virtual_account_number, $nominal);
+                    }
+                }
+
+                if($confirmed){
+                    DB::commit();
+                    return true;
+                }
+            }
+
+            DB::rollBack();
+            return false;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error confirming development payment: ' . $e->getMessage());
+            return false;
+        }
+    }
+}

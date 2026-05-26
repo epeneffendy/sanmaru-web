@@ -69,7 +69,14 @@ class PPDBPaymentController extends Controller
                         // return view('ppdb-billing.payment-bill-list', $data);
                         return view('ppdb-billing.payment-list-bill-new', $data);
                     }else{
-                        return redirect()->route('ppdb.bills.payment-now', ['id' =>$dispensation->id, 'type' => PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT])->with('message', 'Data berhasil disimpan!');
+                        $is_refresh = false;
+                        if($virtual_account_unpaid){
+                            if($virtual_account_unpaid->status == PaymentVirtualAccounts::STATUS_UNPAID){
+                                $is_refresh = true;
+                            }
+                        }
+
+                        return redirect()->route('ppdb.bills.payment-now', ['id' =>$dispensation->id, 'type' => PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT,'refresh'=> $is_refresh])->with('message', 'Data berhasil disimpan!');
                         // return view('ppdb-billing.payment-bill-full', $data);
                     }
 
@@ -154,6 +161,7 @@ class PPDBPaymentController extends Controller
     public function paymentNow(Request $request, PaymentDispensationsService $paymentDispensationsService, PaymentVirtualAccountsService $paymentVirtualAccountsService){
 
         $dispensation = $paymentDispensationsService->getDetailById($request->id);
+
         if(($request->type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT) || $request->type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_PARTIAL){
             $dispensation = $paymentDispensationsService->getById($request->id);
         }
@@ -180,26 +188,28 @@ class PPDBPaymentController extends Controller
                 $remaining_balance = $request->nominal;
             }
 
-            $va_unpaid = $paymentVirtualAccountsService->findByVirtualAccountUnpaid($virtual_account_number);
+            if(!$request->has('refresh')){
+                $va_unpaid = $paymentVirtualAccountsService->findByVirtualAccountUnpaid($virtual_account_number);
 
-            if ($va_unpaid) {
-                if (\Carbon\Carbon::now()->greaterThan(\Carbon\Carbon::parse($va_unpaid->expired_at))) {
-                    $is_create = true;
-                    $va_unpaid->status = PaymentVirtualAccounts::STATUS_EXPIRED;
-                    $va_unpaid->save();
+                if ($va_unpaid) {
+                    if (\Carbon\Carbon::now()->greaterThan(\Carbon\Carbon::parse($va_unpaid->expired_at))) {
+                        $is_create = true;
+                        $va_unpaid->status = PaymentVirtualAccounts::STATUS_EXPIRED;
+                        $va_unpaid->save();
+                    }
+
+                    if($va_unpaid->total_payment != $request->nominal){
+                        $is_create = true;
+                        $va_unpaid->status = PaymentVirtualAccounts::STATUS_CANCELED;
+                        $va_unpaid->save();
+                    }
                 }
 
-                if($va_unpaid->total_payment != $request->nominal){
-                    $is_create = true;
-                    $va_unpaid->status = PaymentVirtualAccounts::STATUS_CANCELED;
-                    $va_unpaid->save();
+                if($is_create || !$va_unpaid){
+                    $type_payment = PaymentVirtualAccounts::PAYMENT_TYPE_DEVELOPMENT;
+                    $fillable = $paymentVirtualAccountsService->fillable($dispensation->ppdb_user_id,$type_payment, $virtual_account_number, $remaining_balance, $virtual_account_type);
+                    $paymentVirtualAccountsService->create($fillable);
                 }
-            }
-
-            if($is_create || !$va_unpaid){
-                $type_payment = PaymentVirtualAccounts::PAYMENT_TYPE_DEVELOPMENT;
-                $fillable = $paymentVirtualAccountsService->fillable($dispensation->ppdb_user_id,$type_payment, $virtual_account_number, $remaining_balance, $virtual_account_type);
-                $paymentVirtualAccountsService->create($fillable);
             }
 
             $va_unpaid = $paymentVirtualAccountsService->findByVirtualAccountUnpaid($virtual_account_number);
@@ -220,7 +230,22 @@ class PPDBPaymentController extends Controller
 
     public function paymentCancel(Request $request, PaymentVirtualAccountsService $paymentVirtualAccountsService){
         $va_unpaid = $paymentVirtualAccountsService->findByVirtualAccountUnpaid($request->virtual_account_number);
+
         if($va_unpaid){
+            if($va_unpaid->virtual_account_type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT){
+                //cek disepensation jika mode real payment maka cancel juga dispensasi
+                $dispensation = PaymentDispensations::where([
+                    'ppdb_user_id' => $va_unpaid->ppdb_user_id,
+                    'status' => PaymentDispensations::STATUS_ACTIVE,
+                ])->first();
+                if($dispensation){
+                    if($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT){
+                        $dispensation->status = PaymentDispensations::STATUS_CANCELLED;
+                        $dispensation->save();
+                    }
+                }
+            }
+
             if($va_unpaid->status == PaymentVirtualAccounts::STATUS_UNPAID){
                 $va_unpaid->status = PaymentVirtualAccounts::STATUS_CANCELED;
                 $va_unpaid->save();

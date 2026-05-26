@@ -189,8 +189,12 @@
             <div>
                 <span class="text-muted d-block mb-1">Total Tagihan</span>
                 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                    <span class="total-amount text-break" id="total-amount">Rp
-                        {{ number_format($virtual_account_unpaid->total_payment, 0, '.', ',') }}</span>
+                    @if (!empty($virtual_account_unpaid))
+                        <span class="total-amount text-break" id="total-amount">Rp
+                            {{ number_format($virtual_account_unpaid->total_payment, 0, '.', ',') }}</span>
+                    @else
+                        <span class="total-amount text-break" id="total-amount">Rp 0</span>
+                    @endif
                     <button class="btn-copy flex-shrink-0" onclick="copyText('total-amount', 'Nominal disalin!')">
                         Salin <i class="bi bi-files"></i>
                     </button>
@@ -200,15 +204,18 @@
 
         <!-- Tombol Aksi -->
         <div class="mt-4">
-            <a href={{ route('ppdb.bills.choise-payment') }}
+            <a href={{ route('ppdb.bills.choise-payment', ['refresh' => true]) }}
                 class="btn btn-primary btn-block text-white font-weight-bold py-2 shadow-sm"
                 style="background-color: #0d6efd; border-radius: 8px; border: none;">
                 Saya Sudah Bayar </a>
 
-            <a href="{{ route('ppdb.bills.payment-cancel', ['virtual_account_number' => $virtual_account_number]) }}"
-                class="btn btn-outline-danger btn-block mt-3 font-weight-bold py-2 shadow-sm" style="border-radius: 8px;"
-                onclick="return confirm('Apakah Anda yakin ingin membatalkan pembayaran ini?');">
-                Batalkan Pembayaran </a>
+            @if (!empty($virtual_account_unpaid))
+                <a href="{{ route('ppdb.bills.payment-cancel', ['virtual_account_number' => $virtual_account_number]) }}"
+                    class="btn btn-outline-danger btn-block mt-3 font-weight-bold py-2 shadow-sm"
+                    style="border-radius: 8px;"
+                    onclick="return confirm('Apakah Anda yakin ingin membatalkan pembayaran ini?');">
+                    Batalkan Pembayaran </a>
+            @endif
 
             <a href={{ route('ppdb.finance-bills') }} class="btn btn-block text-secondary mt-3"
                 style="background: transparent; border: none; font-weight: 500;">

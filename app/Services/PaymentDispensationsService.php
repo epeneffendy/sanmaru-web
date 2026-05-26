@@ -29,6 +29,18 @@ class PaymentDispensationsService {
         return $data;
     }
 
+    public function getByUserPpdbWithVirtualAccount($ppdb_user_id, $virtual_account_number){
+        $data = PaymentDispensations::select('payment_dispensations.*', 'payment_dispensation_details.virtual_account', 'payment_dispensation_details.nominal', 'payment_dispensation_details.id as detail_id')
+            ->join('payment_dispensation_details', 'payment_dispensations.id', '=', 'payment_dispensation_details.payment_dispensation_id')
+            ->where('payment_dispensations.ppdb_user_id', $ppdb_user_id)
+            ->where('payment_dispensation_details.virtual_account', $virtual_account_number)
+            ->where('payment_dispensations.status', PaymentDispensations::STATUS_ACTIVE)
+            ->orderBy('payment_dispensations.id', 'desc')
+            ->first();
+
+        return $data;
+    }
+
     public function getDetailById($id){
         $data = PaymentDispensations::select('payment_dispensations.*', 'payment_dispensation_details.virtual_account', 'payment_dispensation_details.nominal', 'payment_dispensation_details.id as detail_id')
             ->join('payment_dispensation_details', 'payment_dispensations.id', '=', 'payment_dispensation_details.payment_dispensation_id')
@@ -191,7 +203,7 @@ class PaymentDispensationsService {
         return $fillable;
     }
 
-    public function confirmPayment($id, $detail_id, $virtual_account, $type, $nominal){
+    public function confirmPayment($id, $detail_id, $virtual_account, $nominal){
 
         $status = false;
         $detail = PaymentDispensationDetails::where('id', $detail_id)->first();
@@ -231,7 +243,7 @@ class PaymentDispensationsService {
         return $status;
     }
 
-    public function confirmPaymentPartial($id, $virtual_account, $type, $nominal){
+    public function confirmPaymentPartial($id, $virtual_account, $nominal){
 
         $status = false;
         $dispensation = PaymentDispensations::where('id', $id)->first();

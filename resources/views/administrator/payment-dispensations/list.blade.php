@@ -96,7 +96,6 @@
                                         <th class="text-center">Nominal</th>
                                         <th class="text-center">Nominal Setelah Potongan</th>
                                         <th class="text-center">Mode Dispensasi</th>
-                                        <th class="text-center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -128,8 +127,6 @@
                                                     {{ number_format($dispensation['remaining_balance'], 0, ',', '.') }}</span>
 
                                             </td>
-                                            <td></td>
-
                                         </tr>
                                     @endforeach
 

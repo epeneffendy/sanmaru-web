@@ -258,6 +258,10 @@
                 <h4 class="fw-bold mb-1" style="color: #166534;">Pembayaran Anda Telah Lunas</h4>
                 <p class="mb-0" style="color: #15803d;">Terima kasih, seluruh tagihan Uang Pengembangan Anda sudah
                     diselesaikan.</p>
+                <div class="mt-4">
+                    <a href="{{ route('ppdb.bills.development-receipt', ['id' => $dispensation->id]) }}"
+                        class="btn btn-dark-green text-white"><i class="fa fa-receipt me-2"></i>Lihat Bukti Pembayaran</a>
+                </div>
             </div>
         @endif
 

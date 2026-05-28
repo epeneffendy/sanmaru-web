@@ -6,10 +6,10 @@
             <div class="biaya-header col">
                 <div class="row">
                     <div class="card-green">
-                        @if (\App\Helpers\PriceHelper::getDevelopmentDiscountStatus($ppdb))
+                        @if (\App\Helpers\PriceHelper::getDevelopmentDiscountStatus($ppdb) && $discount > 0)
                             <span>Nominal uang pengembangan Anda
                                 <del>{{ \App\Helpers\PriceHelper::development($ppdb, true) }}</del>
-                                {{ \App\Helpers\PriceHelper::rupiah((95 / 100) * \App\Helpers\PriceHelper::development($ppdb)) }}</span>
+                                {{ \App\Helpers\PriceHelper::rupiah(((100 - $discount) / 100) * \App\Helpers\PriceHelper::development($ppdb)) }}</span>
                         @else
                             <span>Nominal uang pengembangan Anda
                                 {{ \App\Helpers\PriceHelper::development($ppdb, true) }}</span>
@@ -56,13 +56,13 @@
             @endphp
             <div class="row">
                 <div class="col">
-                    <p class="text-body-title text-primary-green">Pembayaran Lunas</p>
                     @if ($discountStatus || $voucherStatus)
+                        <p class="text-body-title text-primary-green">Pembayaran Lunas</p>
                         <p class="text-body">Bayar 100% langsung lunas akan mendapatkan keuntungan:</p>
                     @endif
                     <ol class="ol-number">
-                        @if ($discountStatus)
-                            <li>Voucher 5% dari nominal uang pengembangan yang sudah ditentukan</li>
+                        @if ($discountStatus && $discount > 0)
+                            <li>Voucher {{ $discount }}% dari nominal uang pengembangan yang sudah ditentukan</li>
                         @endif
                         @if ($voucherStatus)
                             <li>Mendapat voucher free seragam olahraga siswa</li>

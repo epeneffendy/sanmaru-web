@@ -242,6 +242,19 @@
                             class="{{ $nav['child'] == 'development-fee' ? 'active' : '' }}"><span
                                 class="icon color12"><i class="fa fa-money"></i></span>Laporan Dana Pengembangan</a>
                     </li>
+                    <li><a href="#" class="{{ $nav['child'] == 'new-student-report' ? 'active' : '' }}"><span
+                                class="icon color12"><i class="fa fa-user-plus"></i></span>Laporan Penerimaan Siswa
+                            Baru</a>
+                    </li>
+                    <li><a href="#"
+                            class="{{ $nav['child'] == 'master-finance-report' ? 'active' : '' }}"><span
+                                class="icon color12"><i class="fa fa-database"></i></span>Laporan Master Keuangan</a>
+                    </li>
+                    <li><a href="#"
+                            class="{{ $nav['child'] == 'development-payment-report' ? 'active' : '' }}"><span
+                                class="icon color12"><i class="fa fa-credit-card"></i></span>Laporan Pembayaran Uang
+                            Pengembangan</a>
+                    </li>
                 </ul>
             </li>
         @endif

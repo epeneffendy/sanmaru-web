@@ -36,6 +36,7 @@ use App\Models\Voucher;
 use App\Models\VoucherUsage;
 use App\Services\CartService;
 use App\Services\ComplaintOrderService;
+use App\Services\GeneralSettingService;
 use App\Services\NotificationService;
 use App\Services\PaymentDispensationsService;
 use App\Services\PPDBUserService;
@@ -256,10 +257,15 @@ class PPDBController extends Controller
         return view('ppdb-online.biaya-pengembangan.cicilan', $data);
     }
 
-    public function biayaPengembanganLunasPpdb(Request $request)
+    public function biayaPengembanganLunasPpdb(Request $request, GeneralSettingService $generalSettingService)
     {
+        $discount = 0;
         $user = $request->session()->get('user');
         $ppdb = PPDBUser::where('id', $user['ppdb']['id'])->first();
+        $development_discount = $generalSettingService->getBySlug('development-fee-discount');
+        if($development_discount){
+            $discount = $development_discount->value;
+        }
 
         if ($ppdb->development_fee_option && in_array($ppdb->development_fee_option, ['lainnya', 'cicilan'])) {
             return redirect(route('ppdb.biaya-pengembangan.' . $ppdb->development_fee_option));
@@ -272,6 +278,7 @@ class PPDBController extends Controller
 
         $data = array(
             'ppdb' => $ppdb,
+            'discount'=>$discount,
 //            'deadline'=>Carbon::parse($deadline)->format('d-m-Y '),
             'nav' => ['parent' => 'home', 'child' => 'Informasi PPDB']
         );

@@ -217,4 +217,17 @@ class FinanceController extends Controller
 
         return response()->json($collect, 200);
     }
+
+    public function verification(Request $request){
+        $id = $request->id;
+
+        $finance = Finance::where('id', $id)->first();
+
+        if($finance){
+            $finance->status = Finance::STATUS_ACTIVE;
+            $finance->save();
+        }
+
+        return redirect()->route('admin.finance.index')->with("Sukses");
+    }
 }

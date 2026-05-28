@@ -35,18 +35,22 @@
                                 <h3 class="panel-title">Filter</h3>
                             </div>
                             <div class="panel-body">
-                                <form role="form" autocomplete="off" method="GET" action="{{ route('admin.finance.index') }}">
+                                <form role="form" autocomplete="off" method="GET"
+                                    action="{{ route('admin.finance.index') }}">
                                     <div class="row">
                                         <input type="hidden" name="apply_filter" value="1">
                                         <div class="form-group col-md-3">
                                             <label for="search" class="form-label">Pencarian</label>
-                                            <input type="text" name="search" id="search" placeholder="Search" value="{{ @$params['search'] }}" class="form-control input-sm" />
+                                            <input type="text" name="search" id="search" placeholder="Search"
+                                                value="{{ @$params['search'] }}" class="form-control input-sm" />
                                         </div>
                                         <div class="form-group col-md-3">
                                             <label for="scope" class="form-label">berdasarkan</label>
                                             <select name="scope" id="scope" class="form-control input-sm">
                                                 @foreach ($scopes as $key => $name)
-                                                <option value="{{ $key }}" {{ @$params['scope'] == $key ? 'selected' : NULL }}>{{ $name }}</option>
+                                                    <option value="{{ $key }}"
+                                                        {{ @$params['scope'] == $key ? 'selected' : null }}>
+                                                        {{ $name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -55,7 +59,9 @@
                                             <select name="type" id="type" class="form-control input-sm">
                                                 <option value="">== SEMUA ==</option>
                                                 @foreach ($types as $type)
-                                                <option value="{{ $type }}" {{ $type == @$params['type'] ? 'selected' : null }}>{{ ucwords($type) }}</option>
+                                                    <option value="{{ $type }}"
+                                                        {{ $type == @$params['type'] ? 'selected' : null }}>
+                                                        {{ ucwords($type) }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -64,7 +70,9 @@
                                             <select name="unit" id="unit" class="form-control input-sm">
                                                 <option value="">== SEMUA ==</option>
                                                 @foreach ($units as $unit)
-                                                <option value="{{ $unit->id }}" {{ $unit->id == @$params['unit'] ? 'selected' : null}}>{{ $unit->name }}</option>
+                                                    <option value="{{ $unit->id }}"
+                                                        {{ $unit->id == @$params['unit'] ? 'selected' : null }}>
+                                                        {{ $unit->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -73,17 +81,21 @@
                                             <select name="period" id="period" class="form-control input-sm">
                                                 <option value="">== SEMUA ==</option>
                                                 @foreach ($periods as $period)
-                                                <option value="{{ $period->year }}" {{ $period->year == @$params['period'] ? 'selected' : null }}>{{ $period->year }} - {{ $period->year + 1 }}</option>
+                                                    <option value="{{ $period->year }}"
+                                                        {{ $period->year == @$params['period'] ? 'selected' : null }}>
+                                                        {{ $period->year }} - {{ $period->year + 1 }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
                                     </div>
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <button type="submit" class="pull-right btn btn-sm btn-success" style="margin-left: 5px">
+                                            <button type="submit" class="pull-right btn btn-sm btn-success"
+                                                style="margin-left: 5px">
                                                 <i class="fa fa-search"></i> Search
                                             </button>
-                                            <a href="{{ route('admin.finance.index') }}" class="pull-right btn btn-sm btn-warning">
+                                            <a href="{{ route('admin.finance.index') }}"
+                                                class="pull-right btn btn-sm btn-warning">
                                                 <i class="fa fa-refresh"></i> Clear
                                             </a>
                                         </div>
@@ -95,62 +107,86 @@
                         <div class="fixed-table-head">
                             <table class="table display">
                                 <thead>
-                                <tr>
-                                    <th>No</th>
-                                    <th width="320px">Nama</th>
-                                    <th>Tipe</th>
-                                    <th>Detail</th>
-                                    <th>Nominal Default</th>
-                                    <th>Option</th>
-                                </tr>
+                                    <tr>
+                                        <th>No</th>
+                                        <th width="320px">Nama</th>
+                                        <th>Tipe</th>
+                                        <th>Detail</th>
+                                        <th>Nominal Default</th>
+                                        <th>Status</th>
+                                        <th>Option</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                @php
-                                    $number = ($finances->currentPage() - 1) * $finances->perPage();
-                                @endphp
-                                @foreach($finances as $key => $finance)
-                                    <tr>
-                                        <td>{{++$number}}</td>
-                                        <td>{{$finance['name']}}</td>
-                                        <td>{{$finance['type']}}</td>
-                                        <td>
-                                            @if ($finance->unit)
-                                            {{$finance->unit->name}}<br/>
-                                            @endif
-                                            @if ($finance->period)
-                                            <small><label class="label label-info">{{ $finance->period->name }}</label></small><br/>
-                                            @endif
-                                            @if ($finance->user)
-                                            <small><label class="label label-warning">{{ $finance->user->username }}</label></small><br/>
-                                            @endif
-                                            @if($finance->users)
-                                            @foreach($finance->users as $user)
-                                            <small><label class="label label-warning">{{ $user->username }}</label></small><br />
-                                            @endforeach
-                                            @endif
-                                            @if ($finance->year)
-                                            <small><label class="label label-danger">{{ $finance->year }}</label></small>
-                                            @endif
-                                        </td>
-                                        <td>{{ \App\Helpers\PriceHelper::rupiah($finance->nominal_default) }}</td>
-                                        <td>
-                                            <a href="{{ route('admin.finance.edit',$finance['id']) }}" class="btn btn-xs btn-default">
-                                                <icon class="icon-plus"><i class="fa fa-pencil"></i></icon>
-                                            </a>
-                                            <a onclick="confirmDelete({{$finance['id']}})" title="Delete" class="btn btn-xs btn-danger">
-                                                <i class="fa fa-trash"></i>
-                                            </a>
-                                            <form id="form-delete-{{$finance['id']}}" action="{{ route('admin.finance.delete',$finance['id']) }}" method="POST">
-                                                @csrf
-                                                @method('DELETE')
-                                            </form>
-                                        </td>
-                                    </tr>
-                                @endforeach
+                                    @php
+                                        $number = ($finances->currentPage() - 1) * $finances->perPage();
+                                    @endphp
+                                    @foreach ($finances as $key => $finance)
+                                        <tr>
+                                            <td>{{ ++$number }}</td>
+                                            <td>{{ $finance['name'] }}</td>
+                                            <td>{{ $finance['type'] }}</td>
+                                            <td>
+                                                @if ($finance->unit)
+                                                    {{ $finance->unit->name }}<br />
+                                                @endif
+                                                @if ($finance->period)
+                                                    <small><label
+                                                            class="label label-info">{{ $finance->period->name }}</label></small><br />
+                                                @endif
+                                                @if ($finance->user)
+                                                    <small><label
+                                                            class="label label-warning">{{ $finance->user->username }}</label></small><br />
+                                                @endif
+                                                @if ($finance->users)
+                                                    @foreach ($finance->users as $user)
+                                                        <small><label
+                                                                class="label label-warning">{{ $user->username }}</label></small><br />
+                                                    @endforeach
+                                                @endif
+                                                @if ($finance->year)
+                                                    <small><label
+                                                            class="label label-danger">{{ $finance->year }}</label></small>
+                                                @endif
+                                            </td>
+                                            <td>{{ \App\Helpers\PriceHelper::rupiah($finance->nominal_default) }}</td>
+                                            <td>
+                                                @if ($finance->status == 'active')
+                                                    <span class="label label-success">Terverifikasi</span>
+                                                @elseif ($finance->status == 'inactive')
+                                                    <span class="label label-warning">Menunggu Verifikasi</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if ($finance->status == 'active')
+                                                    <a href="{{ route('admin.finance.edit', $finance['id']) }}"
+                                                        class="btn btn-xs btn-default">
+                                                        <icon class="icon-plus"><i class="fa fa-pencil"></i></icon>
+                                                    </a>
+                                                    <a onclick="confirmDelete({{ $finance['id'] }})" title="Delete"
+                                                        class="btn btn-xs btn-danger">
+                                                        <i class="fa fa-trash"></i>
+                                                    </a>
+                                                    <form id="form-delete-{{ $finance['id'] }}"
+                                                        action="{{ route('admin.finance.delete', $finance['id']) }}"
+                                                        method="POST">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                    </form>
+                                                @else
+                                                    <a href="{{ route('admin.finance.verification', ['id' => $finance['id']]) }}"
+                                                        class="btn btn-xs btn-default">
+                                                        <icon class="icon-plus"><i class="fa fa-check"> Verifikasi</i>
+                                                        </icon>
+                                                    </a>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
                                 </tbody>
                             </table>
                         </div>
-                        
+
                         {{ $finances->appends(request()->except('page'))->links() }}
                         <div class="btn-group padding-t-10 pull-right">
                             <a href="{{ route('admin.finance.add') }}" class="btn btn-sm btn-success">
@@ -176,7 +212,8 @@
                 </div>
                 <div class="modal-body">
                     <div class="form">
-                        <form class="fieldset-form" method="POST" enctype="multipart/form-data" action={{ route('admin.finance.import')}}>
+                        <form class="fieldset-form" method="POST" enctype="multipart/form-data"
+                            action={{ route('admin.finance.import') }}>
                             @csrf
                             <fieldset>
                                 <legend>Import menggunakan template .xls</legend>
@@ -184,11 +221,14 @@
                                     <input type="file" name="file" class="form-control" />
                                 </div>
                                 <div class="form-group">
-                                    <label class="radio-inline"><input type="radio" style="margin-top: -7px;" value="add" name="type" checked=""> Tambah Data</label>
-                                    <label class="radio-inline"><input type="radio" style="margin-top: -7px;" value="overwrite" name="type" checked=""> Perbaharui Data</label>
+                                    <label class="radio-inline"><input type="radio" style="margin-top: -7px;"
+                                            value="add" name="type" checked=""> Tambah Data</label>
+                                    <label class="radio-inline"><input type="radio" style="margin-top: -7px;"
+                                            value="overwrite" name="type" checked=""> Perbaharui Data</label>
                                 </div>
                                 <div class="form-group">
-                                    <button class="btn btn-default btn-upload-import" type="submit"><i class="fa fa-upload"></i> Upload</button>
+                                    <button class="btn btn-default btn-upload-import" type="submit"><i
+                                            class="fa fa-upload"></i> Upload</button>
                                 </div>
                             </fieldset>
                         </form>
@@ -209,10 +249,10 @@
 @push('styles')
 @endpush
 @push('scripts')
-    <script src="{{asset('js/bootstrap-select/bootstrap-select.js')}}"></script>
+    <script src="{{ asset('js/bootstrap-select/bootstrap-select.js') }}"></script>
     <script>
         function confirmDelete(id) {
-            if(confirm('Are you sure you want to delete this item?'))
+            if (confirm('Are you sure you want to delete this item?'))
                 document.getElementById('form-delete-' + id).submit();
         }
 

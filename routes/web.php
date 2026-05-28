@@ -104,6 +104,7 @@ Route::group(['domain' => $routeService->getPpdbSubdomain()], function () use ($
             Route::post('store', 'PPDBPaymentController@store')->name('store');
             Route::get('/payment-now', 'PPDBPaymentController@paymentNow')->name('payment-now');
             Route::get('/payment-cancel', 'PPDBPaymentController@paymentCancel')->name('payment-cancel');
+            Route::get('/payment-paid-receipt', 'PPDBPaymentController@developmentPaymentReceipt')->name('payment-paid-receipt');
         });
 
 
@@ -676,6 +677,8 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
 
             Route::get('export', 'FinanceController@export')->name('export');
             Route::post('import', 'FinanceController@import')->name('import');
+
+            Route::get('verification', 'FinanceController@verification')->name('verification');
         });
 
         Route::prefix('administrator/system-configuration')->name('admin.system-configuration.')->namespace('Admin')->group(function () {

@@ -13,7 +13,11 @@ class Finance extends Model
     const TYPE_KEGIATAN = 'activity';
     const TYPE_LAIN_LAIN = 'other';
 
-    protected $fillable = ['code', 'name', 'nominal_default', 'unit_id', 'user_id', 'period_id', 'type', 'year', 'description', 'start_date', 'is_insider'];
+    const STATUS_ACTIVE = 'active';
+    const STATUS_INACTIVE = 'inactive';
+
+
+    protected $fillable = ['code', 'name', 'nominal_default', 'unit_id', 'user_id', 'period_id', 'type', 'year', 'description', 'start_date', 'is_insider','status'];
 
     protected $appends = ['user_ids'];
 

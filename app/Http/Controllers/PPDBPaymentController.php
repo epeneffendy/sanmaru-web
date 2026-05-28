@@ -9,16 +9,22 @@ use App\Services\FinanceSystemConfigurationService;
 use App\Services\PaymentDispensationsService;
 use App\Services\PaymentVirtualAccountsService;
 use App\Models\PaymentVirtualAccounts;
+use App\Services\GeneralSettingService;
 use Illuminate\Http\Request;
 
 class PPDBPaymentController extends Controller
 {
-    public function choisePayment(Request $request, PaymentDispensationsService $paymentDispensationsService, FinanceSystemConfigurationService $financeSystemConfigurationService, PaymentVirtualAccountsService $paymentVirtualAccountsService)
+    public function choisePayment(Request $request, PaymentDispensationsService $paymentDispensationsService, FinanceSystemConfigurationService $financeSystemConfigurationService, PaymentVirtualAccountsService $paymentVirtualAccountsService, GeneralSettingService $generalSettingService)
     {
+        $discount = 0;
         $user = $request->session()->get('user');
         $dispensation = $paymentDispensationsService->getByUserPpdb($user['ppdb']['id']);
         $configuration = $financeSystemConfigurationService->findConfigurationActive();
         $virtual_account_unpaid = $paymentVirtualAccountsService->findByUserPpdbUnpaid($user['ppdb']['id']);
+        $development_discount = $generalSettingService->getBySlug('development-fee-discount');
+        if($development_discount){
+            $discount = $development_discount->value;
+        }
 
         $ppdb = PPDBUser::where('id', $user['ppdb']['id'])->first();
 
@@ -100,6 +106,7 @@ class PPDBPaymentController extends Controller
                 'installmentOptions'=> $installmentOptions,
                 'configuration'=>$configuration,
                 'total_bill'=>$development,
+                'discount'=>$discount
             ];
             return view('ppdb-billing.payment-options', $data);
         }
@@ -254,6 +261,36 @@ class PPDBPaymentController extends Controller
         }else{
             return redirect()->route('ppdb.bills.choise-payment')->with('error', 'Data tidak ditemukan!');
         }
+    }
+
+    public function paymentPaidReceipt(){
+
+        return view('ppdb-billing.payment-development-receipt');
+    }
+
+    public function developmentPaymentReceipt(Request $request, PaymentDispensationsService $paymentDispensationsService)
+    {
+        $id = $request->id;
+        $user = $request->session()->get('user');
+        $dispensation = $paymentDispensationsService->getById($id);
+
+        if (!$dispensation || $dispensation->ppdb_user_id !== $user['ppdb']['id']) {
+            return redirect()->route('ppdb.bills.choise-payment')->with('error', 'Data tagihan tidak ditemukan.');
+        }
+
+        if ($dispensation->remaining_balance > 0) {
+            return redirect()->route('ppdb.bills.choise-payment')->with('error', 'Tagihan ini belum lunas.');
+        }
+
+        $ppdb = PPDBUser::find($user['ppdb']['id']);
+
+        $data = [
+            'dispensation' => $dispensation,
+            'ppdb' => $ppdb,
+            'nav' => ['parent' => 'finance', 'child' => 'Bukti Pembayaran']
+        ];
+
+        return view('ppdb-billing.payment-development-receipt', $data);
     }
 
 

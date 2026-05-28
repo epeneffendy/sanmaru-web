@@ -46,7 +46,6 @@
                                         <th class="text-center">DP Rekomendasi (%)</th>
                                         <th class="text-center">Max Cicilan Absolut</th>
                                         <th class="text-center">Tanggal Berlaku</th>
-                                        <th class="text-center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -58,20 +57,6 @@
                                             <td class="text-center">{{ $item->recommended_down_payment }} %</td>
                                             <td class="text-center">{{ $item->max_absolute_installment }} kali cicilan</td>
                                             <td class="text-center">{{ $item->effective_date }}</td>
-                                            <td class="text-center">
-                                                @if ($item->status == 1)
-                                                    <a href="{{ route('admin.uniform-deadline.edit', $item->id) }}"
-                                                        class="btn btn-xs btn-default">
-                                                        <icon class="icon-plus"><i class="fa fa-pencil"></i></icon>
-                                                    </a>
-
-                                                    <a href="{{ route('admin.uniform-deadline.delete', $item->id) }}"
-                                                        class="btn btn-xs btn-danger"
-                                                        onclick="return confirm('Are you sure you want to change it to inactive?');">
-                                                        <icon class="icon-plus"><i class="fa fa-trash"></i></icon>
-                                                    </a>
-                                                @endif
-                                            </td>
                                         </tr>
                                     @endforeach
                                 </tbody>

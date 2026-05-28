@@ -257,7 +257,7 @@
                         <!-- Only visible when Lunas is selected -->
                         <div id="lunasSummary" style="display: none;">
                             <div class="summary-item text-success fw-medium">
-                                <span>Diskon Pelunasan (5%)</span>
+                                <span>Diskon Pelunasan ({{ $discount ?? 5 }}%)</span>
                                 <span id="textDiskonLunas">- Rp 0</span>
                                 <input type="hidden" id="nominal_diskon_lunas" name="nominal_diskon_lunas" value="0">
                             </div>
@@ -305,6 +305,7 @@
 
                 // --- 1. Constants & Variables ---
                 const TOTAL_BILL = {{ $total_bill ?? 0 }};
+                const DISCOUNT_PERCENTAGE = {{ $discount ?? 5 }};
 
                 // --- 2. DOM Elements Caching ---
                 const $paymentOptions = $('.payment-option');
@@ -347,7 +348,7 @@
                         $installmentSummary.slideUp(300);
 
                         // Tampilkan rincian pelunasan
-                        const diskonLunas = TOTAL_BILL * 0.05;
+                        const diskonLunas = TOTAL_BILL * (DISCOUNT_PERCENTAGE / 100);
                         const totalBayarSekarang = TOTAL_BILL - diskonLunas;
 
                         $textDiskonLunas.text('- ' + formatRupiah(diskonLunas));

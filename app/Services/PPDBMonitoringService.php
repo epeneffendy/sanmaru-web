@@ -137,12 +137,46 @@ class PPDBMonitoringService
 
     public function stagesAdministrasi($period, $isList, $flag)
     {
-        $ppdbUser = PPDBUser::where('periode', $period->id)->get();
+        $query = PPDBUser::where('periode', $period->id);
+
+        if ($isList) {
+            $query->with(['user', 'user.student', 'user.student.class', 'period', 'unit', 'parents', 'student', 'student.class']);
+        }
+
+        $ppdbUser = $query->get();
 
         $confirm = $not_confirm = $not_specified = 0;
         $collection = [];
 
         if ($isList) {
+            $voucherCodes = [];
+            foreach ($ppdbUser as $user) {
+                if ($user->development_fee_option == 'lunas') {
+                    $voucherCodes[$user->id] = $this->checkVocuher($user);
+                }
+            }
+
+            $activeVouchers = [];
+            if (!empty($voucherCodes)) {
+                $vouchers = Voucher::whereIn('code', array_unique($voucherCodes))
+                    ->where('active', 1)
+                    ->get();
+                foreach ($vouchers as $voucher) {
+                    $userIds = json_decode($voucher->user_id, true) ?? [];
+                    $activeVouchers[$voucher->code] = (array) $userIds;
+                }
+            }
+
+            $checkStages = collect();
+            if ($flag !== 'development-statement' && $flag !== 'last-stage' && $flag !== 'setting-class') {
+                $checkStages = Stage::join('ppdb_user_stages as pus', 'pus.stage_id', '=', 'stages.id')
+                    ->where('stages.periode', $period->id)
+                    ->where('stages.is_opening_development_feature', true)
+                    ->select('stages.*', 'pus.*')
+                    ->get()
+                    ->keyBy('ppdb_user_id');
+            }
+
             foreach ($ppdbUser as $user) {
                 if (($user->isDataCompleteWhitoutBca) && ($user->isParentsComplete)) {
                      $status_confirm = '<span class="badge-modern badge-soft-info" title="Periode"> Dokumen Lengkap</span>';
@@ -160,80 +194,49 @@ class PPDBMonitoringService
                 }
 
                 $voucher = '';
-                if ($user->development_fee_option == 'lunas') {
-                    $checkVoucher = $this->checkVocuher($user);
-                    //cari voucher
-                    $check = Voucher::where('code', $checkVoucher)
-                        ->whereJsonContains('user_id', $user->user_id)// Mengecek apakah 15706 ada dalam array user_id
-                        ->where('active', 1)
-                        ->exists();
-                    if ($check) {
+                if ($user->development_fee_option == 'lunas' && isset($voucherCodes[$user->id])) {
+                    $checkVoucher = $voucherCodes[$user->id];
+                    if (isset($activeVouchers[$checkVoucher]) && in_array($user->user_id, $activeVouchers[$checkVoucher])) {
                         $voucher = '<span class="badge-modern badge-soft-success">Free Voucher: ' .$checkVoucher. '</span>';
                     }
                 }
 
+                $baseData = [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'status_confirm' => $status_confirm,
+                    'email' => $user->user->email ?? $user->email,
+                    'register_number' => $user->register_number,
+                    'school_year' => $user->school_year,
+                    'periode' => $user->periode,
+                    'username' => $user->user->username ?? null,
+                    'periode_name' => $user->period->name ?? null,
+                    'origin_school' => $user->origin_school,
+                    'mobile_phone' => $user->user->mobile_phone ?? null,
+                    'gender' => $user->gender,
+                    'unit_id' => $user->unit->id ?? null,
+                    'unit_name' => $user->unit->name ?? null,
+                    'isComplite' => $user->isDataCompleteWhitoutBca,
+                    'isParent' => $user->isParentsComplete,
+                    'IsStatementLetterUploaded' => $user->IsStatementLetterUploaded,
+                    'IsStatementLetterConfirmed' => $user->IsStatementLetterConfirmed,
+                    'development_fee_option' => $user->development_fee_option,
+                    'isOrderConfirmed' => $user->isOrderConfirmed,
+                    'isEmailVerified' => $user->isEmailVerified,
+                    'payment_date' => $user->payment_date,
+                    'total_payment_form' => $user->total_payment_form,
+                    'status_stage' => $stage_status,
+                    'voucher' => $voucher,
+                ];
+
                 if ($flag == 'development-statement') {
-                    
+
                     if (!empty($user->IsStatementLetterUploaded)) {
-                        $collection[$user->id] = [
-                            'id' => $user->id,
-                            'name' => $user->name,
-                            'status_confirm' => $status_confirm,
-                            'email' => $user->email,
-                            'register_number' => $user->register_number,
-                            'school_year' => $user->school_year,
-                            'periode' => $user->periode,
-                            'username' => $user->user->username,
-                            'email' => $user->user->email,
-                            'periode_name' => $user->period->name,
-                            'origin_school' => $user->origin_school,
-                            'mobile_phone' => $user->user->mobile_phone,
-                            'gender' => $user->gender,
-                            'unit_id' => $user->unit->id,
-                            'unit_name' => $user->unit->name,
-                            'isComplite' => $user->isDataCompleteWhitoutBca,
-                            'isParent' => $user->isParentsComplete,
-                            'IsStatementLetterUploaded' => $user->IsStatementLetterUploaded,
-                            'IsStatementLetterConfirmed' => $user->IsStatementLetterConfirmed,
-                            'development_fee_option' => $user->development_fee_option,
-                            'isOrderConfirmed' => $user->isOrderConfirmed,
-                            'isEmailVerified' => $user->isEmailVerified,
-                            'payment_date' => $user->payment_date,
-                            'total_payment_form' => $user->total_payment_form,
-                            'status_stage' => $stage_status,
-                            'voucher' => $voucher
-                        ];
+                        $collection[$user->id] = $baseData;
                     }
                 } elseif ($flag == 'last-stage') {
                     if ($user->isOrderConfirmed) {
-                        $collection[$user->id] = [
-                            'id' => $user->id,
-                            'name' => $user->name,
-                            'status_confirm' => $status_confirm,
-                            'email' => $user->email,
-                            'register_number' => $user->register_number,
-                            'school_year' => $user->school_year,
-                            'periode' => $user->periode,
-                            'username' => $user->user->username,
-                            'email' => $user->user->email,
-                            'periode_name' => $user->period->name,
-                            'origin_school' => $user->origin_school,
-                            'mobile_phone' => $user->user->mobile_phone,
-                            'gender' => $user->gender,
-                            'unit_id' => $user->unit->id,
-                            'unit_name' => $user->unit->name,
-                            'isComplite' => $user->isDataCompleteWhitoutBca,
-                            'isParent' => $user->isParentsComplete,
-                            'IsStatementLetterUploaded' => $user->IsStatementLetterUploaded,
-                            'IsStatementLetterConfirmed' => $user->IsStatementLetterConfirmed,
-                            'development_fee_option' => $user->development_fee_option,
-                            'isOrderConfirmed' => $user->isOrderConfirmed,
-                            'isEmailVerified' => $user->isEmailVerified,
-                            'payment_date' => $user->payment_date,
-                            'total_payment_form' => $user->total_payment_form,
-                            'status_stage' => $stage_status,
-                            'voucher' => $voucher,
-                        ];
+                        $collection[$user->id] = $baseData;
                     }
                 } elseif ($flag == 'setting-class') {
                     if ($user->status == PPDBUser::STATUS_ACCEPTED && ($user->user->type == 'ppdb' || $user->user->type == 'siswa')) {
@@ -249,36 +252,10 @@ class PPDBMonitoringService
                         $nisn = $class = '';
                         if (!empty($user->student)) {
                             $nisn = $user->student->nis;
-                            $class = $user->student->class->name;
+                            $class = isset($user->student->class) ? $user->student->class->name : '';
                         }
 
-                        $collection[$user->id] = [
-                            'id' => $user->id,
-                            'name' => $user->name,
-                            'status_confirm' => $status_confirm,
-                            'email' => $user->email,
-                            'register_number' => $user->register_number,
-                            'school_year' => $user->school_year,
-                            'periode' => $user->periode,
-                            'username' => $user->user->username,
-                            'email' => $user->user->email,
-                            'periode_name' => $user->period->name,
-                            'origin_school' => $user->origin_school,
-                            'mobile_phone' => $user->user->mobile_phone,
-                            'gender' => $user->gender,
-                            'unit_id' => $user->unit->id,
-                            'unit_name' => $user->unit->name,
-                            'isComplite' => $user->isDataCompleteWhitoutBca,
-                            'isParent' => $user->isParentsComplete,
-                            'IsStatementLetterUploaded' => $user->IsStatementLetterUploaded,
-                            'IsStatementLetterConfirmed' => $user->IsStatementLetterConfirmed,
-                            'development_fee_option' => $user->development_fee_option,
-                            'isOrderConfirmed' => $user->isOrderConfirmed,
-                            'isEmailVerified' => $user->isEmailVerified,
-                            'payment_date' => $user->payment_date,
-                            'total_payment_form' => $user->total_payment_form,
-                            'status_stage' => $stage_status,
-                            'voucher' => $voucher,
+                        $collection[$user->id] = array_merge($baseData, [
                             'nik_siswa' => $user->nik_siswa,
                             'nik_ortu' => $user->nik_ortu,
                             'address' => $user->address,
@@ -288,16 +265,11 @@ class PPDBMonitoringService
                             'mother_name' => $mother_name,
                             'nisn' => $nisn,
                             'class' => $class
-                        ];
+                        ]);
                     }
                 } else {
 
-                    $checkStage = Stage::join('ppdb_user_stages as pus', 'pus.stage_id', '=', 'stages.id')
-                        ->where('stages.periode', $user->periode)
-                        ->where('stages.is_opening_development_feature', true)
-                        ->where('pus.ppdb_user_id', $user->id)
-                        ->select('stages.*', 'pus.*')
-                        ->first();
+                    $checkStage = $checkStages->get($user->id);
 
                     $is_stage_development = false;
                     $stage_id = 0;
@@ -310,39 +282,13 @@ class PPDBMonitoringService
                         }
                     }
 
-                    $collection[$user->id] = [
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'status_confirm' => $status_confirm,
-                        'email' => $user->email,
-                        'register_number' => $user->register_number,
-                        'school_year' => $user->school_year,
-                        'periode' => $user->periode,
-                        'username' => $user->user->username,
-                        'email' => $user->user->email,
-                        'periode_name' => $user->period->name,
-                        'origin_school' => $user->origin_school,
-                        'mobile_phone' => $user->user->mobile_phone,
-                        'gender' => $user->gender,
-                        'unit_id' => $user->unit->id,
-                        'unit_name' => $user->unit->name,
-                        'isComplite' => $user->isDataCompleteWhitoutBca,
-                        'isParent' => $user->isParentsComplete,
-                        'IsStatementLetterUploaded' => $user->IsStatementLetterUploaded,
-                        'IsStatementLetterConfirmed' => $user->IsStatementLetterConfirmed,
-                        'development_fee_option' => $user->development_fee_option,
-                        'isOrderConfirmed' => $user->isOrderConfirmed,
-                        'isEmailVerified' => $user->isEmailVerified,
-                        'payment_date' => $user->payment_date,
-                        'total_payment_form' => $user->total_payment_form,
-                        'status_stage' => $stage_status,
-                        'voucher' => $voucher,
+                    $collection[$user->id] = array_merge($baseData, [
                         'IsStageDevelopment' => $is_stage_development,
                         'stage_id'=>$stage_id,
-                        'status_student'=>$user->user->type,
+                        'status_student'=> $user->user->type ?? null,
                         'nis'=> isset($user->user->student)? $user->user->student->nis : '-',
                         'class_name'=> isset($user->user->student->class) ? $user->user->student->class->name : '-',
-                    ];
+                    ]);
 
 
                 }

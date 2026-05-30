@@ -211,4 +211,11 @@ class StudentService
             'mobile_phone' => app('phoneNormalizerService')->normalize($params['mobile_phone']),
         );
     }
+
+    public function setInactive($id){
+        $student = Student::where('id', $id)->firstOrFail();
+        $student->status = Student::STATUS_INACTIVE;
+        $student->save();
+        return $student;
+    }
 }

@@ -28,6 +28,7 @@ use App\Models\Stage;
 use App\Models\Unit;
 use App\Models\User;
 use App\Lib\DbTrx;
+use App\Models\Student;
 use Illuminate\Support\MessageBag;
 
 class PPDBController extends Controller
@@ -225,12 +226,23 @@ class PPDBController extends Controller
         $mom = $parentService->show(Parents::TYPE_MOTHER, $ppdbUser->user_id);
         $dad = $parentService->show(Parents::TYPE_FATHER, $ppdbUser->user_id);
         $wali = $parentService->show(Parents::TYPE_WALI, $ppdbUser->user_id);
+
+        $status_student = 'Tahap Seleksi';
+        if(isset($ppdbUser->student)){
+            if($ppdbUser->student->status == Student::STATUS_ACTIVE){
+                $status_student = 'Telah Diterima';
+            }else{
+                $status_student = 'Siswa Tidak Aktif';
+            }
+        }
+
         $data = array(
             'data' => $ppdbUser,
             'nav' => $this->page,
             'dad' => $dad,
             'mom' => $mom,
-            'wali' => $wali
+            'wali' => $wali,
+            'status_student'=> $status_student,
         );
 
         return view('administrator/ppdb/show-detail', $data);

@@ -2,11 +2,11 @@
 @section('content')
     @push('styles')
         <style>
-
             /* Container Utility */
             .container-padding {
                 padding: 25px !important;
-                background-color: #f8f9fa; /* Latar belakang abu-abu sangat muda agar kartu lebih menonjol */
+                background-color: #f8f9fa;
+                /* Latar belakang abu-abu sangat muda agar kartu lebih menonjol */
             }
 
             /* Profile Card Styling */
@@ -50,7 +50,8 @@
                 font-size: 14px;
                 font-weight: 400;
                 letter-spacing: 0.2px;
-                opacity: 0.9 !important; /* Sedikit lebih terang agar mudah dibaca */
+                opacity: 0.9 !important;
+                /* Sedikit lebih terang agar mudah dibaca */
             }
 
             /* Badge Modern Styling */
@@ -70,7 +71,8 @@
             }
 
             /* Status Icon Animation */
-            .fa-check-circle, .fa-exclamation-triangle {
+            .fa-check-circle,
+            .fa-exclamation-triangle {
                 margin-right: 8px;
             }
 
@@ -107,11 +109,12 @@
                 gap: 10px;
             }
 
-            .nav-tabs-modern > li {
-                margin-bottom: -2px; /* Menempel pada border bottom */
+            .nav-tabs-modern>li {
+                margin-bottom: -2px;
+                /* Menempel pada border bottom */
             }
 
-            .nav-tabs-modern > li > a {
+            .nav-tabs-modern>li>a {
                 border: none !important;
                 background: transparent !important;
                 color: #888 !important;
@@ -125,26 +128,28 @@
             }
 
             /* Hover Effect */
-            .nav-tabs-modern > li > a:hover {
-                color: #26a69a !important; /* Hijau sesuai tema */
+            .nav-tabs-modern>li>a:hover {
+                color: #26a69a !important;
+                /* Hijau sesuai tema */
             }
 
             /* Active State with Smooth Underline */
-            .nav-tabs-modern > li.active > a,
-            .nav-tabs-modern > li.active > a:focus,
-            .nav-tabs-modern > li.active > a:hover {
+            .nav-tabs-modern>li.active>a,
+            .nav-tabs-modern>li.active>a:focus,
+            .nav-tabs-modern>li.active>a:hover {
                 color: #26a69a !important;
                 border: none !important;
             }
 
-            .nav-tabs-modern > li.active > a::after {
+            .nav-tabs-modern>li.active>a::after {
                 content: "";
                 position: absolute;
                 bottom: 0;
                 left: 0;
                 width: 100%;
                 height: 3px;
-                background: #26a69a; /* Warna hijau identitas */
+                background: #26a69a;
+                /* Warna hijau identitas */
                 border-radius: 3px 3px 0 0;
                 animation: slideIn 0.3s ease;
             }
@@ -182,6 +187,7 @@
                     width: 0;
                     left: 50%;
                 }
+
                 to {
                     width: 100%;
                     left: 0;
@@ -238,7 +244,8 @@
                 width: 35px;
                 height: 35px;
                 background: #f1f5f9;
-                color: #26703B; /* Hijau Anda */
+                color: #26703B;
+                /* Hijau Anda */
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -331,7 +338,8 @@
             /* Status Pill */
             .status-pill.success {
                 background-color: #eaf6ed;
-                color: #26703B; /* Menggunakan Warna Hijau Anda */
+                color: #26703B;
+                /* Menggunakan Warna Hijau Anda */
                 padding: 8px 16px;
                 border-radius: 50px;
                 font-weight: 600;
@@ -378,7 +386,8 @@
                 font-weight: 700;
                 letter-spacing: 1px;
                 font-size: 18px !important;
-                color: #26703B !important; /* Hijau Anda */
+                color: #26703B !important;
+                /* Hijau Anda */
             }
 
             .text-success {
@@ -418,7 +427,8 @@
                 top: 5px;
                 bottom: 5px;
                 width: 2px;
-                background: #f1f5f9; /* Warna garis default */
+                background: #f1f5f9;
+                /* Warna garis default */
                 z-index: 1;
             }
 
@@ -467,7 +477,8 @@
 
             /* --- STATE: COMPLETED (HIJAU) --- */
             .timeline-item.completed .timeline-icon {
-                background: #26703B; /* Hijau Anda */
+                background: #26703B;
+                /* Hijau Anda */
                 border-color: #26703B;
                 color: #fff;
                 box-shadow: 0 0 0 4px rgba(38, 112, 59, 0.1);
@@ -491,21 +502,34 @@
 
             /* Animasi Pulse untuk Tahap yang Sedang Aktif */
             @keyframes pulse-orange {
-                0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
-                70% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
-                100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+                0% {
+                    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+                }
+
+                70% {
+                    box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+                }
+
+                100% {
+                    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+                }
             }
 
             /* Utility tambahan */
-            .rounded-pill { border-radius: 50px !important; }
-            .fw-bold { font-weight: 700 !important; }
+            .rounded-pill {
+                border-radius: 50px !important;
+            }
+
+            .fw-bold {
+                font-weight: 700 !important;
+            }
         </style>
     @endpush
     <div class="page-header">
         <h1 class="title">Data Master Peserta PPDB</h1>
         <ol class="breadcrumb">
             <li>Master</li>
-            <li><a href="{{route('admin.ppdb.index')}}">PPDB</a></li>
+            <li><a href="{{ route('admin.ppdb.index') }}">PPDB</a></li>
             <li class="active">Show</li>
         </ol>
     </div>
@@ -514,24 +538,42 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="card shadow-sm border-0 rounded-lg mb-4"
-                     style="background: #fff; border-radius: 15px; overflow: hidden;">
+                    style="background: #fff; border-radius: 15px; overflow: hidden;">
                     <div class="p-4 bg-success text-white d-flex align-items-center justify-content-between">
                         <div class="d-flex align-items-center">
                             <div class="profile-info-text">
                                 <h2 class="m-0 fw-bold">{{ $data->name }}</h2>
                                 <p class="m-0 opacity-75 info-sub-text">
-                                    <span class="info-item">No. Registrasi: <strong>{{ $data->register_number }}</strong></span>
+                                    <span class="info-item">No. Registrasi:
+                                        <strong>{{ $data->register_number }}</strong></span>
                                     <span class="info-divider">|</span>
                                     <span class="info-item">Unit: <strong>{{ $data->unit->name }}</strong></span>
                                     <span class="info-divider">|</span>
-                                    <span class="info-item">Tahun Masuk: <strong>{{@$data->school_year}}</strong></span>
+                                    <span class="info-item">Tahun Masuk: <strong>{{ @$data->school_year }}</strong></span>
+                                    <span class="info-divider">|</span>
+                                    <span class="info-item">
+                                        <span class="badge bg-white  px-3 py-2 rounded-pill">
+                                            <i class="fa fa-check-circle me-1"></i>
+                                            {{ strtoupper($status_student) }}
+                                        </span>
+                                    </span>
                                 </p>
                             </div>
+                        </div>
                         <div class="text-end">
                             <span class="badge bg-white  px-3 py-2 rounded-pill">
                                 <i class="fa fa-check-circle me-1"></i>
-                                {{$data->period->name}}
+                                {{ $data->period->name }}
                             </span>
+
+                            @if (isset($data->student) && $data->student->status != 'inactive')
+                                <a href="{{ route('admin.ppdb-monitoring.set-inactive', ['id' => $data->id]) }}"
+                                    class="btn btn-danger btn-sm rounded-pill px-3 py-2 fw-bold"
+                                    onclick="return confirm('Apakah Anda yakin ingin menonaktifkan siswa ini?');"
+                                    style="box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); border: none; color: #fff; background-color: #dc3545;">
+                                    <i class="fa fa-power-off me-1"></i> Set Inactive
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -581,13 +623,14 @@
                     <h4 class="fw-bold mb-4" style="color: #333; font-size: 18px;">Proggres Verifikasi</h4>
 
                     <div class="modern-timeline">
-                        <div class="timeline-item {{ ($data->payment_date != '') ? 'completed' : 'pending' }}">
+                        <div class="timeline-item {{ $data->payment_date != '' ? 'completed' : 'pending' }}">
                             <div class="timeline-icon">
-                                <i class="fa {{ ($data->payment_date != '') ? 'fa-check' : 'fa-credit-card' }}"></i>
+                                <i class="fa {{ $data->payment_date != '' ? 'fa-check' : 'fa-credit-card' }}"></i>
                             </div>
                             <div class="timeline-content">
                                 <h5 class="m-0">Pembayaran Formulir</h5>
-                                <p class="text-muted small m-0">{{ ($data->payment_date != '') ? 'Telah Dikonfirmasi' : 'Menunggu Bukti Bayar' }}</p>
+                                <p class="text-muted small m-0">
+                                    {{ $data->payment_date != '' ? 'Telah Dikonfirmasi' : 'Menunggu Bukti Bayar' }}</p>
                             </div>
                         </div>
 
@@ -598,60 +641,75 @@
                             </div>
                             <div class="timeline-content">
                                 <h5 class="m-0">Data Administrasi</h5>
-                                <p class="text-muted small m-0">{{ $data->is_data_complete_whitout_bca ? 'Data Lengkap' : 'Data Belum Lengkap' }}</p>
+                                <p class="text-muted small m-0">
+                                    {{ $data->is_data_complete_whitout_bca ? 'Data Lengkap' : 'Data Belum Lengkap' }}</p>
                             </div>
                         </div>
 
                         {{-- 3. Surat Pernyataan --}}
-                        <div class="timeline-item {{ ($data->IsStatementLetterUploaded) ? (($data->IsStatementLetterConfirmed) ? 'completed' : 'pending') :'pending' }}">
+                        <div
+                            class="timeline-item {{ $data->IsStatementLetterUploaded ? ($data->IsStatementLetterConfirmed ? 'completed' : 'pending') : 'pending' }}">
                             <div class="timeline-icon">
-                                <i class="fa {{ ($data->IsStatementLetterUploaded) ? (($data->IsStatementLetterConfirmed) ? 'fa-check' : 'fa-clock-o') :'fa-file-text' }}"></i>
+                                <i
+                                    class="fa {{ $data->IsStatementLetterUploaded ? ($data->IsStatementLetterConfirmed ? 'fa-check' : 'fa-clock-o') : 'fa-file-text' }}"></i>
                             </div>
                             <div class="timeline-content">
                                 <h5 class="m-0">Surat Pernyataan</h5>
-                                <p class="text-muted small m-0">{{ ($data->IsStatementLetterUploaded) ? (($data->IsStatementLetterConfirmed) ? 'Sudah Terverifikasi' : 'Sudah Diunggah') :'Belum Diunggah' }} </p>
+                                <p class="text-muted small m-0">
+                                    {{ $data->IsStatementLetterUploaded ? ($data->IsStatementLetterConfirmed ? 'Sudah Terverifikasi' : 'Sudah Diunggah') : 'Belum Diunggah' }}
+                                </p>
                             </div>
                         </div>
 
-                        <div class="timeline-item {{ ($data->isOrderConfirmed) ? 'completed' :'pending' }}">
+                        <div class="timeline-item {{ $data->isOrderConfirmed ? 'completed' : 'pending' }}">
                             <div class="timeline-icon">
-                                <i class="fa {{ ($data->isOrderConfirmed) ?  'fa-check'  :'fa-cart-plus' }}"></i>
+                                <i class="fa {{ $data->isOrderConfirmed ? 'fa-check' : 'fa-cart-plus' }}"></i>
                             </div>
                             <div class="timeline-content">
                                 <h5 class="m-0">Pembelian Seragam</h5>
-                                <p class="text-muted small m-0">{{ ($data->isOrderConfirmed) ? 'Sudah Melakukan Pembelian Seragam' :'Belum Melakukan Pembelian Seragam' }} </p>
+                                <p class="text-muted small m-0">
+                                    {{ $data->isOrderConfirmed ? 'Sudah Melakukan Pembelian Seragam' : 'Belum Melakukan Pembelian Seragam' }}
+                                </p>
                             </div>
                         </div>
 
-                        <div class="timeline-item {{ ($data->status == \App\Models\PPDBUser::STATUS_ACCEPTED) ? 'completed' :'pending' }}">
+                        <div
+                            class="timeline-item {{ $data->status == \App\Models\PPDBUser::STATUS_ACCEPTED ? 'completed' : 'pending' }}">
                             <div class="timeline-icon">
-                                <i class="fa {{ ($data->status == \App\Models\PPDBUser::STATUS_ACCEPTED) ?  'fa-check'  :'fa-question' }}"></i>
+                                <i
+                                    class="fa {{ $data->status == \App\Models\PPDBUser::STATUS_ACCEPTED ? 'fa-check' : 'fa-question' }}"></i>
                             </div>
                             <div class="timeline-content">
                                 <h5 class="m-0">Penerimaan Akhir</h5>
-                                <p class="text-muted small m-0">{{ ($data->status == \App\Models\PPDBUser::STATUS_ACCEPTED) ? 'Telah Diterima Sebegai Siswa' :'Belum Diterima Sebagai Siswa' }} </p>
+                                <p class="text-muted small m-0">
+                                    {{ $data->status == \App\Models\PPDBUser::STATUS_ACCEPTED ? 'Telah Diterima Sebegai Siswa' : 'Belum Diterima Sebagai Siswa' }}
+                                </p>
                             </div>
                         </div>
 
-                        <div class="timeline-item {{ (($data->status == \App\Models\PPDBUser::STATUS_ACCEPTED) && $data->user->type == 'siswa') ? 'completed' :'pending' }}">
+                        <div
+                            class="timeline-item {{ $data->status == \App\Models\PPDBUser::STATUS_ACCEPTED && $data->user->type == 'siswa' ? 'completed' : 'pending' }}">
                             <div class="timeline-icon">
-                                <i class="fa {{ (($data->status == \App\Models\PPDBUser::STATUS_ACCEPTED) && $data->user->type == 'siswa') ?  'fa-check'  :'fa-question' }}"></i>
+                                <i
+                                    class="fa {{ $data->status == \App\Models\PPDBUser::STATUS_ACCEPTED && $data->user->type == 'siswa' ? 'fa-check' : 'fa-question' }}"></i>
                             </div>
                             <div class="timeline-content">
                                 <h5 class="m-0">Kelas & NISN</h5>
-                                <p class="text-muted small m-0">{{ (($data->status == \App\Models\PPDBUser::STATUS_ACCEPTED) && $data->user->type == 'siswa') ? 'Kelas & NISN sudah ditentukan' :'Kelas & NISN belum ditentukan' }} </p>
+                                <p class="text-muted small m-0">
+                                    {{ $data->status == \App\Models\PPDBUser::STATUS_ACCEPTED && $data->user->type == 'siswa' ? 'Kelas & NISN sudah ditentukan' : 'Kelas & NISN belum ditentukan' }}
+                                </p>
                             </div>
                         </div>
                     </div>
 
                     <hr class="my-4" style="opacity: 0.1;">
 
-{{--                    <div class="d-grid gap-2">--}}
-{{--                        <a href="{{ route('admin.ppdb.index') }}"--}}
-{{--                           class="btn btn-block btn-warning rounded-pill fw-bold py-2 shadow-sm">--}}
-{{--                            <i class="fa fa-arrow-left me-1"></i> Kembali ke Daftar--}}
-{{--                        </a>--}}
-{{--                    </div>--}}
+                    {{--                    <div class="d-grid gap-2"> --}}
+                    {{--                        <a href="{{ route('admin.ppdb.index') }}" --}}
+                    {{--                           class="btn btn-block btn-warning rounded-pill fw-bold py-2 shadow-sm"> --}}
+                    {{--                            <i class="fa fa-arrow-left me-1"></i> Kembali ke Daftar --}}
+                    {{--                        </a> --}}
+                    {{--                    </div> --}}
                 </div>
             </div>
         </div>

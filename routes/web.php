@@ -755,6 +755,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::get('template-setting-class', 'PPDBMonitoringController@templateSettingClass')->name('template-setting-class');
             Route::post('import-users-student/{id}', 'PPDBMonitoringController@importUserStudent')->name('import-users-student');
             Route::get('sync-stage-development/{id}/{stage_id}', 'PPDBMonitoringController@syncStageDevelopment')->name('sync-stage-development');
+            Route::get('set-inactive/{id}', 'PPDBMonitoringController@setInactive')->name('set-inactive');
         });
 
         // AGE LIMIT

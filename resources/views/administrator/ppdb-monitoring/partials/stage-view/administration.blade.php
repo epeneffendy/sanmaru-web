@@ -361,71 +361,6 @@
                                     <i class="fa fa-sync-alt"></i> Reset
                                 </button>
                             </div>
-                            <!-- Modal -->
-                            <div id="reset-development-payment-modal-{{ $item['id'] }}" class="modal fade text-left"
-                                role="dialog">
-                                <div class="modal-dialog">
-                                    <!-- Modal content-->
-                                    <div class="modal-content" style="border-radius: 10px; border: none;">
-                                        <div class="modal-header bg-light" style="border-radius: 10px 10px 0 0;">
-                                            <h5 class="modal-title font-weight-bold">Reset Surat Pernyataan</h5>
-                                            <button type="button" class="close"
-                                                data-dismiss="modal">&times;</button>
-                                        </div>
-                                        <div class="modal-body p-4">
-                                            <form
-                                                action="{{ route('admin.ppdb.reset-development-payment-method', $item) }}"
-                                                method="POST">
-                                                @csrf
-                                                <p class="text-muted mb-3">Silakan isi alasan mereset surat pernyataan
-                                                    untuk <strong class="text-dark">{{ $item['name'] }}</strong>.</p>
-
-                                                <input type="hidden" id="year" name="year"
-                                                    value="{{ $item['school_year'] }}">
-                                                <input type="hidden" id="unit" name="unit"
-                                                    value="{{ $item['unit_id'] }}">
-                                                <input type="hidden" id="periode" name="periode"
-                                                    value="{{ $item['periode'] }}">
-                                                <input type="hidden" id="ppdb_user_id" name="ppdb_user_id[]"
-                                                    value="{{ $item['id'] }}">
-                                                <input type="hidden" id="title" name="title"
-                                                    value="[RESET] Surat Pernyataan {{ $item['name'] }}">
-
-                                                <div class="form-group">
-                                                    <label for="body" class="font-weight-bold">Alasan
-                                                        Reset</label>
-                                                    <textarea class="form-control" name="body" id="body" rows="3"
-                                                        placeholder="Tuliskan alasan spesifik di sini...">{!! old('body') !!}</textarea>
-                                                    @error('body')
-                                                        <span
-                                                            class="text-danger small mt-1"><strong>{{ $message }}</strong></span>
-                                                    @enderror
-                                                </div>
-
-                                                <div class="form-group">
-                                                    <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox" class="custom-control-input"
-                                                            name="send_email" id="send_email_{{ $item['id'] }}"
-                                                            value="1"
-                                                            {{ old('send_email', 1) ? 'checked' : '' }}>
-                                                        <label class="custom-control-label"
-                                                            for="send_email_{{ $item['id'] }}">Kirim email
-                                                            pemberitahuan ke orang tua</label>
-                                                    </div>
-                                                </div>
-
-                                                <div class="text-right mt-4">
-                                                    <button type="button" class="btn btn-light btn-modern mr-2"
-                                                        data-dismiss="modal">Batal</button>
-                                                    <button type="submit"
-                                                        class="btn btn-warning btn-modern text-dark"><i
-                                                            class="fa fa-sync-alt mr-1"></i> Proses Reset</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         @endif
 
                         @if ($item['development_fee_option'] != null)
@@ -464,6 +399,67 @@
         </tbody>
     </table>
 </div>
+{{ $data->appends(request()->except('page'))->links() }}
+
+@foreach ($data as $item)
+    @if ($item['development_fee_option'] && !$item['isOrderConfirmed'])
+        <!-- Modal -->
+        <div id="reset-development-payment-modal-{{ $item['id'] }}" class="modal fade text-left" role="dialog">
+            <div class="modal-dialog">
+                <!-- Modal content-->
+                <div class="modal-content" style="border-radius: 10px; border: none;">
+                    <div class="modal-header bg-light" style="border-radius: 10px 10px 0 0;">
+                        <h5 class="modal-title font-weight-bold">Reset Surat Pernyataan</h5>
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <form action="{{ route('admin.ppdb.reset-development-payment-method', $item) }}"
+                            method="POST">
+                            @csrf
+                            <p class="text-muted mb-3">Silakan isi alasan mereset surat pernyataan
+                                untuk <strong class="text-dark">{{ $item['name'] }}</strong>.</p>
+
+                            <input type="hidden" id="year" name="year" value="{{ $item['school_year'] }}">
+                            <input type="hidden" id="unit" name="unit" value="{{ $item['unit_id'] }}">
+                            <input type="hidden" id="periode" name="periode" value="{{ $item['periode'] }}">
+                            <input type="hidden" id="ppdb_user_id" name="ppdb_user_id[]"
+                                value="{{ $item['id'] }}">
+                            <input type="hidden" id="title" name="title"
+                                value="[RESET] Surat Pernyataan {{ $item['name'] }}">
+
+                            <div class="form-group">
+                                <label for="body" class="font-weight-bold">Alasan Reset</label>
+                                <textarea class="form-control" name="body" id="body" rows="3"
+                                    placeholder="Tuliskan alasan spesifik di sini...">{!! old('body') !!}</textarea>
+                                @error('body')
+                                    <span class="text-danger small mt-1"><strong>{{ $message }}</strong></span>
+                                @enderror
+                            </div>
+
+                            <div class="form-group">
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" name="send_email"
+                                        id="send_email_{{ $item['id'] }}" value="1"
+                                        {{ old('send_email', 1) ? 'checked' : '' }}>
+                                    <label class="custom-control-label" for="send_email_{{ $item['id'] }}">Kirim
+                                        email
+                                        pemberitahuan ke orang tua</label>
+                                </div>
+                            </div>
+
+                            <div class="text-right mt-4">
+                                <button type="button" class="btn btn-light btn-modern mr-2"
+                                    data-dismiss="modal">Batal</button>
+                                <button type="submit" class="btn btn-warning btn-modern text-dark"><i
+                                        class="fa fa-sync-alt mr-1"></i> Proses Reset</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+@endforeach
 
 <!-- Modal Confirmation Standalone -->
 <div id="modal-confirmation" class="modal fade" tabindex="-1" role="dialog">

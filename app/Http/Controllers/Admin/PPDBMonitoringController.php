@@ -31,48 +31,48 @@ class PPDBMonitoringController extends Controller
     {
         $periods = new Period();
 
-//        if ($request->input('name')) {
-//            $periods = $periods->where('name', 'like', '%' . $request->input('name') . '%');
-//        }
-//        if ($request->input('unit')) {
-//            $periods = $periods->where('unit_id', $request->input('unit'));
-//        }
-//
-        $periods = $periods->byUserRole()->with('unit', 'class')->orderBy('id', 'desc')->get();
+       if ($request->input('name')) {
+           $periods = $periods->where('name', 'like', '%' . $request->input('name') . '%');
+       }
+       if ($request->input('unit')) {
+           $periods = $periods->where('unit_id', $request->input('unit'));
+       }
 
-        $data_period = [];
-        foreach ($periods as $ind => $period) {
-            $count_student = PPDBUser::where('periode', $period->id)->count();
+       if ($request->input('year')) {
+           $periods = $periods->where('school_year', $request->input('year'));
+       }
 
-            $data_period[$ind]['id'] = $period->id;
-            $data_period[$ind]['name'] = $period->name;
-            $data_period[$ind]['desc'] = $period->short_desc;
-            $data_period[$ind]['unit'] = $period->unit->name;
-            $data_period[$ind]['periode'] = $period->period;
-            $data_period[$ind]['active'] = $period->active_label;
-            $data_period[$ind]['school_year'] = $period->school_year;
-            $data_period[$ind]['count_student'] = $count_student . ' Siswa';
+        $currentSchoolYear = now()->month > 6 ? now()->year + 1 : now()->year;
+
+        if ($request->filled('year') && $request->input('year') != 'all') {
+            $periods = $periods->where('school_year', $request->input('year'));
+        } elseif (!$request->has('year')) {
+            $periods = $periods->where('school_year', $currentSchoolYear);
         }
 
-        $total = count($data_period);
         $per_page = 15;
-        $current_page = $request->input("page") ?? 1;
+        $paginator = $periods->byUserRole()->with('unit', 'class')->withCount('ppdbUsers')->orderBy('id', 'desc')->paginate($per_page);
 
-        $starting_point = ($current_page * $per_page) - $per_page;
+        $paginator->appends($request->query());
 
-        $data = array_slice($data_period, $starting_point, $per_page, true);
-
-        $data = new Paginator($data, $total, $per_page, $current_page, [
-            'path' => $request->url(),
-            'query' => $request->query(),
-        ]);
+        $paginator->getCollection()->transform(function ($period) {
+            return [
+                'id' => $period->id,
+                'name' => $period->name,
+                'desc' => $period->short_desc,
+                'unit' => $period->unit->name,
+                'periode' => $period->period,
+                'active' => $period->active_label,
+                'school_year' => $period->school_year,
+                'count_student' => $period->ppdb_users_count . ' Siswa'
+            ];
+        });
 
         $data = [
             'nav' => $this->page,
-            'periods' => $periods,
-            'data' => $data,
+            'data' => $paginator,
             'units' => Unit::byUserRole()->get(),
-            'periods' => period::byUserRole()->get(),
+            'periods' => Period::byUserRole()->get(),
             'params' => $request->only(['name', 'unit', 'period', 'year'])
         ];
         return view('administrator/ppdb-monitoring/index', $data);
@@ -80,7 +80,6 @@ class PPDBMonitoringController extends Controller
 
     public function showDetailPeriod(Request $request, $id, PPDBMonitoringService $PPDBMonitoringService)
     {
-        $id = 178;
         $period = Period::find($id);
         $stages = Stage::where('periode', $id)->where('active', 1)->get();
 
@@ -101,11 +100,12 @@ class PPDBMonitoringController extends Controller
 
     public function showDetailStage(Request $request, $id, $type, $stage_id, PPDBMonitoringService $PPDBMonitoringService)
     {
-        $id = 178;
         $period = Period::find($id);
-
+        $collection = [];
         if ($type == 'administration') {
             $data = $PPDBMonitoringService->stagesAdministrasi($period, true, 'administration');
+
+            $data = $this->paginateArray($data, 15, $request);
 
             $data = [
                 'nav' => $this->page,
@@ -286,6 +286,35 @@ class PPDBMonitoringController extends Controller
         return response()->json([
             'success' => false,
             'message' => 'Gagal melakukan sinkronisasi data.'
+        ]);
+    }
+
+    public function setInactive($id, StudentService $studentService){
+        $ppdb = PPDBUser::findOrFail($id);
+
+        $student = $studentService->setInactive($ppdb->student->id);
+
+        return redirect()->route('admin.ppdb.show', [$id])->with('message', 'Siswa berhasil dinonaktifkan.');
+    }
+
+    /**
+     * Paginate an array manually.
+     *
+     * @param array $items
+     * @param int $perPage
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Pagination\LengthAwarePaginator
+     */
+    private function paginateArray(array $items, $perPage, Request $request)
+    {
+        $total = count($items);
+        $currentPage = $request->input("page") ?? 1;
+        $startingPoint = ($currentPage * $perPage) - $perPage;
+        $slicedItems = array_slice($items, $startingPoint, $perPage, true);
+
+        return new Paginator($slicedItems, $total, $perPage, $currentPage, [
+            'path' => $request->url(),
+            'query' => $request->query(),
         ]);
     }
 }

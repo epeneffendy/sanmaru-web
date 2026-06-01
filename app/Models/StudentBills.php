@@ -27,4 +27,9 @@ class StudentBills extends Model
         'status',
         'due_date',
     ];
+
+    public function finance()
+    {
+        return $this->belongsTo(Finance::class, 'finance_id', 'id');
+    }
 }

@@ -11,6 +11,10 @@
         <li><a href="{{ route('admin.dashboard.index') }}" class="{{ $nav['child'] == 'dashboard' ? 'active' : '' }}">
                 <span class="icon color5"><i class="fa fa-home"></i></span>Dasbor</a>
         </li>
+        <li><a href="{{ route('admin.dashboard-ppdb.index') }}"
+                class="{{ $nav['child'] == 'dashboard-ppdb' ? 'active' : '' }}">
+                <span class="icon color5"><i class="fa fa-home"></i></span>Dashboard PPDB</a>
+        </li>
 
         @if (\App\Helpers\Helper::isPpdbRole())
             <li class="treeview {{ $nav['parent'] == 'ppdb' ? 'active menu-open' : '' }}">
@@ -18,7 +22,8 @@
                     <span class="icon color12"><i class="fa fa-users"></i></span>PPDB
                     <span class="pull-right-container"><i class="fa fa-angle-right"></i></span></a>
                 <ul class="treeview-menu">
-                    <li><a href="{{ route('admin.ppdb.index') }}" class="{{ $nav['child'] == 'ppdb' ? 'active' : '' }}">
+                    <li><a href="{{ route('admin.ppdb.index') }}"
+                            class="{{ $nav['child'] == 'ppdb' ? 'active' : '' }}">
                             <span class="icon color12"><i class="fa fa-user-plus"></i></span>Pendaftar</a></li>
                     <li><a href="{{ route('admin.ppdb-monitoring.index') }}"
                             class="{{ $nav['child'] == 'ppdb-monitoring' ? 'active' : '' }}">
@@ -242,18 +247,20 @@
                             class="{{ $nav['child'] == 'development-fee' ? 'active' : '' }}"><span
                                 class="icon color12"><i class="fa fa-money"></i></span>Laporan Dana Pengembangan</a>
                     </li>
-                    <li><a href="#" class="{{ $nav['child'] == 'new-student-report' ? 'active' : '' }}"><span
+                    <li><a href="{{ route('admin.report.admission-report.index') }}"
+                            class="{{ $nav['child'] == 'admission-report' ? 'active' : '' }}"><span
                                 class="icon color12"><i class="fa fa-user-plus"></i></span>Laporan Penerimaan Siswa
                             Baru</a>
                     </li>
-                    <li><a href="#"
-                            class="{{ $nav['child'] == 'master-finance-report' ? 'active' : '' }}"><span
-                                class="icon color12"><i class="fa fa-database"></i></span>Laporan Master Keuangan</a>
+                    <li><a href="{{ route('admin.report.payment-ppdb-report.index') }}"
+                            class="{{ $nav['child'] == 'payment-ppdb-report' ? 'active' : '' }}"><span
+                                class="icon color12"><i class="fa fa-credit-card"></i></span>Laporan Pembayaran
+                            PPDB</a>
                     </li>
-                    <li><a href="#"
-                            class="{{ $nav['child'] == 'development-payment-report' ? 'active' : '' }}"><span
-                                class="icon color12"><i class="fa fa-credit-card"></i></span>Laporan Pembayaran Uang
-                            Pengembangan</a>
+                    <li><a href="{{ route('admin.report.dispensation-report.index') }}"
+                            class="{{ $nav['child'] == 'dispensation-report' ? 'active' : '' }}"><span
+                                class="icon color12"><i class="fa fa-credit-card"></i></span>Laporan Penerima
+                            Dispensasi</a>
                     </li>
                 </ul>
             </li>

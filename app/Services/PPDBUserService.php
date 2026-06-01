@@ -23,6 +23,8 @@ use App\Models\User;
 use App\Lib\DbTrx;
 use App\Models\Finance;
 use App\Models\StudentBills;
+use App\Models\PaymentDispensations;
+use App\Services\PaymentDispensationsService;
 use App\Models\Voucher;
 use Exception;
 
@@ -771,5 +773,198 @@ class PPDBUserService
         }
 
         return $code;
+    }
+
+    public function dashboardPPDB(){
+        $totalRegistered = PPDBUser::where('school_year',date('Y'))->count();
+        $latestRegistered = $this->latestRegistered();
+        $verifEmail = PPDBUser::where([
+            'school_year'=>date('Y'),
+            'status'=>PPDBUser::STATUS_SUBMITTED
+        ])->count();
+
+        $statementLetter = PPDBUser::where([
+            'school_year' => date('Y'),
+            'status' => PPDBUser::STATUS_SUBMITTED,
+        ])->whereNotNull('development_statement')->count();
+
+        $studentAccepted = PPDBUser::where([
+            'school_year' => date('Y'),
+            'status' => PPDBUser::STATUS_ACCEPTED,
+        ])->count();
+
+        $totalRegisteredPerUnit = $this->registeredPerUnit();
+
+        $genderRatio = PPDBUser::select('gender',DB::raw('count(*) as total'))
+            ->where('school_year',date('Y'))
+            ->whereNotNull('gender')
+            ->where('gender', '!=', '')
+            ->groupBy('gender')->get();
+
+        $topOriginSchools = PPDBUser::select('origin_school', DB::raw('count(*) as total'))
+            ->where('school_year', date('Y'))
+            ->whereNotNull('origin_school')
+            ->where('origin_school', '!=', '')
+            ->groupBy('origin_school')
+            ->orderBy('total', 'desc')
+            ->limit(5)
+            ->get();
+
+        $data = [
+            'totalRegistered'=>$totalRegistered,
+            'latestRegistered'=>$latestRegistered,
+            'verifEmail'=>$verifEmail,
+            'statementLetter'=>$statementLetter,
+            'studentAccepted'=>$studentAccepted,
+            'totalRegisteredPerUnit'=>$totalRegisteredPerUnit['collection'] ?? [],
+            'totalRegisteredBillPerUnit'=>$totalRegisteredPerUnit['collection_bill'] ?? [],
+            'genderRatio'=> $genderRatio,
+            'topOriginSchools'=> $topOriginSchools,
+
+        ];
+
+        return $data;
+    }
+
+    public function latestRegistered(){
+        $collection = [];
+        $latestRegistered = PPDBUser::orderBy('id', 'desc')->limit(5)->get();
+
+        foreach($latestRegistered as $item){
+            $collection[$item->id]['name'] = $item->name;
+            $collection[$item->id]['unit'] = $item->unit->name;
+            $collection[$item->id]['status'] = $this->getStatusPPDB($item->status);
+        }
+
+        return $collection;
+    }
+
+    public function registeredPerUnit(){
+        $users = PPDBUser::where('school_year', date('Y'))
+            ->where('status', PPDBUser::STATUS_SUBMITTED)
+            ->with('unit')
+            ->get();
+
+        $collection = [];
+        $collection_bill = [];
+        foreach($users as $item){
+            if ($item->unit) {
+                if (!isset($collection[$item->unit_id])) {
+                    $collection[$item->unit_id] = [
+                        'name' => $item->unit->name,
+                        'total' => 0
+                    ];
+                }
+                $collection[$item->unit_id]['total']++;
+
+                if (!isset($collection_bill[$item->unit_id])) {
+                    $collection_bill[$item->unit_id] = [
+                        'name' => $item->unit->name,
+                        'total_full' => 0,
+                        'total_installment' => 0,
+                        'total_dispensation' => 0,
+                    ];
+                }
+
+                $cek_bill = $this->cekBill($item->id);
+
+                if (!$cek_bill) {
+                    continue;
+                }
+
+                if (in_array($cek_bill->dispensation_mode, ['only_discount', 'full_setup'])) {
+                    $collection_bill[$item->unit_id]['total_dispensation']++;
+                    $detailsCount = $cek_bill->details()->count();
+                    if ($detailsCount > 1) {
+                        $collection_bill[$item->unit_id]['total_installment']++;
+                    } elseif ($detailsCount == 1) {
+                        $collection_bill[$item->unit_id]['total_full']++;
+                    }
+                } else {
+                    if($cek_bill->status_payment == 'paid'){
+                        $detailsCount = $cek_bill->details()->count();
+                        if ($detailsCount == 1) {
+                            $collection_bill[$item->unit_id]['total_full']++;
+                        }
+                    }else{
+                        $detailsCount = $cek_bill->details()->count();
+                        if ($detailsCount > 1) {
+                            $collection_bill[$item->unit_id]['total_installment']++;
+                        }
+
+                    }
+                }
+            }
+        }
+
+        return [
+            'collection' => $collection,
+            'collection_bill' => $collection_bill
+        ];
+    }
+
+    public function cekBill($id){
+        $paymentDispensationService = app(PaymentDispensationsService::class);
+        $dispensation = $paymentDispensationService->getByUserPpdb($id);
+
+
+        return $dispensation;
+    }
+
+    public function getStatusPPDB($status) {
+        switch ($status) {
+            case PPDBUser::STATUS_INCOMPLETE:
+                return 'Belum Verifikasi Email';
+            case PPDBUser::STATUS_COMPLETE:
+                return 'Sudah Verifikasi Email';
+            case PPDBUser::STATUS_CONFIRMED:
+                return 'Pembayaran Terverififkasi';
+            case PPDBUser::STATUS_SUBMITTED:
+                return 'Proses Administrasi';
+            case PPDBUser::STATUS_REJECTED:
+                return 'Data Tidak Lengkap';
+            case PPDBUser::STATUS_ACCEPTED:
+                return 'Siswa Diterima';
+            case PPDBUser::STATUS_NOT_SELECTED:
+                return 'Siswa Tidak Diterima';
+            default:
+                return '';
+        }
+    }
+
+    public function getAdmissionReport($params){
+        $ppdbUsers = PPDBUser::orderBy('ppdb_users.created_at', 'ASC');
+
+        if (isset($params['unit']) && $params['unit'] != 'all') {
+            $ppdbUsers->where('ppdb_users.unit_id', $params['unit']);
+        }
+
+        if (isset($params['period']) && $params['period'] != 'all') {
+            $ppdbUsers->where('ppdb_users.periode', $params['period']);
+        }
+
+        if (isset($params['year']) && $params['year'] != 'all') {
+            $ppdbUsers->where('ppdb_users.school_year', $params['year']);
+        }
+
+        $ppdbUsers = $ppdbUsers->get();
+
+        $collections = [];
+        foreach($ppdbUsers as $ppdbUser){
+            $collections[$ppdbUser->id]['name'] = $ppdbUser->name;
+            $collections[$ppdbUser->id]['register_number'] = $ppdbUser->register_number;
+            $collections[$ppdbUser->id]['unit'] = $ppdbUser->unit->name;
+            $collections[$ppdbUser->id]['school_year'] = $ppdbUser->school_year;
+            $collections[$ppdbUser->id]['periode'] = $ppdbUser->period->name ?? '-';
+            $collections[$ppdbUser->id]['created_at'] = $ppdbUser->created_at->format('d-m-Y H:i:s') ?? '-';
+            $collections[$ppdbUser->id]['detail']['registration'] = ($ppdbUser->payment_date != '') ? true : false;
+            $collections[$ppdbUser->id]['detail']['administrasi'] = ($ppdbUser->is_data_complete_whitout_bca) ? true : false;
+            $collections[$ppdbUser->id]['detail']['statement_letter'] = ($ppdbUser->IsStatementLetterUploaded) ? true : false;
+            $collections[$ppdbUser->id]['detail']['statement_letter_verif'] = ($ppdbUser->IsStatementLetterConfirmed) ? true : false;
+            $collections[$ppdbUser->id]['detail']['order_uniform'] = ($ppdbUser->isOrderConfirmed) ? true : false;
+            $collections[$ppdbUser->id]['detail']['final_accpetance'] = ($ppdbUser->status == PPDBUser::STATUS_ACCEPTED) ? true : false;
+            $collections[$ppdbUser->id]['detail']['class_nisn'] = ($ppdbUser->status == PPDBUser::STATUS_ACCEPTED  && $ppdbUser->user->type == 'siswa') ? true : false;;
+        }
+        return $collections;
     }
 }

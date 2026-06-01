@@ -715,6 +715,35 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
                 Route::get('/export', 'DevelopmentReportController@export')->name('export');
             });
 
+            Route::prefix('finance-report')->name('finance-report.')->group(function () {
+                Route::get('/', 'FinanceReportController@index')->name('index');
+                Route::get('/export', 'FinanceReportController@export')->name('export');
+            });
+
+            Route::prefix('dispensation-report')->name('dispensation-report.')->group(function () {
+                Route::get('/', 'DispensationReportController@index')->name('index');
+                Route::get('/export', 'DispensationReportController@export')->name('export');
+            });
+
+            Route::prefix('payment-pppdb-report')->name('payment-ppdb-report.')->group(function () {
+                Route::get('/', 'PaymentPPDBReportController@index')->name('index');
+                Route::get('/export', 'PaymentPPDBReportController@export')->name('export');
+            });
+
+            Route::prefix('payment-pppdb-report')->name('payment-ppdb-report.')->group(function () {
+                Route::get('/', 'PaymentPPDBReportController@index')->name('index');
+                Route::get('/export', 'PaymentPPDBReportController@export')->name('export');
+            });
+
+            Route::prefix('admission-report')->name('admission-report.')->group(function () {
+                Route::get('/', 'AdmissionReportController@index')->name('index');
+                Route::get('/export', 'AdmissionReportController@export')->name('export');
+            });
+
+        });
+
+        Route::prefix('administrator/dashboard-ppdb')->name('admin.dashboard-ppdb.')->namespace('Admin')->group(function () {
+            Route::get('/', 'DashboardPPDBController@index')->name('index');
         });
     });
 

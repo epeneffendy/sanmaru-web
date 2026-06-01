@@ -298,4 +298,165 @@ class PaymentDispensationsService {
 
         return $status;
     }
+
+    public function getDispensationReport($params){
+        $ppdbUsers = PPDBUser::select(
+                'ppdb_users.*',
+                'payment_dispensations.id as dispensation_id',
+                'payment_dispensations.dispensation_type',
+                'payment_dispensations.dispensation_mode',
+                'payment_dispensations.total_final_fee',
+                'payment_dispensations.remaining_balance',
+                'payment_dispensations.status_payment',
+                'payment_dispensations.actual_cost',
+                'payment_dispensations.created_at',
+                'payment_dispensation_details.id as detail_id',
+                'payment_dispensation_details.virtual_account',
+                'payment_dispensation_details.nominal as detail_nominal',
+                'payment_dispensation_details.amount_paid',
+                'payment_dispensation_details.status as detail_status',
+                'payment_dispensation_details.installment_number',
+                'payment_dispensation_details.date as payment_date',
+                'payment_dispensation_details.status as status'
+            )
+            ->join('payment_dispensations', 'ppdb_users.id', '=', 'payment_dispensations.ppdb_user_id')
+            ->leftJoin('payment_dispensation_details', 'payment_dispensations.id', '=', 'payment_dispensation_details.payment_dispensation_id')
+            ->where('payment_dispensations.status', PaymentDispensations::STATUS_ACTIVE)
+            ->where('payment_dispensations.dispensation_mode', '!=', PaymentDispensations::MODE_REAL_PAYMENT)
+            ->orderBy('payment_dispensations.created_at', 'ASC');
+
+        if (isset($params['unit']) && $params['unit'] != 'all') {
+            $ppdbUsers->where('ppdb_users.unit_id', $params['unit']);
+        }
+
+        if (isset($params['period']) && $params['period'] != 'all') {
+            $ppdbUsers->where('ppdb_users.periode', $params['period']);
+        }
+
+        if (isset($params['year']) && $params['year'] != 'all') {
+            $ppdbUsers->where('ppdb_users.school_year', $params['year']);
+        }
+
+        $ppdbUsers = $ppdbUsers->get();
+
+        $collections = [];
+        foreach($ppdbUsers as $ppdbUser){
+            $collections[$ppdbUser->dispensation_id]['name'] = $ppdbUser->name;
+            $collections[$ppdbUser->dispensation_id]['register_number'] = $ppdbUser->register_number;
+            $collections[$ppdbUser->dispensation_id]['unit'] = $ppdbUser->unit->name;
+            $collections[$ppdbUser->dispensation_id]['dispensation_type'] = $this->getDispensationType($ppdbUser->dispensation_type);
+            $collections[$ppdbUser->dispensation_id]['dispensation_mode'] = $this->getDispensationMode($ppdbUser->dispensation_mode);
+            $collections[$ppdbUser->dispensation_id]['actual_cost'] = $ppdbUser->actual_cost;
+            $collections[$ppdbUser->dispensation_id]['total_final_fee'] = $ppdbUser->total_final_fee;
+            $collections[$ppdbUser->dispensation_id]['remaining_balance'] = $ppdbUser->remaining_balance;
+            // $collections[$ppdbUser->dispensation_id]['status_payment'] = $this->getStatusBayar($ppdbUser->status_payment);
+            $collections[$ppdbUser->dispensation_id]['created_at'] = Carbon::parse($ppdbUser->created_at)->format('d M Y H:i:s');
+            $collections[$ppdbUser->dispensation_id]['detail'][$ppdbUser->detail_id]['installment_number'] = ($ppdbUser->installment_number == 0) ? 'Pembayaran DP' : 'Cicilan Ke - '.$ppdbUser->installment_number ;
+            $collections[$ppdbUser->dispensation_id]['detail'][$ppdbUser->detail_id]['virtual_account'] = $ppdbUser->virtual_account;
+            $collections[$ppdbUser->dispensation_id]['detail'][$ppdbUser->detail_id]['date'] = (!empty($ppdbUser->payment_date)) ? Carbon::parse($ppdbUser->payment_date)->format('d M Y') : '-';
+            $collections[$ppdbUser->dispensation_id]['detail'][$ppdbUser->detail_id]['nominal'] = $ppdbUser->detail_nominal;
+            $collections[$ppdbUser->dispensation_id]['detail'][$ppdbUser->detail_id]['amount_paid'] = $ppdbUser->amount_paid;
+            $collections[$ppdbUser->dispensation_id]['detail'][$ppdbUser->detail_id]['status'] = $this->getStatusBayar($ppdbUser->status);
+        }
+
+        return $collections;
+    }
+
+    public function getDevelopmentPaymentReport($params){
+        $ppdbUsers = PPDBUser::select(
+                'ppdb_users.*',
+                'payment_dispensations.id as dispensation_id',
+                'payment_dispensations.dispensation_type',
+                'payment_dispensations.dispensation_mode',
+                'payment_dispensations.total_final_fee',
+                'payment_dispensations.remaining_balance',
+                'payment_dispensations.status_payment',
+                'payment_dispensations.actual_cost',
+                'payment_dispensations.created_at',
+                'payment_dispensation_details.id as detail_id',
+                'payment_dispensation_details.virtual_account',
+                'payment_dispensation_details.nominal as detail_nominal',
+                'payment_dispensation_details.amount_paid',
+                'payment_dispensation_details.status as detail_status',
+                'payment_dispensation_details.installment_number',
+                'payment_dispensation_details.date as payment_date',
+                'payment_dispensation_details.status as status'
+            )
+            ->join('payment_dispensations', 'ppdb_users.id', '=', 'payment_dispensations.ppdb_user_id')
+            ->leftJoin('payment_dispensation_details', 'payment_dispensations.id', '=', 'payment_dispensation_details.payment_dispensation_id')
+            ->where('payment_dispensations.status', PaymentDispensations::STATUS_ACTIVE)
+            ->orderBy('payment_dispensations.created_at', 'ASC');
+
+        if (isset($params['unit']) && $params['unit'] != 'all') {
+            $ppdbUsers->where('ppdb_users.unit_id', $params['unit']);
+        }
+
+        if (isset($params['period']) && $params['period'] != 'all') {
+            $ppdbUsers->where('ppdb_users.periode', $params['period']);
+        }
+
+        if (isset($params['year']) && $params['year'] != 'all') {
+            $ppdbUsers->where('ppdb_users.school_year', $params['year']);
+        }
+
+        $ppdbUsers = $ppdbUsers->get();
+
+        $collections = [];
+        foreach($ppdbUsers as $ppdbUser){
+            $collections[$ppdbUser->dispensation_id]['name'] = $ppdbUser->name;
+            $collections[$ppdbUser->dispensation_id]['register_number'] = $ppdbUser->register_number;
+            $collections[$ppdbUser->dispensation_id]['unit'] = $ppdbUser->unit->name;
+            $collections[$ppdbUser->dispensation_id]['dispensation_type'] = $this->getDispensationType($ppdbUser->dispensation_type);
+            $collections[$ppdbUser->dispensation_id]['dispensation_mode'] = $this->getDispensationMode($ppdbUser->dispensation_mode);
+            $collections[$ppdbUser->dispensation_id]['is_dispensation'] = $ppdbUser->dispensation_mode != PaymentDispensations::MODE_REAL_PAYMENT ? 'Menerima Dispensasi' : '-';
+            $collections[$ppdbUser->dispensation_id]['actual_cost'] = $ppdbUser->actual_cost;
+            $collections[$ppdbUser->dispensation_id]['total_final_fee'] = $ppdbUser->total_final_fee;
+            $collections[$ppdbUser->dispensation_id]['remaining_balance'] = $ppdbUser->remaining_balance;
+            // $collections[$ppdbUser->dispensation_id]['status_payment'] = $this->getStatusBayar($ppdbUser->status_payment);
+            $collections[$ppdbUser->dispensation_id]['created_at'] = Carbon::parse($ppdbUser->created_at)->format('d M Y H:i:s');
+            $collections[$ppdbUser->dispensation_id]['detail'][$ppdbUser->detail_id]['installment_number'] = ($ppdbUser->installment_number == 0) ? 'Pembayaran DP' : 'Cicilan Ke - '.$ppdbUser->installment_number ;
+            $collections[$ppdbUser->dispensation_id]['detail'][$ppdbUser->detail_id]['virtual_account'] = $ppdbUser->virtual_account;
+            $collections[$ppdbUser->dispensation_id]['detail'][$ppdbUser->detail_id]['date'] = (!empty($ppdbUser->payment_date)) ? Carbon::parse($ppdbUser->payment_date)->format('d M Y') : '-';
+            $collections[$ppdbUser->dispensation_id]['detail'][$ppdbUser->detail_id]['nominal'] = $ppdbUser->detail_nominal;
+            $collections[$ppdbUser->dispensation_id]['detail'][$ppdbUser->detail_id]['amount_paid'] = $ppdbUser->amount_paid;
+            $collections[$ppdbUser->dispensation_id]['detail'][$ppdbUser->detail_id]['status'] = $this->getStatusBayar($ppdbUser->status);
+        }
+
+        return $collections;
+    }
+
+    public function getStatusBayar($status) {
+        switch ($status) {
+            case PaymentDispensationDetails::STATUS_UNPAID:
+                return 'Belum Dibayar';
+            case PaymentDispensationDetails::STATUS_PAID:
+                return 'Sudah Dibayar';
+            case PaymentDispensationDetails::STATUS_PARTIAL:
+                return 'Pembayaran Sebagian';
+            default:
+                return '';
+        }
+    }
+
+    public function getDispensationMode($status) {
+        switch ($status) {
+            case PaymentDispensations::MODE_FULL_SETUP:
+                return 'Full Setup';
+            case PaymentDispensations::MODE_ONLY_DISCOUNT:
+                return 'Hanya Potongan Nominal';
+            case PaymentDispensations::MODE_REAL_PAYMENT:
+                return 'Pembayaran Tanpa Dispensasi';
+            default:
+                return '';
+        }
+    }
+
+    public function getDispensationType($status) {
+        switch ($status) {
+            case PaymentDispensations::DISPENSATION_TYPE_DEVELOPMENT:
+                return 'Uang Pengenmbangan';
+            default:
+                return '';
+        }
+    }
 }

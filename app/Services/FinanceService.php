@@ -67,4 +67,38 @@ class FinanceService {
         }
         return $years;
     }
+
+    public function getFinanceReport($params)
+    {
+        $finances = Finance::orderBy('updated_at', 'DESC');
+
+        if (isset($params['unit']) && $params['unit'] != 'all') {
+            $finances->where('unit_id', $params['unit']);
+        }
+
+        if (isset($params['period']) && $params['period'] != 'all') {
+            $finances->where('period_id', $params['period']);
+        }
+
+        if (isset($params['year']) && $params['year'] != 'all') {
+            $finances->where('year', $params['year']);
+        }
+        $data = $finances->get();
+
+        $collection = [];
+        foreach ($data as $ind => $finance) {
+
+            $collection[$finance->period->id]['periode'] = isset($finance->period) ? $finance->period->name : '';
+            $collection[$finance->period->id]['unit'] = isset($finance->unit) ? $finance->unit->name : '';
+            $collection[$finance->period->id]['development'] = $finance->type == 'development' ? $finance->nominal_default : 0;
+            $collection[$finance->period->id]['registration'] = $finance->type == 'registration' ? $finance->nominal_default : 0;
+            $collection[$finance->period->id]['tuition'] = $finance->type == 'tuition' ? $finance->nominal_default : 0;
+            $collection[$finance->period->id]['activity'] = $finance->type == 'activity' ? $finance->nominal_default : 0;
+            $collection[$finance->period->id]['other'] = $finance->type == 'other' ? $finance->nominal_default : 0;
+
+
+        }
+        dd($collection);
+        return $finances->get();
+    }
 }

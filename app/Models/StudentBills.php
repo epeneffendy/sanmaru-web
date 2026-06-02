@@ -12,6 +12,7 @@ class StudentBills extends Model
     const PAYMENT_METHOD_PARTIAL = 'partial';
     const PAYMENT_METHOD_PAID = 'paid';
     const PAYMENT_METHOD_CANCELED = 'canceled';
+    const PAYMENT_METHOD_CLOSED = 'closed';
 
     const PAYMENT_TERM_FULL = 'full_payment';
     const PAYMENT_TERM_INSTALLMENT = 'installment_payment';
@@ -26,10 +27,13 @@ class StudentBills extends Model
         'payment_method',
         'status',
         'due_date',
+        'note',
+        'payment_term'
     ];
 
     public function finance()
     {
         return $this->belongsTo(Finance::class, 'finance_id', 'id');
     }
+
 }

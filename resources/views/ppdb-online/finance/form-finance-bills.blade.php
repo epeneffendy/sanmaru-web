@@ -480,57 +480,78 @@
                                                                 <span
                                                                     class="text-muted x-small d-block pe-md-4 mt-1">Pembangunan
                                                                     sarana, prasarana, dan fasilitas gedung</span>
-                                                                <div class="row">
-                                                                    @if ($item['payment_method'] == 'paid')
+                                                                @if ($item['payment_method'] == 'closed')
+                                                                    <div class="row">
                                                                         <div
                                                                             style="margin-bottom: 4px; padding-left: 12px;">
-                                                                            <span class="badge-modern badge-soft-success"
+                                                                            <span class="badge-modern badge-soft-danger"
                                                                                 style="border-radius: 20px;">
-                                                                                <i class="fa fa-check-circle"></i> Sudah
-                                                                                Terbayarkan
+                                                                                <i class="fa fa-times-circle"></i> Tagihan
+                                                                                Dihentikan
                                                                             </span>
                                                                         </div>
-                                                                    @else
-                                                                        <div
-                                                                            style="margin-bottom: 4px; padding-left: 12px;">
-                                                                            <span class="badge-modern badge-soft-warning"
-                                                                                style="border-radius: 20px;">
-                                                                                <i class="fa fa-check-circle"></i> Belum
-                                                                                Terbayarkan
-                                                                            </span>
-                                                                        </div>
-                                                                    @endif
+                                                                    </div>
+                                                                @else
+                                                                    <div class="row">
+                                                                        @if ($item['payment_method'] == 'paid')
+                                                                            <div
+                                                                                style="margin-bottom: 4px; padding-left: 12px;">
+                                                                                <span
+                                                                                    class="badge-modern badge-soft-success"
+                                                                                    style="border-radius: 20px;">
+                                                                                    <i class="fa fa-check-circle"></i>
+                                                                                    Sudah
+                                                                                    Terbayarkan
+                                                                                </span>
+                                                                            </div>
+                                                                        @else
+                                                                            <div
+                                                                                style="margin-bottom: 4px; padding-left: 12px;">
+                                                                                <span
+                                                                                    class="badge-modern badge-soft-warning"
+                                                                                    style="border-radius: 20px;">
+                                                                                    <i class="fa fa-check-circle"></i>
+                                                                                    Belum
+                                                                                    Terbayarkan
+                                                                                </span>
+                                                                            </div>
+                                                                        @endif
 
-                                                                    @if ($item['payment_term'] == 'full_payment')
-                                                                        <div
-                                                                            style="margin-bottom: 4px; padding-left: 12px;">
-                                                                            <span class="badge-modern badge-soft-info"
-                                                                                style="border-radius: 20px;">
-                                                                                <i class="fa fa-check-circle"></i> Lunas
-                                                                            </span>
-                                                                        </div>
-                                                                    @endif
-                                                                    @if ($item['payment_term'] == 'installment_payment')
-                                                                        <div
-                                                                            style="margin-bottom: 4px; padding-left: 12px;">
-                                                                            <span class="badge-modern badge-soft-secondary"
-                                                                                style="border-radius: 20px;">
-                                                                                <i class="fa fa-check-circle"></i> Cicilan
-                                                                            </span>
-                                                                        </div>
-                                                                    @endif
+                                                                        @if ($item['payment_term'] == 'full_payment')
+                                                                            <div
+                                                                                style="margin-bottom: 4px; padding-left: 12px;">
+                                                                                <span class="badge-modern badge-soft-info"
+                                                                                    style="border-radius: 20px;">
+                                                                                    <i class="fa fa-check-circle"></i>
+                                                                                    Lunas
+                                                                                </span>
+                                                                            </div>
+                                                                        @endif
+                                                                        @if ($item['payment_term'] == 'installment_payment')
+                                                                            <div
+                                                                                style="margin-bottom: 4px; padding-left: 12px;">
+                                                                                <span
+                                                                                    class="badge-modern badge-soft-secondary"
+                                                                                    style="border-radius: 20px;">
+                                                                                    <i class="fa fa-check-circle"></i>
+                                                                                    Cicilan
+                                                                                </span>
+                                                                            </div>
+                                                                        @endif
 
-                                                                    @if ($is_dispensation)
-                                                                        <div
-                                                                            style="margin-bottom: 4px; padding-left: 12px;">
-                                                                            <span class="badge-modern badge-soft-success"
-                                                                                style="border-radius: 20px;">
-                                                                                <i class="fa fa-check-circle"></i> Anda
-                                                                                menerima potongan pembayaran </span>
-                                                                        </div>
-                                                                    @endif
+                                                                        @if ($is_dispensation)
+                                                                            <div
+                                                                                style="margin-bottom: 4px; padding-left: 12px;">
+                                                                                <span
+                                                                                    class="badge-modern badge-soft-success"
+                                                                                    style="border-radius: 20px;">
+                                                                                    <i class="fa fa-check-circle"></i> Anda
+                                                                                    menerima potongan pembayaran </span>
+                                                                            </div>
+                                                                        @endif
 
-                                                                </div>
+                                                                    </div>
+                                                                @endif
                                                             </div>
                                                         </div>
 
@@ -563,11 +584,13 @@
                                                                     <i class="fa fa-file-text-o me-1"></i> Bukti Lunas
                                                                 </a>
                                                             @else
-                                                                <a href="{{ route('ppdb.bills.choise-payment') }}"
-                                                                    class="btn btn-sm btn-outline-green px-3"
-                                                                    style="font-size: 0.75rem; font-weight: 600;">
-                                                                    Cara Bayar <i class="fa fa-chevron-right ms-1"></i>
-                                                                </a>
+                                                                @if ($item['payment_method'] == 'unpaid')
+                                                                    <a href="{{ route('ppdb.bills.choise-payment') }}"
+                                                                        class="btn btn-sm btn-outline-green px-3"
+                                                                        style="font-size: 0.75rem; font-weight: 600;">
+                                                                        Cara Bayar <i class="fa fa-chevron-right ms-1"></i>
+                                                                    </a>
+                                                                @endif
                                                             @endif
                                                         </div>
                                                     </div>
@@ -1050,5 +1073,4 @@
             });
         </script>
     @endpush
-
 @endsection

@@ -383,7 +383,7 @@
         var isMonthBeforeStart =
             '<div class="alert-danger">Tanggal pembayaran tidak boleh kurang dari tanggal mulai angsur</div>';
         var isDefferentMonth =
-        '<div class="alert-danger">Tanggal pembayaran harus beda bulan dari tanggal sebelumnya</div>';
+            '<div class="alert-danger">Tanggal pembayaran harus beda bulan dari tanggal sebelumnya</div>';
 
         const startDate = new Date(startDateAngsuran);
         const endDate = new Date(startDateAngsuran);

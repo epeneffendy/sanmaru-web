@@ -772,6 +772,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
         Route::get('/administrator/ppdb/check-inquiry-status/{id}', 'Admin\PPDBController@checkInquiryStatus')->name('admin.ppdb.check-inquiry-status');
         Route::get('/administrator/ppdb/download-template', 'Admin\PPDBController@downloadTemplate')->name('admin.ppdb.download-template');
         Route::post('/administrator/ppdb/import', 'Admin\PPDBController@import')->name('admin.ppdb.import');
+        Route::post('/administrator/ppdb/close-billing', 'Admin\PPDBController@closeBilling')->name('admin.ppdb.close-billing');
 
         //MONITORING PPDB
         Route::prefix('administrator/ppdb-monitoring')->name('admin.ppdb-monitoring.')->namespace('Admin')->group(function () {

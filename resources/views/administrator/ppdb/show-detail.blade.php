@@ -589,6 +589,7 @@
                             <li><a href="#tab-family" data-toggle="tab">Orang Tua/Wali</a></li>
                             <li><a href="#tab-additional" data-toggle="tab">Data Tambahan</a></li>
                             <li><a href="#tab-file" data-toggle="tab">Berkas</a></li>
+                            <li><a href="#tab-billing" data-toggle="tab">Billing</a></li>
                         </ul>
                     </div>
 
@@ -612,6 +613,10 @@
 
                             <div class="tab-pane" id="tab-file">
                                 @include('administrator.ppdb.partial.show_tab._file_data')
+                            </div>
+
+                            <div class="tab-pane" id="tab-billing">
+                                @include('administrator.ppdb.partial.show_tab._billing_data')
                             </div>
                         </div>
                     </div>

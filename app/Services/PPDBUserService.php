@@ -23,6 +23,7 @@ use App\Models\User;
 use App\Lib\DbTrx;
 use App\Models\Finance;
 use App\Models\StudentBills;
+use App\Services\StudentBillService;
 use App\Models\PaymentDispensations;
 use App\Services\PaymentDispensationsService;
 use App\Models\Voucher;
@@ -655,6 +656,7 @@ class PPDBUserService
                         $bills = new StudentBills();
                         $bills->ppdb_user_id = $ppdb->id;
                         $bills->finance_id = $finance->id;
+                        $bills->finance_name = $finance->name;
                         $bills->type = $category;
                         $bills->amount = $price['nominal_default'];
                         $bills->due_date = $finance->start_date;
@@ -670,7 +672,6 @@ class PPDBUserService
                 }
             }
         }
-
         return $createdBills;
     }
 
@@ -680,13 +681,16 @@ class PPDBUserService
         $dataBills = [];
         $totalBill = $billedFull = 0;
         foreach($bills as $bill){
+            $dataBills[$bill->type]['id'] = $bill->id;
             $dataBills[$bill->type]['ppdb_user_id'] = $bill->ppdb_user_id;
             $dataBills[$bill->type]['finance_id'] = $bill->finance_id;
+            $dataBills[$bill->type]['finance_name'] = $bill->finance->name;
             $dataBills[$bill->type]['type'] = $bill->type;
             $dataBills[$bill->type]['amount'] = $bill->amount;
             $dataBills[$bill->type]['payment_method'] = $bill->payment_method;
             $dataBills[$bill->type]['payment_term'] = $bill->payment_term;
             $dataBills[$bill->type]['due_date'] = $bill->due_date;
+            $dataBills[$bill->type]['note'] = $bill->note;
 
             $totalBill += $bill->amount;
             if($bill->payment_method == StudentBills::PAYMENT_METHOD_PAID){
@@ -699,7 +703,7 @@ class PPDBUserService
             'billed_full'=> $billedFull
         ];
 
-        return ['bills' => $bills,'bill_amount'=> $billAmount];
+        return ['bills' => $bills,'bill_amount'=> $billAmount,'data_bills'=>$dataBills];
     }
 
     public function getDevelopmentReport($params){
@@ -967,4 +971,27 @@ class PPDBUserService
         }
         return $collections;
     }
+
+    public function getBillingData($id){
+        $studentBillService = app(StudentBillService::class);
+        $bills = $this->getBills($id);
+
+        $collections = [];
+        foreach($bills['data_bills'] as $bill){
+            $collections[$bill['finance_id']]['id'] = $bill['id'];
+            $collections[$bill['finance_id']]['desc'] = $bill['finance_name'];
+            $collections[$bill['finance_id']]['type'] = $studentBillService->getPaymentType($bill['type']);
+            $collections[$bill['finance_id']]['type_bill'] = $bill['type'];
+            $collections[$bill['finance_id']]['amount'] = $bill['amount'];
+            $collections[$bill['finance_id']]['payment_method'] = $studentBillService->getPaymentMethod($bill['payment_method']);
+            $collections[$bill['finance_id']]['payment_status'] = $bill['payment_method'];
+            $collections[$bill['finance_id']]['payment_term'] = $studentBillService->getPaymentTerm($bill['payment_term']);
+            $collections[$bill['finance_id']]['due_date'] = $bill['due_date'];
+            $collections[$bill['finance_id']]['note'] = $bill['note'];
+        }
+
+        return $collections;
+    }
+
+
 }

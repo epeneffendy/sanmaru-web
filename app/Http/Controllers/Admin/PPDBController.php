@@ -20,6 +20,7 @@ use App\Services\ParentService;
 use App\Mail\EmailVerification;
 use App\Services\EmailService;
 use App\Services\UserService;
+use App\Services\StudentBillService;
 use Illuminate\Http\Request;
 use App\Models\Classes;
 use App\Models\PPDBUser;
@@ -226,6 +227,7 @@ class PPDBController extends Controller
         $mom = $parentService->show(Parents::TYPE_MOTHER, $ppdbUser->user_id);
         $dad = $parentService->show(Parents::TYPE_FATHER, $ppdbUser->user_id);
         $wali = $parentService->show(Parents::TYPE_WALI, $ppdbUser->user_id);
+        $billing = $ppdbUserService->getBillingData($ppdbUser->id);
 
         $status_student = 'Tahap Seleksi';
         if(isset($ppdbUser->student)){
@@ -243,6 +245,7 @@ class PPDBController extends Controller
             'mom' => $mom,
             'wali' => $wali,
             'status_student'=> $status_student,
+            'billing' => $billing,
         );
 
         return view('administrator/ppdb/show-detail', $data);
@@ -595,6 +598,19 @@ class PPDBController extends Controller
         ini_set('max_execution_time', '30');
 
         return redirect()->route('admin.ppdb.index')->with($sessionFlash);
+    }
+
+    public function closeBilling(Request $request, StudentBillService $studentBillService)
+    {
+        $billId = $request->input('bill_id');
+        $reason = $request->input('reason');
+
+        try {
+            $studentBillService->closeBilling($billId, $reason);
+            return redirect()->back()->with('message', 'Tagihan berhasil ditutup');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal menutup tagihan: ' . $e->getMessage());
+        }
     }
 
 }

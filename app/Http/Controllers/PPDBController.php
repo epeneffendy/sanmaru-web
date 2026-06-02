@@ -254,7 +254,7 @@ class PPDBController extends Controller
             'nav' => ['parent' => 'home', 'child' => 'Informasi PPDB']
         );
 
-        return view('ppdb-online.biaya-pengembangan.cicilan', $data);
+        return view('ppdb-online.biaya-pengembangan.cicilan-selected', $data);
     }
 
     public function biayaPengembanganLunasPpdb(Request $request, GeneralSettingService $generalSettingService)
@@ -282,7 +282,7 @@ class PPDBController extends Controller
 //            'deadline'=>Carbon::parse($deadline)->format('d-m-Y '),
             'nav' => ['parent' => 'home', 'child' => 'Informasi PPDB']
         );
-        return view('ppdb-online.biaya-pengembangan.lunas', $data);
+        return view('ppdb-online.biaya-pengembangan.lunas-selected', $data);
     }
 
     public function postBiayaPengembanganCicilanPpdb(Request $request)
@@ -1771,6 +1771,12 @@ class PPDBController extends Controller
     public function financeBills(Request $request, PPDBUserService $ppdbUserService, PaymentDispensationsService $paymentDispensationsService)
     {
         $user = $request->session()->get('user');
+        $ppdbUser = PPDBUser::where('id', $user['ppdb']['id'])->first();
+
+        $is_show = false;
+        // if($ppdbUser->development_fee_option == PPDBUser::DEVELOPMENT_FEE_ANGSURAN){
+        //     $is_show = true;
+        // }
 
         $bills = $ppdbUserService->getBills($user['ppdb']['id']);
 

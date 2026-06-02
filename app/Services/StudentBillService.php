@@ -36,7 +36,7 @@ class StudentBillService
         $ppdbUsers = $ppdbUsers->get();
 
         $collections = [];
-        
+
         foreach($ppdbUsers as $ppdbUser){
             $bills = $this->getStudentBills($ppdbUser->id);
             $collections[$ppdbUser->id]['name'] = $ppdbUser->name;
@@ -44,16 +44,16 @@ class StudentBillService
             $collections[$ppdbUser->id]['unit'] = $ppdbUser->unit->name;
             $collections[$ppdbUser->id]['billing'] = ($bills->count() > 0) ? true : false;
             if($bills->count() > 0){
-                
+
                 foreach($bills as $bill){
-                    $is_dispensation = false;        
+                    $is_dispensation = false;
                     if($bill->type == StudentBills::BILL_TYPE_DEVELOPMENT){
                         $dispensations = PaymentDispensations::where('ppdb_user_id', $ppdbUser->id)
                             ->where('status', PaymentDispensations::STATUS_ACTIVE)
                             ->where('dispensation_mode','<>', PaymentDispensations::MODE_REAL_PAYMENT)
                             ->where('dispensation_type', PaymentDispensations::DISPENSATION_TYPE_DEVELOPMENT)
                             ->orderBy('id', 'desc')->first();
-                        
+
                             if($dispensations){
                                 $is_dispensation = true;
                             }
@@ -64,12 +64,23 @@ class StudentBillService
                     $collections[$ppdbUser->id]['bills'][$bill->finance_id]['total_final_fee'] = ($is_dispensation) ? $dispensations->total_final_fee : 0;
                     $collections[$ppdbUser->id]['bills'][$bill->finance_id]['amount'] = $bill->amount;
                     $collections[$ppdbUser->id]['bills'][$bill->finance_id]['payment_term'] = $this->getPaymentTerm($bill->payment_term);
-                    $collections[$ppdbUser->id]['bills'][$bill->finance_id]['payment_method'] = $this->getPaymentMethod($bill->payment_method);   
+                    $collections[$ppdbUser->id]['bills'][$bill->finance_id]['payment_method'] = $this->getPaymentMethod($bill->payment_method);
                 }
             }
         }
-        
+
         return $collections;
+    }
+
+    public function closeBilling($billId, $reason){
+        $bill = StudentBills::find($billId);
+        if(!$bill){
+            throw new UserException("Tagihan tidak ditemukan");
+        }
+
+        $bill->payment_method = StudentBills::PAYMENT_METHOD_CLOSED;
+        $bill->note = $reason;
+        $bill->save();
     }
 
     public function getPaymentMethod($status) {
@@ -82,6 +93,8 @@ class StudentBillService
                 return 'Pembayaran Sebagian';
             case StudentBills::PAYMENT_METHOD_CANCELED:
                 return 'Pembayaran Dibatalkan';
+            case StudentBills::PAYMENT_METHOD_CLOSED:
+                return 'Pembayaran Dihentikan';
             default:
                 return '';
         }
@@ -97,5 +110,21 @@ class StudentBillService
                 return '';
         }
     }
+
+    public function getPaymentType($status){
+        switch ($status) {
+            case 'development':
+                return 'Uang Pengembangan';
+            case 'activity':
+                return 'Uang Kegiatan';
+            case 'registration':
+                return 'Uang Pendaftaran';
+            case 'tuition':
+                return 'Uang SPP';
+            case 'other':
+                return 'Lain-lain';
+            default:
+                return '';
+        }
+    }
 }
-            

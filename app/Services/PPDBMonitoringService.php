@@ -234,6 +234,7 @@ class PPDBMonitoringService
                     if (!empty($user->IsStatementLetterUploaded)) {
                         $collection[$user->id] = $baseData;
                     }
+
                 } elseif ($flag == 'last-stage') {
                     if ($user->isOrderConfirmed) {
                         $collection[$user->id] = $baseData;

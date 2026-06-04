@@ -214,7 +214,7 @@
             <div class="col-md-3 col-sm-6">
                 <div class="widget-card">
                     <div class="widget-info">
-                        <h4>Email Terverifikasi</h4>
+                        <h4>Melengkapi Administrasi</h4>
                         <h2>{{ $data['verifEmail'] }}</h2>
                     </div>
                     <div class="widget-icon bg-gradient-warning"><i class="fa fa-clock-o"></i></div>

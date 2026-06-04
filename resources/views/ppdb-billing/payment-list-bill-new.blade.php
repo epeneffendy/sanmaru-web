@@ -265,55 +265,55 @@
             </div>
         @endif
 
-        @if ($dispensation->dispensation_mode > 0)
-            <h5 class="font-weight-bold text-secondary mb-3">Alternatif Pembayaran</h5>
-            <div class="row mb-5">
-                <div class="col-md-6 mb-3 mb-md-0">
-                    <div class="card card-option p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="font-weight-bold mb-0">Full Settlement (Bayar Lunas)</h6>
-                            <span class="badge badge-recommendation">Rekomendasi</span>
-                        </div>
-
-                        <p class="text-muted mb-1" style="font-size: 0.85rem;">Nomor Virtual Account</p>
-                        <div class="d-flex align-items-center mb-3">
-                            <span class="va-text va-number mr-2 text-dark">{{ $va_full ?? 'Nomor VA Lunas' }}</span>
-                            {{-- <i class="copy-icon text-muted" style="cursor: pointer;" title="Salin">Salin</i> --}}
-                        </div>
-
-                        <p class="text-muted mb-1" style="font-size: 0.85rem;">Total Nominal</p>
-                        <h5 class="font-weight-bold mb-4">Rp
-                            {{ number_format($dispensation['remaining_balance'] ?? 0, 0, ',', '.') }}</h5>
-
-                        <a href="{{ route('ppdb.bills.payment-now', ['id' => $dispensation->id, 'type' => 'full_statement']) }}"
-                            class="btn btn-dark-green btn-block py-2 text-white">Bayar
-                            Lunas Sekarang</a>
+        {{-- @if ($dispensation->dispensation_mode > 0) --}}
+        <h5 class="font-weight-bold text-secondary mb-3">Alternatif Pembayaran</h5>
+        <div class="row mb-5">
+            <div class="col-md-6 mb-3 mb-md-0">
+                <div class="card card-option p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="font-weight-bold mb-0">Full Settlement (Bayar Lunas)</h6>
+                        <span class="badge badge-recommendation">Rekomendasi</span>
                     </div>
-                </div>
 
-                <div class="col-md-6">
-                    <div class="card card-option p-4">
-                        <h6 class="font-weight-bold mb-2">Partial Settlement (Bayar Sebagian)</h6>
-                        <p class="text-muted mb-3" style="font-size: 0.85rem; line-height: 1.4;">
-                            Jika anda akan melakukan pembayaran dengan nominal bebas untuk mengurangi beban cicilan
-                        </p>
-
-                        <div class="form-group mb-4">
-                            <label class="text-muted" style="font-size: 0.85rem;">Nominal yang akan dibayarkan</label>
-                            <input type="text" id="input-nominal-partial" class="form-control"
-                                placeholder="Contoh: 1.000.000" min="100000">
-                            <input type="hidden" id="input-nominal-remaining-balance" class="form-control"
-                                value="{{ $dispensation['remaining_balance'] ?? 0 }}">
-                        </div>
-
-                        <a href="{{ route('ppdb.bills.payment-now', ['id' => $dispensation->id, 'type' => 'partial']) }}"
-                            id="btn-generate-partial"
-                            class="btn btn-outline-dark-green text-success btn-block py-2 mt-auto">Generate Virtual
-                            Account</a>
+                    <p class="text-muted mb-1" style="font-size: 0.85rem;">Nomor Virtual Account</p>
+                    <div class="d-flex align-items-center mb-3">
+                        <span class="va-text va-number mr-2 text-dark">{{ $va_full ?? 'Nomor VA Lunas' }}</span>
+                        {{-- <i class="copy-icon text-muted" style="cursor: pointer;" title="Salin">Salin</i> --}}
                     </div>
+
+                    <p class="text-muted mb-1" style="font-size: 0.85rem;">Total Nominal</p>
+                    <h5 class="font-weight-bold mb-4">Rp
+                        {{ number_format($dispensation['remaining_balance'] ?? 0, 0, ',', '.') }}</h5>
+
+                    <a href="{{ route('ppdb.bills.payment-now', ['id' => $dispensation->id, 'type' => 'full_statement']) }}"
+                        class="btn btn-dark-green btn-block py-2 text-white">Bayar
+                        Lunas Sekarang</a>
                 </div>
             </div>
-        @endif
+
+            <div class="col-md-6">
+                <div class="card card-option p-4">
+                    <h6 class="font-weight-bold mb-2">Partial Settlement (Bayar Sebagian)</h6>
+                    <p class="text-muted mb-3" style="font-size: 0.85rem; line-height: 1.4;">
+                        Jika anda akan melakukan pembayaran dengan nominal bebas untuk mengurangi beban cicilan
+                    </p>
+
+                    <div class="form-group mb-4">
+                        <label class="text-muted" style="font-size: 0.85rem;">Nominal yang akan dibayarkan</label>
+                        <input type="text" id="input-nominal-partial" class="form-control"
+                            placeholder="Contoh: 1.000.000" min="100000">
+                        <input type="hidden" id="input-nominal-remaining-balance" class="form-control"
+                            value="{{ $dispensation['remaining_balance'] ?? 0 }}">
+                    </div>
+
+                    <a href="{{ route('ppdb.bills.payment-now', ['id' => $dispensation->id, 'type' => 'partial']) }}"
+                        id="btn-generate-partial"
+                        class="btn btn-outline-dark-green text-success btn-block py-2 mt-auto">Generate Virtual
+                        Account</a>
+                </div>
+            </div>
+        </div>
+        {{-- @endif --}}
 
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="font-weight-bold text-secondary mb-0">Rencana Cicilan / Setup Pembayaran</h5>

@@ -115,10 +115,11 @@ class PPDBMonitoringController extends Controller
             ];
 
         } elseif ($type == 'development-statement') {
-
             $data = $PPDBMonitoringService->stagesAdministrasi($period, true, 'development-statement');
 
             $stage = Stage::where('id', $stage_id)->where('active', 1)->first();
+
+            $data = $this->paginateArray($data, 15, $request);
 
             $data = [
                 'nav' => $this->page,

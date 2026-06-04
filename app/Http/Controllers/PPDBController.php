@@ -135,7 +135,6 @@ class PPDBController extends Controller
         if ($user_ppdb->isReadyToSubmit) {
             try {
                 $bills = $ppdbUserService->studentBills($user_ppdb);
-
                 if(count($bills) > 0){
                     $user_ppdb->update([
                         'status' => PPDBUser::STATUS_SUBMITTED,

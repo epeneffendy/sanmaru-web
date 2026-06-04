@@ -41,6 +41,8 @@ class RegistrasiPPDBController extends Controller
 
         $periods = Period::where('unit_id',$unit->id)
             ->where('active',1)
+            ->where('start_date', '<=', now()->toDateString())
+            ->where('end_date', '>=', now()->toDateString())
             ->get();
 
         return view('ppdb-online.registration', [

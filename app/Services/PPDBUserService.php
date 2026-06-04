@@ -183,7 +183,6 @@ class PPDBUserService
 
     public function confirm($id, $params): bool
     {
-        dd($params);
         try {
             DB::beginTransaction();
             DB::connection('mysql_erp')->beginTransaction();
@@ -656,7 +655,6 @@ class PPDBUserService
                         $bills = new StudentBills();
                         $bills->ppdb_user_id = $ppdb->id;
                         $bills->finance_id = $finance->id;
-                        $bills->finance_name = $finance->name;
                         $bills->type = $category;
                         $bills->amount = $price['nominal_default'];
                         $bills->due_date = $finance->start_date;

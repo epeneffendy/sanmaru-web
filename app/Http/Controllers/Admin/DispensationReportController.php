@@ -50,15 +50,15 @@ class DispensationReportController extends Controller
         return $params;
     }
 
-    public function export(Request $request, PPDBUserService $ppdbUserService){
+    public function export(Request $request, PaymentDispensationsService $paymentDispensationsService){
         $params = $this->getParams($request);
         $data_ppdb = [];
 
         if(!empty($request->all())){
-            $data_ppdb = $ppdbUserService->getAdmissionReport($params);
+            $data_ppdb = $paymentDispensationsService->getDispensationReport($params);
         }
 
-        $dispensationReportExport = new DispensationReportExport(collect($data_ppdb));
+        $dispensationReportExport = new DispensationReportExport($data_ppdb);
         $title = 'Exports Laporan Penerima Dispensasi.xlsx';
 
         return $dispensationReportExport->download($title);

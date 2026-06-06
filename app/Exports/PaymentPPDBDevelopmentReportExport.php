@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\Exportable;
 
-class PaymentPPDBReportExport implements FromArray, WithHeadings, ShouldAutoSize, WithEvents
+class PaymentPPDBDevelopmentReportExport implements FromArray, WithHeadings, ShouldAutoSize, WithEvents
 {
     use Exportable;
     protected $ppdbUser;
@@ -26,26 +26,36 @@ class PaymentPPDBReportExport implements FromArray, WithHeadings, ShouldAutoSize
         foreach ($this->ppdbUser as $user) {
             $isFirstRow = true;
 
-            if (isset($user['bills']) && is_array($user['bills']) && count($user['bills']) > 0) {
-                foreach ($user['bills'] as $detail) {
+            if (isset($user['detail']) && is_array($user['detail']) && count($user['detail']) > 0) {
+                foreach ($user['detail'] as $detail) {
                     $rows[] = [
                         $isFirstRow ? $user['name'] : '',
                         $isFirstRow ? $user['register_number'] : '',
                         $isFirstRow ? $user['unit'] : '',
+                        $isFirstRow ? $user['is_dispensation'] : '',
+                        $isFirstRow ? $user['total_final_fee'] : '',
+                        $isFirstRow ? $user['remaining_balance'] : '',
+                        $isFirstRow ? $user['created_at'] : '',
 
-                        $detail['desc'] ?? '',
-                        $detail['amount'] ?? '',
-                        $detail['payment_term'] ?? '-',
-                        $detail['payment_method'] ?? '-',
+                        $detail['installment_number'] ?? '',
+                        $detail['virtual_account'] ?? '',
+                        $detail['date'] ?? '-',
+                        $detail['nominal'] ?? '-',
+                        $detail['amount_paid'] ?? '-',
+                        $detail['status'] ?? '-',
                     ];
 
                     $isFirstRow = false;
                 }
             } else {
                 $rows[] = [
-                    $user['name'] ?? '',
-                    $user['register_number'] ?? '',
-                    $user['unit'] ?? '',
+                    $isFirstRow ? $user['name'] : '',
+                    $isFirstRow ? $user['register_number'] : '',
+                    $isFirstRow ? $user['unit'] : '',
+                    $isFirstRow ? $user['is_dispensation'] : '',
+                    $isFirstRow ? $user['total_final_fee'] : '',
+                    $isFirstRow ? $user['remaining_balance'] : '',
+                    $isFirstRow ? $user['created_at'] : '',
                 ];
             }
         }
@@ -59,10 +69,16 @@ class PaymentPPDBReportExport implements FromArray, WithHeadings, ShouldAutoSize
             'Nama Siswa',
             'No. Registrasi',
             'Unit',
+            'Dispensasi',
+            'Nominal Pembayaran',
+            'Sisa Pembayaran',
+            'Tgl Dibuat',
             'Keterangan',
+            'Virtual Account',
+            'Tgl Bayar',
             'Tagihan',
-            'Cara Pembayaran',
-            'Status Pembayaran',
+            'Tagihan Dibayar',
+            'Status',
         ];
     }
 

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\PaymentPPDBDevelopmentReportExport;
+use App\Exports\PaymentPPDBReportExport;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\Period;
@@ -25,9 +27,9 @@ class PaymentPPDBReportController extends Controller
             if($params['type'] == 'all'){
                 $data_ppdb = $studentBillService->getStudentBillReport($params);
             }else{
-                $data_ppdb = $paymentDispensationsService->getDevelopmentPaymentReport($params);    
+                $data_ppdb = $paymentDispensationsService->getDevelopmentPaymentReport($params);
             }
-            
+
         }
 
         $data = [
@@ -54,5 +56,25 @@ class PaymentPPDBReportController extends Controller
         $params['type'] = $request->get('type');
 
         return $params;
+    }
+
+    public function export(Request $request, PaymentDispensationsService $paymentDispensationsService, StudentBillService $studentBillService){
+        $params = $this->getParams($request);
+        $type = $params['type'] ?? 'all';
+        $data_ppdb = [];
+        if(!empty($request->all())){
+            if($params['type'] == 'all'){
+                $data_ppdb = $studentBillService->getStudentBillReport($params);
+                $paymentPPDBReportExport = new PaymentPPDBReportExport($data_ppdb);
+                $title = 'Exports Laporan Pembayaran Siswa.xlsx';
+            }else{
+                $data_ppdb = $paymentDispensationsService->getDevelopmentPaymentReport($params);
+                $paymentPPDBReportExport = new PaymentPPDBDevelopmentReportExport($data_ppdb);
+                $title = 'Exports Laporan Pembayaran Uang Pengembangan Siswa.xlsx';
+            }
+
+        }
+
+        return $paymentPPDBReportExport->download($title);
     }
 }

@@ -37,7 +37,15 @@ class AdmissionReportExport implements FromCollection, WithHeadings, WithMapping
             'register_number' => $ppdbUser['register_number'] ?? '-',
             'name' => $ppdbUser['name'] ?? '-',
             'unit' => $ppdbUser['unit'] ?? '-',
-            'status' => $ppdbUser['label_status'] ?? $ppdbUser['status'] ?? '-',
+            'periode' => $ppdbUser['periode'] ?? '-',
+            'tgl_daftar' => $ppdbUser['created_at'] ?? '-',
+            'registration' => ($ppdbUser['detail']['registration']) ? 'Lunas' : 'Belum Terbayarkan',
+            'administrasi' => ($ppdbUser['detail']['administrasi']) ? 'Data Lengkap' : 'Data Belum Lengkap',
+            'statement_letter_verif' => !empty($ppdbUser['detail']['statement_letter_verif']) ? 'Sudah Terverifikasi' : (!empty($ppdbUser['detail']['statement_letter']) ? 'Sudah Diunggah' : 'Belum Diunggah'),
+            'order_uniform' => ($ppdbUser['detail']['order_uniform']) ? 'Sudah Melakukan Pembelian Seragam' : 'Belum Melaukan Pembelian Seragam',
+            'final_accpetance' => ($ppdbUser['detail']['final_accpetance']) ? 'Telah Diterima Sebagai Siswa' : 'Belum Diterima Sebagai Siswa',
+            'class_nisn' => ($ppdbUser['detail']['class_nisn']) ? 'Kelas & NISN Sudah Ditentukan' : 'Kelas & NISN Belum Ditentukan',
+
         ];
     }
 
@@ -45,10 +53,17 @@ class AdmissionReportExport implements FromCollection, WithHeadings, WithMapping
     {
         return [
             'No',
-            'No Pendaftaran',
             'Nama Siswa',
+            'Register Number',
             'Unit',
-            'Status',
+            'Periode',
+            'Tgl Daftar',
+            'Pembayaran Formulir',
+            'Data Administrasi',
+            'Surat Pernyataan',
+            'Pembelian Seragam',
+            'Penerimaan Akhir',
+            'NISN & Kelas',
         ];
     }
 }

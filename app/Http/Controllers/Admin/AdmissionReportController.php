@@ -9,6 +9,7 @@ use App\Models\Unit;
 use App\Services\FinanceService;
 use App\Services\PaymentDispensationsService;
 use App\Services\PPDBUserService;
+use App\Exports\AdmissionReportExport;
 
 class AdmissionReportController extends Controller
 {
@@ -48,5 +49,19 @@ class AdmissionReportController extends Controller
 
 
         return $params;
+    }
+
+    public function export(Request $request, PPDBUserService $ppdbUserService){
+        $params = $this->getParams($request);
+        $data_ppdb = [];
+
+        if(!empty($request->all())){
+            $data_ppdb = $ppdbUserService->getAdmissionReport($params);
+        }
+
+        $admissionReportExport = new AdmissionReportExport(collect($data_ppdb));
+        $title = 'Exports Laporan Penerimaan Siswa Baru.xlsx';
+
+        return $admissionReportExport->download($title);
     }
 }

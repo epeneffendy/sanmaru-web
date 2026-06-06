@@ -8,6 +8,7 @@ use App\Models\Period;
 use App\Models\Unit;
 use App\Services\FinanceService;
 use App\Services\PaymentDispensationsService;
+use App\Exports\DispensationReportExport;
 
 class DispensationReportController extends Controller
 {
@@ -47,5 +48,19 @@ class DispensationReportController extends Controller
 
 
         return $params;
+    }
+
+    public function export(Request $request, PPDBUserService $ppdbUserService){
+        $params = $this->getParams($request);
+        $data_ppdb = [];
+
+        if(!empty($request->all())){
+            $data_ppdb = $ppdbUserService->getAdmissionReport($params);
+        }
+
+        $dispensationReportExport = new DispensationReportExport(collect($data_ppdb));
+        $title = 'Exports Laporan Penerima Dispensasi.xlsx';
+
+        return $dispensationReportExport->download($title);
     }
 }

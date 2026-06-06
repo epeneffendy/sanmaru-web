@@ -778,33 +778,35 @@ class PPDBUserService
     }
 
     public function dashboardPPDB(){
-        $totalRegistered = PPDBUser::where('school_year',date('Y'))->count();
+        $year = $this->getSchoolYear();
+
+        $totalRegistered = PPDBUser::where('school_year',$year)->count();
         $latestRegistered = $this->latestRegistered();
         $verifEmail = PPDBUser::where([
-            'school_year'=>date('Y'),
+            'school_year'=>$year,
             'status'=>PPDBUser::STATUS_SUBMITTED
         ])->count();
 
         $statementLetter = PPDBUser::where([
-            'school_year' => date('Y'),
+            'school_year' => $year,
             'status' => PPDBUser::STATUS_SUBMITTED,
         ])->whereNotNull('development_statement')->count();
 
         $studentAccepted = PPDBUser::where([
-            'school_year' => date('Y'),
+            'school_year' => $year,
             'status' => PPDBUser::STATUS_ACCEPTED,
         ])->count();
 
         $totalRegisteredPerUnit = $this->registeredPerUnit();
 
         $genderRatio = PPDBUser::select('gender',DB::raw('count(*) as total'))
-            ->where('school_year',date('Y'))
+            ->where('school_year',$year)
             ->whereNotNull('gender')
             ->where('gender', '!=', '')
             ->groupBy('gender')->get();
 
         $topOriginSchools = PPDBUser::select('origin_school', DB::raw('count(*) as total'))
-            ->where('school_year', date('Y'))
+            ->where('school_year', $year)
             ->whereNotNull('origin_school')
             ->where('origin_school', '!=', '')
             ->groupBy('origin_school')
@@ -842,7 +844,8 @@ class PPDBUserService
     }
 
     public function registeredPerUnit(){
-        $users = PPDBUser::where('school_year', date('Y'))
+        $year = $this->getSchoolYear();
+        $users = PPDBUser::where('school_year', $year)
             ->where('status', PPDBUser::STATUS_SUBMITTED)
             ->with('unit')
             ->get();
@@ -991,5 +994,21 @@ class PPDBUserService
         return $collections;
     }
 
+    public function getSchoolYear()
+    {
+        $sekarang = Carbon::now();
+        $tahunIni = $sekarang->year;
+        $bulanIni = $sekarang->month;
+
+        if ($bulanIni >= 7) {
+            // Jika bulan Juli sampai Desember
+            $tahunAjaran = ($tahunIni + 1);
+        } else {
+            // Jika bulan Januari sampai Juni
+            $tahunAjaran = $tahunIni;
+        }
+
+        return $tahunAjaran;
+    }
 
 }

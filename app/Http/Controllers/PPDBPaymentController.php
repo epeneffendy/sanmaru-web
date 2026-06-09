@@ -117,10 +117,12 @@ class PPDBPaymentController extends Controller
     }
 
     public function store(Request $request, PaymentDispensationsService $paymentDispensationService){
+
         try{
+            $paymentType = $request->paymentType;
             $ppdb = PPDBUser::where('id', $request->ppdb_user_id)->first();
-            $va_full_statement = $paymentDispensationService->virtualAccountNumber($ppdb, PaymentDispensations::TYPE_FULL);
-            $va_partial = $paymentDispensationService->virtualAccountNumber($ppdb, PaymentDispensations::TYPE_PARTIAL);
+            $va_full_statement = $paymentDispensationService->virtualAccountNumber($ppdb,PaymentDispensations::CODE_PAYMENT_DEVELOPMENT, PaymentDispensations::TYPE_FULL);
+            $va_partial = $paymentDispensationService->virtualAccountNumber($ppdb,PaymentDispensations::CODE_PAYMENT_DEVELOPMENT, PaymentDispensations::TYPE_PARTIAL);
 
             $dispensation = $paymentDispensationService->getByUserPpdb($request->ppdb_user_id);
 
@@ -157,7 +159,7 @@ class PPDBPaymentController extends Controller
             if($request->paymentType == 'lunas'){
                 //redirect ke link payment-now
                 $dispensation = $paymentDispensationService->getByUserPpdb($request->ppdb_user_id);
-                return redirect()->route('ppdb.bills.payment-now', ['id' =>$dispensation->id, 'type' => PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT])->with('message', 'Data berhasil disimpan!');
+                return redirect()->route('ppdb.bills.payment-now', ['id' =>$dispensation->id, 'type' => PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT, 'payment_type'=>$paymentType])->with('message', 'Data berhasil disimpan!');
             }
             //Redirect Route jika sudah berhasil simpan
             return redirect()->route('ppdb.bills.choise-payment')->with('message', 'Data berhasil disimpan!');
@@ -181,6 +183,11 @@ class PPDBPaymentController extends Controller
                 $virtual_account_type = PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT;
                 $virtual_account_number = json_decode($dispensation->value)->va_full_statement;
                 $remaining_balance = $dispensation->remaining_balance;
+                if(isset($request->payment_type)){
+                    if($request->payment_type == 'lunas'){
+                        $virtual_account_number = $dispensation->details[0]->virtual_account;
+                    }
+                }
             }
 
             if($request->type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_INSTALLMENT){

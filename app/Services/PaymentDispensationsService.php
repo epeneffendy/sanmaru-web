@@ -116,13 +116,14 @@ class PaymentDispensationsService {
         }
 
         foreach($arr_calculate as $key => $value){
-            $virtual_account_number = $this->virtualAccountNumber($ppdb, PaymentDispensations::TYPE_PENGEMBANGAN_LUNAS);
+            $virtual_account_number = $this->virtualAccountNumber($ppdb,PaymentDispensations::CODE_PAYMENT_DEVELOPMENT, PaymentDispensations::TYPE_PENGEMBANGAN_LUNAS);
+
             if($is_installment){
                 $const_type = PaymentDispensations::TYPE_PENGEMBANGAN_CICILAN;
                 if($key == 0){
                     $const_type = PaymentDispensations::TYPE_PENGEMBANGAN_DP;
                 }
-                $virtual_account_number = $this->virtualAccountNumber($ppdb, $const_type, $key);
+                $virtual_account_number = $this->virtualAccountNumber($ppdb,PaymentDispensations::CODE_PAYMENT_DEVELOPMENT, $const_type, $key);
             }
 
             $arr_dispensation[] = [
@@ -153,40 +154,40 @@ class PaymentDispensationsService {
         return $arr_calculate;
     }
 
-    public static function virtualAccountNumber($model, $const_type, $installment = 0)
+    public static function virtualAccountNumber($model, $code_payment, $const_type, $installment = null)
     {
-
-        $unit = null;
-        $registrationNumber = null;
-        $unitCode = null;
-        $typePayment = null;
-        $kodeBiller = null;
-        $installmentCount= 0;
-        $year = null;
-        $paymentOption = 'BCA';
-
-        if ($model instanceof PPDBUser) {
-            $unit = $model->unit;
-            $registrationNumber = $model->register_number;
-            $typePayment = $const_type; //ppdb
-            $year = substr($model->school_year, -2);
-
-        }
-
-        if (! $unit || ! $registrationNumber) {
+        if (!$model instanceof PPDBUser || empty($model->unit) || empty($model->register_number)) {
             return null;
         }
 
-        $unitCode = sprintf("%02d", $unit->id);
-        $installmentCount = sprintf("%02d", $installment);
-        $paymentInfo = PriceHelper::paymentInfo($unit, $paymentOption);
-        $kodeBiller = $paymentInfo['kode_biller'];
+        $installment_type = '';
+        if($code_payment == PaymentDispensations::CODE_PAYMENT_DEVELOPMENT){
+            $installment_type = PaymentDispensations::TYPE_PENGEMBANGAN_CICILAN;
+        }
 
+        $typePayment = $const_type;
+        $paymentInfo = PriceHelper::paymentInfo($model->unit, 'BCA');
+        $kodeBiller = $paymentInfo['kode_biller'] ?? null;
 
-        if (! $typePayment || ! $kodeBiller) {
+        if (empty($typePayment) || empty($kodeBiller)) {
             return null;
         }
-        return "{$kodeBiller}{$unitCode}{$typePayment}{$registrationNumber}{$installmentCount}{$year}";
+
+        $unitCode = sprintf("%02d", $model->unit->id);
+        $virtualAccount = "{$kodeBiller}{$unitCode}{$code_payment}{$model->register_number}";
+
+        //Jika pembayaran lunas
+        if ($const_type == PaymentDispensations::TYPE_PENGEMBANGAN_LUNAS) {
+            return $virtualAccount;
+        }
+
+        if ($installment !== null) {
+            $virtualAccount .= "{$typePayment}".sprintf("%02d", $installment);
+        }else{
+            $virtualAccount .= "{$installment_type}{$typePayment}";
+        }
+
+        return $virtualAccount;
     }
 
     public function fillable($ppdb,$total_final, $actual_cost, $type, $mode){

@@ -15,6 +15,8 @@ class PaymentVirtualAccounts extends Model
 
     const PAYMENT_TYPE_DEVELOPMENT = 'development';
 
+    const PAYMENT_PAID_OFF = 'lunas';
+
     const VIRTUAL_ACCOUNT_FULL_STATEMENT = 'full_statement';
     const VIRTUAL_ACCOUNT_PARTIAL = 'partial';
     const VIRTUAL_ACCOUNT_INSTALLMENT = 'installment';

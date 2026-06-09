@@ -39,6 +39,10 @@ class PaymentDispensations extends Model
     const TYPE_PENGEMBANGAN_LUNAS   = 21;
     const TYPE_PENGEMBANGAN_DP      = 22;
     const TYPE_PENGEMBANGAN_CICILAN = 23;
+
+    const CODE_PAYMENT_DEVELOPMENT = '03';
+    const CODE_PAYMENT_ACTIVITY = '06';
+
     const TYPE_PARTIAL = 98;
     const TYPE_FULL = 99;
 

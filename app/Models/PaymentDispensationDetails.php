@@ -13,6 +13,7 @@ class PaymentDispensationDetails extends Model
         'installment_number',
         'virtual_account',
         'date',
+        'plan_date',
         'nominal',
         'amount_paid',
         'status',

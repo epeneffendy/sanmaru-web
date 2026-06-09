@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\PriceHelper;
+use App\Models\PaymentDispensationDetails;
 use App\Models\PaymentDispensations;
 use App\Models\PPDBUser;
 use App\Services\FinanceSystemConfigurationService;
@@ -291,6 +292,16 @@ class PPDBPaymentController extends Controller
         ];
 
         return view('ppdb-billing.payment-development-receipt', $data);
+    }
+
+    public function paymentPlanDate(Request $request, PaymentDispensationsService $paymentDispensationsService){
+        $user = $request->session()->get('user');
+        $confirm = $paymentDispensationsService->confirmPlanDate($request->all(), $user['ppdb']['id']);
+        if($confirm){
+            return redirect()->back()->with('message', 'Tanggal rencana pembayaran berhasil disimpan!');
+        }
+
+        return redirect()->back()->with('error', 'Gagal menyimpan tanggal rencana pembayaran!');
     }
 
 

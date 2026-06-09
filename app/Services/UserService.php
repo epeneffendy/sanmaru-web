@@ -76,6 +76,7 @@ class UserService
 
     public function register($type, $params, $emailService = null, $forceRegister = false)
     {
+
         try {
             $message = $errorCode = '';
             $ppdb = false;
@@ -133,6 +134,7 @@ class UserService
                     };
                 } else {
                     $data = $this->generateUserData($type, $params);
+
                     $user = new User($data);
                     $user->save();
 

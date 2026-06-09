@@ -321,63 +321,319 @@
 
         <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
             <div class="table-responsive">
-                <table class="table table-custom mb-0">
-                    <thead class="bg-light-green">
-                        <tr>
-                            <th class="py-3">Keterangan</th>
-                            <th class="py-3">Total Tagihan</th>
-                            <th class="py-3">Terbayar</th>
-                            <th class="py-3">Tanggal Bayar</th>
-                            <th class="py-3">Status</th>
-                            <th class="py-3">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @php $isPreviousPaid = true; @endphp
-                        @foreach ($dispensation->details as $detail)
+                <form action="{{ route('ppdb.bills.payment-plan-date') }}" method="POST" id="form-installment-dates">
+                    @csrf
+                    <div id="alert-dates" class="px-3 pt-3"></div>
+                    <table class="table table-custom mb-0">
+                        <thead class="bg-light-green">
                             <tr>
-                                <td class="font-weight-bold">
-                                    {{ $detail->installment_number == 0 ? 'Uang Muka (DP)' : 'Cicilan Ke-' . $detail->installment_number }}
-                                </td>
-                                <td class="font-weight-bold">Rp {{ number_format($detail['nominal'] ?? 0, 0, ',', '.') }}
-                                </td>
-                                <td class="text-muted">Rp {{ number_format($detail['amount_paid'] ?? 0, 0, ',', '.') }}
-                                </td>
-                                <td class="text-muted">
-                                    {{ !empty($detail->date) ? \Carbon\Carbon::parse($detail->date)->format('d M Y') : '-' }}
-                                </td>
-                                <td>
-                                    @if ($detail->status == 'paid')
-                                        <span class="badge status-badge status-bayar rounded-pill px-3 py-2 w-100">Sudah
-                                            Dibayar</span>
-                                    @elseif ($detail->status == 'partial')
-                                        <span
-                                            class="badge status-badge status-sebagian rounded-pill px-3 py-2 w-100">Pembayaran
-                                            Sebagian</span>
-                                    @else
-                                        <span
-                                            class="badge status-badge status-belum-dibayar rounded-pill px-3 py-2 w-100">Belum
-                                            Dibayar</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    @if ($detail->status != 'paid' && $isPreviousPaid)
-                                        <a href="{{ route('ppdb.bills.payment-now', ['id' => $detail->id, 'type' => 'installment']) }}"
-                                            class="btn btn-sm btn-dark-green btn-block py-2 text-white">Bayar</a>
-                                    @endif
-                                </td>
+                                <th class="py-3">Keterangan</th>
+                                <th class="py-3">Total Tagihan</th>
+                                <th class="py-3">Terbayar</th>
+                                <th class="py-3">Tanggal Bayar</th>
+                                <th class="py-3">Rencana Bayar</th>
+                                <th class="py-3">Status</th>
+                                <th class="py-3">Action</th>
                             </tr>
-                            @php $isPreviousPaid = ($detail->status == 'paid'); @endphp
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @php
+                                $isPreviousPaid = true;
+                                $hasEmptyDate = false;
+                                $installmentIndex = 0;
+                                $startDateAngsuran = \App\Helpers\PriceHelper::getDevelopmentStartDateFinance(
+                                    $dispensation->ppdb,
+                                );
+                            @endphp
+                            @foreach ($dispensation->details as $index => $detail)
+                                <tr>
+                                    <td class="font-weight-bold">
+                                        {{ $detail->installment_number == 0 ? 'Uang Muka (DP)' : 'Cicilan Ke-' . $detail->installment_number }}
+                                    </td>
+                                    <td class="font-weight-bold">Rp
+                                        {{ number_format($detail['nominal'] ?? 0, 0, ',', '.') }}
+                                    </td>
+                                    <td class="text-muted">Rp
+                                        {{ number_format($detail['amount_paid'] ?? 0, 0, ',', '.') }}
+                                    </td>
+                                    <td class="text-muted">
+                                        {{ !empty($detail->date) ? \Carbon\Carbon::parse($detail->date)->format('d M Y') : '-' }}
+                                    </td>
+                                    <td class="text-muted">
+                                        @if (empty($detail->plan_date))
+                                            @php $hasEmptyDate = true; @endphp
+                                            <input type="date" name="dates[{{ $detail->id }}]" class="form-control"
+                                                onchange="handler(this.value, {{ $installmentIndex }})"
+                                                id="installment_date_{{ $installmentIndex }}"
+                                                value="{{ $detail->installment_number == 0 ? \App\Helpers\Helper::tanggalCicilan($startDateAngsuran) : '' }}"
+                                                {{ $detail->installment_number == 0 ? 'readonly' : '' }} required>
+                                        @else
+                                            {{ \Carbon\Carbon::parse($detail->plan_date)->format('d M Y') }}
+                                            <input type="hidden" id="installment_date_{{ $installmentIndex }}"
+                                                value="{{ \Carbon\Carbon::parse($detail->plan_date)->format('Y-m-d') }}">
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($detail->status == 'paid')
+                                            <span
+                                                class="badge status-badge status-bayar rounded-pill px-3 py-2 w-100">Sudah
+                                                Dibayar</span>
+                                        @elseif ($detail->status == 'partial')
+                                            <span
+                                                class="badge status-badge status-sebagian rounded-pill px-3 py-2 w-100">Pembayaran
+                                                Sebagian</span>
+                                        @else
+                                            <span
+                                                class="badge status-badge status-belum-dibayar rounded-pill px-3 py-2 w-100">Belum
+                                                Dibayar</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if ($detail->status != 'paid' && $isPreviousPaid && !empty($detail->plan_date))
+                                            <a href="{{ route('ppdb.bills.payment-now', ['id' => $detail->id, 'type' => 'installment']) }}"
+                                                class="btn btn-sm btn-dark-green btn-block py-2 text-white">Bayar</a>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @php
+                                    $isPreviousPaid = $detail->status == 'paid';
+                                    $installmentIndex++;
+                                @endphp
+                            @endforeach
+                        </tbody>
+                    </table>
+                    @if ($hasEmptyDate)
+                        <div class="p-3 text-right text-end">
+                            <button type="submit" class="btn btn-dark-green text-white px-4 py-2"
+                                id="simpan-cicilan">Simpan Tanggal Cicilan</button>
+                        </div>
+                    @endif
+                </form>
             </div>
         </div>
+
+        @if (!$hasEmptyDate)
+            <div class="d-flex justify-content-between align-items-center mt-5 mb-3">
+                <h5 class="font-weight-bold text-secondary mb-0">Upload Surat Pernyataan</h5>
+            </div>
+            <div class="card border-0 shadow-sm p-4" style="border-radius: 12px;">
+                <form id="form-development">
+                    <input type="hidden" name="development_fee_option" value="cicilan" />
+                    <div class="row">
+                        <div class="col-md-12">
+                            @if (!empty($dispensation->ppdb->development_statement))
+                                <div class="alert alert-success d-flex align-items-center border-0 shadow-sm mb-3"
+                                    role="alert" style="background-color: #ebfcf1; color: #155736;">
+                                    <i class="fas fa-check-circle fa-2x mr-3"></i>
+                                    <div>
+                                        <h6 class="fw-bold mb-1">Dokumen Berhasil Diunggah!</h6>
+                                        <p class="mb-0">Surat pernyataan Anda telah berhasil disimpan di sistem.</p>
+                                    </div>
+                                </div>
+                                <div>
+                                    <a target="_blank" class="btn btn-outline-dark-green font-weight-bold"
+                                        href="{{ route('ppdb.download-development-statement-letter') }}">
+                                        <i class="fas fa-file-pdf mr-2"></i>Lihat Surat Pernyataan
+                                    </a>
+                                </div>
+                            @else
+                                <div id="upload-instruction">
+                                    <p class="text-muted">Silahkan download form surat pernyataan terlebih dahulu <a
+                                            href="{{ route('ppdb.download-biaya-pengembangan', ['type' => 'cicilan']) }}"
+                                            target="_blank" class="font-weight-bold text-success">disini</a></p>
+                                </div>
+
+                                <div class="upload-image-desktop mt-4" id="upload-box">
+                                    <div class="btn-upload p-4 text-center"
+                                        style="border: 2px dashed #a7f3d0; border-radius: 12px; background-color: #f0fdf4;">
+                                        <div class="row justify-content-center align-items-center flex-column">
+                                            <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: #166534;"></i>
+                                            <span class="d-block font-weight-bold mb-2" style="color: #166534;">Pilih file
+                                                dari perangkat komputer Anda</span>
+                                            <span class="text-muted d-block mb-3">Support: PDF</span>
+                                            <span class="btn btn-dark-green text-white position-relative">
+                                                Browse
+                                                <input type="file" name="development_statement"
+                                                    accept="application/pdf" class="position-absolute w-100 h-100"
+                                                    id="development_statement"
+                                                    style="left: 0; top: 0; opacity: 0; cursor: pointer;" />
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex flex-column mt-4" id="message_development_statement_container">
+                                    <div class="text-danger font-weight-bold" id="message_development_statement">
+                                        <i class="fas fa-times-circle me-2"></i>
+                                        <span>Belum Terupload</span>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </form>
+            </div>
+        @endif
 
     </div>
 @endsection
 @push('scripts')
+    <script src="{{ asset('js/sweet-alert/sweet-alert.min.js') }}"></script>
     <script>
+        var isMonthLess =
+            '<div class="alert alert-danger mb-3 p-2 rounded border-0" style="background-color: #f8d7da; color: #842029;">Tanggal harus lebih besar dari sebelumnya</div>';
+        var isMonthBeforeUndef =
+            '<div class="alert alert-danger mb-3 p-2 rounded border-0" style="background-color: #f8d7da; color: #842029;">Tanggal sebelumnya isi terlebih dahulu</div>';
+        var isDefferentMonth =
+            '<div class="alert alert-danger mb-3 p-2 rounded border-0" style="background-color: #f8d7da; color: #842029;">Tanggal pembayaran harus beda bulan dari tanggal sebelumnya</div>';
+        var isNotSequential =
+            '<div class="alert alert-danger mb-3 p-2 rounded border-0" style="background-color: #f8d7da; color: #842029;">Periode bulan harus berurutan dari bulan sebelumnya</div>';
+
+        function handler(value, month) {
+            var date = new Date(value);
+
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (date.getTime() < today.getTime() && month == 0) {
+                document.getElementById("alert-dates").innerHTML =
+                    '<div class="alert alert-danger mb-3 p-2 rounded border-0" style="background-color: #f8d7da; color: #842029;">Tanggal pembayaran tidak boleh kurang dari hari ini</div>';
+                document.getElementById("installment_date_" + month).value = "";
+                return;
+            }
+
+            if (month > 0) {
+                var prevDateEl = document.getElementById("installment_date_" + (month - 1));
+                if (prevDateEl && prevDateEl.value) {
+                    var beforeMonth = new Date(prevDateEl.value);
+
+                    // Case 1: Tanggal tidak boleh lebih kecil atau sama dengan tanggal sebelumnya
+                    if (date.getTime() <= beforeMonth.getTime()) {
+                        document.getElementById("alert-dates").innerHTML = isMonthLess;
+                        document.getElementById("installment_date_" + month).value = "";
+                        return;
+                    }
+
+                    // Case 2: Tanggal yang dipilih tidak boleh sama pada bulan sebelumnya
+                    if (date.getMonth() == beforeMonth.getMonth() && date.getFullYear() == beforeMonth.getFullYear()) {
+                        document.getElementById("alert-dates").innerHTML = isDefferentMonth;
+                        document.getElementById("installment_date_" + month).value = "";
+                        return;
+                    }
+
+                    // Case 3: Periode bulan harus berurutan (increment 1 bulan dari bulan sebelumnya)
+                    var expectedMonth = beforeMonth.getMonth() + 1;
+                    var expectedYear = beforeMonth.getFullYear();
+                    if (expectedMonth > 11) {
+                        expectedMonth = 0;
+                        expectedYear++;
+                    }
+                    if (date.getMonth() !== expectedMonth || date.getFullYear() !== expectedYear) {
+                        document.getElementById("alert-dates").innerHTML = isNotSequential;
+                        document.getElementById("installment_date_" + month).value = "";
+                        return;
+                    }
+                } else {
+                    document.getElementById("alert-dates").innerHTML = isMonthBeforeUndef;
+                    document.getElementById("installment_date_" + month).value = "";
+                    return;
+                }
+            }
+
+            document.getElementById("alert-dates").innerHTML = "";
+        }
+
+        $(document).on('change', "#development_statement", function() {
+            if ($(this).val()) {
+                var self = $(this);
+                var formData = new FormData($('#form-development')[0]);
+                $.ajax({
+                    headers: {
+                        'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                    },
+                    type: "POST",
+                    url: "{{ route('ppdb.upload-development-fee') }}",
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    beforeSend: function() {
+                        $('#message_development_statement').html(
+                            '<span class="text-warning font-weight-bold"><i class="fas fa-spinner fa-spin me-2"></i>Uploading...</span>'
+                        );
+                    },
+                    error: function(data) {
+                        $('#message_development_statement').html(
+                            '<span class="text-danger font-weight-bold"><i class="fas fa-times-circle me-2"></i>Gagal Upload</span>'
+                        );
+                    },
+                    success: function(data) {
+                        $('#upload-instruction').hide();
+                        $('#upload-box').hide();
+                        var html =
+                            '<div class="alert alert-success d-flex align-items-center border-0 shadow-sm w-100 mb-3" role="alert" style="background-color: #ebfcf1; color: #155736;">' +
+                            '<i class="fas fa-check-circle fa-2x mr-3"></i>' +
+                            '<div>' +
+                            '<h6 class="fw-bold mb-1">Dokumen Berhasil Diunggah!</h6>' +
+                            '<p class="mb-0">Surat pernyataan Anda telah berhasil disimpan di sistem.</p>' +
+                            '</div>' +
+                            '</div>' +
+                            '<div>' +
+                            '<a target="_blank" class="btn btn-outline-dark-green font-weight-bold" href="' +
+                            data.preview + '">' +
+                            '<i class="fas fa-file-pdf mr-2"></i>Lihat Surat Pernyataan' +
+                            '</a>' +
+                            '</div>';
+                        $('#message_development_statement_container').html(html);
+                        swal({
+                            icon: 'success',
+                            title: "Sukses!",
+                            text: 'Upload Dokumen Berhasil!',
+                        });
+                        setTimeout(function() {
+                            location.reload()
+                        }, 2000);
+                    }
+                });
+                return false;
+            }
+        });
+
+        $(document).on('click', '#simpan-cicilan', function(e) {
+            e.preventDefault();
+            var form = $('#form-installment-dates');
+            var inputs = form.find('input[type="date"]');
+            var isEmpty = false;
+
+            inputs.each(function() {
+                if ($(this).val() === "") {
+                    isEmpty = true;
+                }
+            });
+
+            if (isEmpty) {
+                swal({
+                    icon: 'warning',
+                    title: "Gagal",
+                    text: 'Pastikan Angsuran terisi semua!',
+                });
+            } else {
+                swal({
+                        title: 'Konfirmasi Pembayaran Cicilan',
+                        text: 'Skema pembayaran yang anda pilih adalah cicilan, silahkan konfirmasi tanggal angsuran anda dan unduh surat pernyataan bermaterai, unggah kembali melalui sistem dan tunggu proses validasi dari admin',
+                        buttons: [
+                            'Tidak',
+                            'Ya'
+                        ],
+                        icon: "warning"
+                    })
+                    .then((value) => {
+                        if (value) {
+                            form.submit();
+                        }
+                    });
+            }
+        });
+
         @if (isset($virtual_account_unpaid))
             // Countdown Timer
             const expiredAt = new Date("{{ $virtual_account_unpaid->expired_at }}").getTime();

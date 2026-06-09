@@ -248,9 +248,9 @@
                             title: "Sukses!",
                             text: 'Upload Dokumen Berhasil!',
                         });
-                        setTimeout(function() {
-                            location.reload()
-                        }, 2000);
+                        //setTimeout(function() {
+                        //    location.reload()
+                        //}, 2000);
                     }
                 });
                 return false;

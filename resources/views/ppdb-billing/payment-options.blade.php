@@ -256,7 +256,18 @@
 
                         <!-- Only visible when Lunas is selected -->
                         <div id="lunasSummary" style="display: none;">
-                            <div class="summary-item text-success fw-medium">
+                            <div class="alert mt-2 p-3"
+                                style="background-color: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px;">
+                                <h6 class="fw-bold mb-2" style="color: #075985; font-size: 13px;">
+                                    <i class="fa-solid fa-gift me-1"></i> Keuntungan Bayar Lunas 100%:
+                                </h6>
+                                <ul class="mb-0 ps-3" style="color: #075985; font-size: 13px;">
+                                    <li>Voucher {{ $discount ?? 5 }}% dari nominal uang pengembangan yang sudah ditentukan.
+                                    </li>
+                                    <li>Mendapat voucher free seragam olahraga siswa.</li>
+                                </ul>
+                            </div>
+                            <div class="summary-item text-success fw-medium mt-3">
                                 <span>Diskon Pelunasan ({{ $discount ?? 5 }}%)</span>
                                 <span id="textDiskonLunas">- Rp 0</span>
                                 <input type="hidden" id="nominal_diskon_lunas" name="nominal_diskon_lunas" value="0">

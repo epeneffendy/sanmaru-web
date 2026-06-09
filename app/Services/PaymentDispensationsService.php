@@ -459,4 +459,20 @@ class PaymentDispensationsService {
                 return '';
         }
     }
+
+    public function confirmPlanDate($params, $ppdb_id){
+        $dispensation = $this->getByUserPpdb($ppdb_id);
+
+        if($dispensation){
+            foreach($params['dates'] as $key => $value){
+                $detail = PaymentDispensationDetails::where('id', $key)->first();
+                if($detail){
+                    $detail->plan_date = $value;
+                    $detail->save();
+                }
+            }
+        }
+
+        return true;
+    }
 }

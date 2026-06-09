@@ -440,7 +440,8 @@
                                                                                 Pembayaran:
                                                                             </p>
                                                                             <ol class="ps-3 mb-0">
-                                                                                <li class="mb-1">Masuk ke m-BCA / ATM BCA.
+                                                                                <li class="mb-1">Masuk ke m-BCA / ATM
+                                                                                    BCA.
                                                                                 </li>
                                                                                 <li class="mb-1">Pilih
                                                                                     <strong>m-Transfer</strong>
@@ -656,7 +657,68 @@
                                                         </div>
                                                     @endif
                                                 </div>
+
+                                                <!-- Alert Upload Surat Pernyataan Jika Sudah Lunas -->
+                                                @if ($item['payment_method'] == 'paid' && $item['payment_term'] == 'full_payment')
+                                                    @if (empty($item->ppdb->development_statement))
+                                                        <div class="mt-3 p-3 rounded"
+                                                            style="background-color: #fff3cd; border: 1px solid #ffe69c;">
+                                                            <div
+                                                                class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                                                <div class="d-flex align-items-center gap-2">
+                                                                    <div>
+                                                                        <h6 class="mb-0 fw-bold text-dark"
+                                                                            style="font-size: 0.9rem;">Upload Surat
+                                                                            Pernyataan</h6>
+                                                                        <span class="text-muted"
+                                                                            style="font-size: 0.8rem;">Penting: Setelah
+                                                                            pembayaran, Anda <b>wajib</b> mengunggah
+                                                                            surat pernyataan. Format PDF.</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="d-flex gap-2">
+                                                                    <a href="{{ route('ppdb.download-biaya-pengembangan', ['type' => $item['payment_term'] == 'full_payment' ? 'lunas' : 'cicilan']) }}"
+                                                                        target="_blank"
+                                                                        class="btn btn-sm btn-warning text-dark fw-bold px-3">
+                                                                        <i class="fa fa-download me-1"></i> Unduh Form
+                                                                    </a>
+                                                                    <button type="button"
+                                                                        class="btn btn-sm btn-success fw-bold px-3 upload-statement-trigger"
+                                                                        data-type="{{ $item['payment_term'] == 'full_payment' ? 'lunas' : 'cicilan' }}">
+                                                                        <i class="fa fa-upload me-1"></i> Upload
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @else
+                                                        <div class="mt-3 p-3 rounded"
+                                                            style="background-color: #d1e7dd; border: 1px solid #badbcc;">
+                                                            <div
+                                                                class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                                                <div class="d-flex align-items-center gap-2">
+                                                                    <div>
+                                                                        <h6 class="mb-0 fw-bold text-dark"
+                                                                            style="font-size: 0.9rem;">Surat Pernyataan
+                                                                            Terunggah</h6>
+                                                                        <span class="text-muted"
+                                                                            style="font-size: 0.8rem;">Terima kasih,
+                                                                            Anda telah berhasil mengunggah surat
+                                                                            pernyataan biaya pengembangan.</span>
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <a href="{{ route('ppdb.download-development-statement-letter') }}"
+                                                                        target="_blank"
+                                                                        class="btn btn-sm btn-outline-success fw-bold px-3">
+                                                                        <i class="fa fa-eye me-1"></i> Lihat File
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                @endif
                                             @endif
+
 
                                             @if ($item['type'] == 'activity')
                                                 <div class="bill-row border-bottom border-light">
@@ -1040,7 +1102,14 @@
         </div>
     </div>
 
+    <!-- Hidden Form For Development Statement Upload -->
+    <form id="form-development" style="display: none;">
+        <input type="hidden" name="development_fee_option" id="development_fee_option" value="lunas" />
+        <input type="file" name="development_statement" accept="application/pdf" id="development_statement" />
+    </form>
+
     @push('scripts')
+        <script src="{{ asset('js/sweet-alert/sweet-alert.min.js') }}"></script>
         <script>
             $(document).ready(function() {
                 // Ketika tombol Bukti Lunas diklik
@@ -1069,6 +1138,62 @@
                             alert('Terjadi kesalahan saat mengambil data.');
                         }
                     });
+                });
+
+                // Trigger klik untuk unggah surat pernyataan
+                $('.upload-statement-trigger').on('click', function(e) {
+                    e.preventDefault();
+                    var optionType = $(this).data('type') || 'lunas';
+                    $('#development_fee_option').val(optionType);
+                    $('#development_statement').trigger('click');
+                });
+
+                // Proses unggah saat file dipilih
+                $('#development_statement').on('change', function() {
+                    if ($(this).val()) {
+                        var formData = new FormData($('#form-development')[0]);
+                        $.ajax({
+                            headers: {
+                                'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                            },
+                            type: "POST",
+                            url: "{{ route('ppdb.upload-development-fee') }}",
+                            data: formData,
+                            cache: false,
+                            contentType: false,
+                            processData: false,
+                            beforeSend: function() {
+                                $('.upload-statement-trigger').html(
+                                        '<i class="fa fa-spinner fa-spin me-1"></i> Mengunggah...')
+                                    .prop('disabled', true);
+                            },
+                            error: function(data) {
+                                alert('Gagal mengunggah surat pernyataan. Silakan coba lagi.');
+                                $('.upload-statement-trigger').html(
+                                    '<i class="fa fa-upload me-1"></i> Upload').prop('disabled',
+                                    false);
+                                $('#development_statement').val('');
+                            },
+                            success: function(data) {
+                                if (typeof swal !== 'undefined') {
+                                    swal({
+                                        icon: 'success',
+                                        title: "Sukses!",
+                                        text: 'Upload Dokumen Berhasil!',
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    swal({
+                                        icon: 'success',
+                                        title: "Sukses!",
+                                        text: 'Surat pernyataan berhasil diunggah!',
+                                    });
+                                    location.reload();
+                                }
+                            }
+                        });
+                    }
                 });
             });
         </script>

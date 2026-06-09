@@ -679,6 +679,7 @@ class PPDBUserService
         $dataBills = [];
         $totalBill = $billedFull = 0;
         foreach($bills as $bill){
+
             $dataBills[$bill->type]['id'] = $bill->id;
             $dataBills[$bill->type]['ppdb_user_id'] = $bill->ppdb_user_id;
             $dataBills[$bill->type]['finance_id'] = $bill->finance_id;
@@ -689,6 +690,7 @@ class PPDBUserService
             $dataBills[$bill->type]['payment_term'] = $bill->payment_term;
             $dataBills[$bill->type]['due_date'] = $bill->due_date;
             $dataBills[$bill->type]['note'] = $bill->note;
+            $dataBills[$bill->type]['development_statement'] = ($bill->type == 'development') ? $bill->ppdb->development_statement : '';
 
             $totalBill += $bill->amount;
             if($bill->payment_method == StudentBills::PAYMENT_METHOD_PAID){

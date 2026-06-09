@@ -36,4 +36,9 @@ class StudentBills extends Model
         return $this->belongsTo(Finance::class, 'finance_id', 'id');
     }
 
+    public function ppdb()
+    {
+        return $this->belongsTo(PPDBUser::class, 'ppdb_user_id', 'id');
+    }
+
 }

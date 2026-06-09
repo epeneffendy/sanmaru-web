@@ -156,13 +156,16 @@ class PPDBMonitoringService
                 }
             }
 
-            $activeVouchers = [];
-            if (!empty($voucherCodes)) {
+           if (!empty($voucherCodes)) {
                 $vouchers = Voucher::whereIn('code', array_unique($voucherCodes))
                     ->where('active', 1)
                     ->get();
+
                 foreach ($vouchers as $voucher) {
-                    $userIds = json_decode($voucher->user_id, true) ?? [];
+                    $userIds = is_array($voucher->user_id)
+                        ? $voucher->user_id
+                        : (json_decode($voucher->user_id, true) ?? []);
+
                     $activeVouchers[$voucher->code] = (array) $userIds;
                 }
             }

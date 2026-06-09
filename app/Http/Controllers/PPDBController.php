@@ -253,7 +253,7 @@ class PPDBController extends Controller
             'nav' => ['parent' => 'home', 'child' => 'Informasi PPDB']
         );
 
-        return view('ppdb-online.biaya-pengembangan.cicilan-selected', $data);
+        return view('ppdb-online.biaya-pengembangan.cicilan', $data);
     }
 
     public function biayaPengembanganLunasPpdb(Request $request, GeneralSettingService $generalSettingService)
@@ -281,7 +281,7 @@ class PPDBController extends Controller
 //            'deadline'=>Carbon::parse($deadline)->format('d-m-Y '),
             'nav' => ['parent' => 'home', 'child' => 'Informasi PPDB']
         );
-        return view('ppdb-online.biaya-pengembangan.lunas-selected', $data);
+        return view('ppdb-online.biaya-pengembangan.lunas', $data);
     }
 
     public function postBiayaPengembanganCicilanPpdb(Request $request)
@@ -909,7 +909,6 @@ class PPDBController extends Controller
                 $ppdb->development_fee_option = $request->input('development_fee_option');
                 $ppdb->is_upload_development_statement = 1;
                 $ppdb->save();
-
             }
         } catch (\Exception $e) {
             return response()->json($e->getMessage(), 400);
@@ -1002,6 +1001,18 @@ class PPDBController extends Controller
 
         $uniformPaymentDeadline = strtolower($ppdb->unit->city) != 'pacet' ? ', ' . $uniform_deadline : '';
 
+        $installment = PaymentDispensations::where('ppdb_user_id', $ppdb->id)->where('status', PaymentDispensations::STATUS_ACTIVE)->orderBy('id', 'desc')->first();
+        $dataAngsuran = [];
+        if($installment){
+            foreach($installment->details as $item){
+                $dataAngsuran[] = [
+                    'desc'       => ($item->installment_number == 0) ? 'Pembayaran DP' : 'Angsuran ke-'.$item->installment_number,
+                    'plan_date'  => \Carbon\Carbon::parse($item->plan_date)->format('d M Y'),
+                    'nominal'    => PriceHelper::rupiah($item->nominal) // Langsung format rupiah di sini
+                ];
+            }
+        }
+
         $templateProcessor->setValues([
             'register_number' => $ppdb->register_number,
             'nama_lengkap' => $ppdb->name,
@@ -1018,23 +1029,23 @@ class PPDBController extends Controller
             'total_bayar_diskon' => $totalBayarDiskon,
             'keterangan_diskon' => $keteranganDiskon,
             'total_bayar_awal' => PriceHelper::rupiah((50 / 100) * PriceHelper::development($ppdb)),
-            'batas_angsuran' => $startAngsuran ? @\Carbon\Carbon::parse($startAngsuran)->addMonths(5)->format('M Y') : null,
+            'batas_angsuran' => $startAngsuran ? @\Carbon\Carbon::parse($startAngsuran)->addMonths(count($dataAngsuran))->format('M Y') : null,
             'nama_unit' => $ppdb->unit->letter_header_name,
             'alamat_unit' => Str::title($ppdb->unit->address),
             'email_unit' => $ppdb->unit->email,
             'kota_unit' => $ppdb->unit->letter_header_city,
             'telp_unit' => $ppdb->unit->telp ? implode(', ', $ppdb->unit->telp) : null,
             'fax_unit' => $ppdb->unit->fax ? implode(', ', $ppdb->unit->fax) : null,
-            'angsuran_1' => @\Carbon\Carbon::parse($ppdb->angsuran_1)->format('d M Y'),
-            'angsuran_2' => @\Carbon\Carbon::parse($ppdb->angsuran_2)->format('d M Y'),
-            'angsuran_3' => @\Carbon\Carbon::parse($ppdb->angsuran_3)->format('d M Y'),
-            'angsuran_4' => @\Carbon\Carbon::parse($ppdb->angsuran_4)->format('d M Y'),
-            'angsuran_5' => @\Carbon\Carbon::parse($ppdb->angsuran_5)->format('d M Y'),
-            'cicilan_1' => @PriceHelper::rupiah($ppdb->cicilan_1),
-            'cicilan_2' => @PriceHelper::rupiah($ppdb->cicilan_2),
-            'cicilan_3' => @PriceHelper::rupiah($ppdb->cicilan_3),
-            'cicilan_4' => @PriceHelper::rupiah($ppdb->cicilan_4),
-            'cicilan_5' => @PriceHelper::rupiah($ppdb->cicilan_5),
+            // 'angsuran_1' => @\Carbon\Carbon::parse($ppdb->angsuran_1)->format('d M Y'),
+            // 'angsuran_2' => @\Carbon\Carbon::parse($ppdb->angsuran_2)->format('d M Y'),
+            // 'angsuran_3' => @\Carbon\Carbon::parse($ppdb->angsuran_3)->format('d M Y'),
+            // 'angsuran_4' => @\Carbon\Carbon::parse($ppdb->angsuran_4)->format('d M Y'),
+            // 'angsuran_5' => @\Carbon\Carbon::parse($ppdb->angsuran_5)->format('d M Y'),
+            // 'cicilan_1' => @PriceHelper::rupiah($ppdb->cicilan_1),
+            // 'cicilan_2' => @PriceHelper::rupiah($ppdb->cicilan_2),
+            // 'cicilan_3' => @PriceHelper::rupiah($ppdb->cicilan_3),
+            // 'cicilan_4' => @PriceHelper::rupiah($ppdb->cicilan_4),
+            // 'cicilan_5' => @PriceHelper::rupiah($ppdb->cicilan_5),
             'jurusan' => $jurusan,
             'pembayaran' => $ppdb->unit->payment_option,
             'kota' => $ppdb->unit->city,
@@ -1042,6 +1053,25 @@ class PPDBController extends Controller
             'uniform_payment_deadline' => $uniformPaymentDeadline,
             'school_year' => $school_year,
         ]);
+
+        // PERUBAHAN DISINI: Proses Loop Dynamic Table menggunakan cloneRow
+        if (!empty($dataAngsuran)) {
+            // Kita jadikan placeholder 'desc' sebagai acuan untuk menduplikasi baris tabel
+            $templateProcessor->cloneRow('desc', count($dataAngsuran));
+
+            foreach ($dataAngsuran as $index => $angsuran) {
+                $rowNumber = $index + 1; // PHPWord penomoran baris hasil klon dimulai dari 1
+                $templateProcessor->setValue('desc#' . $rowNumber, $angsuran['desc']);
+                $templateProcessor->setValue('plan_date#' . $rowNumber, $angsuran['plan_date']);
+                $templateProcessor->setValue('nominal#' . $rowNumber, $angsuran['nominal']);
+            }
+        } else {
+            // Antisipasi jika data angsuran kosong (misal tipe lunas), agar template tidak rusak/bocor code
+            $templateProcessor->cloneRow('desc', 1);
+            $templateProcessor->setValue('desc#1', '-');
+            $templateProcessor->setValue('plan_date#1', '-');
+            $templateProcessor->setValue('nominal#1', '-');
+        }
 
         header("Content-Description: File Transfer");
         header("Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document");

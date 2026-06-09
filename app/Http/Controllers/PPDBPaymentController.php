@@ -17,6 +17,7 @@ class PPDBPaymentController extends Controller
 {
     public function choisePayment(Request $request, PaymentDispensationsService $paymentDispensationsService, FinanceSystemConfigurationService $financeSystemConfigurationService, PaymentVirtualAccountsService $paymentVirtualAccountsService, GeneralSettingService $generalSettingService)
     {
+
         $discount = 0;
         $user = $request->session()->get('user');
         $dispensation = $paymentDispensationsService->getByUserPpdb($user['ppdb']['id']);

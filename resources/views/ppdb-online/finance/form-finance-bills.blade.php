@@ -789,7 +789,7 @@
                                                             </div>
 
 
-                                                            {{-- @if ($item['payment_method'] == 'paid')
+                                                            @if ($item['payment_method'] == 'paid')
                                                                 <button class="btn btn-sm btn-light text-muted border px-3"
                                                                     style="font-size: 0.75rem; font-weight: 600;">
                                                                     <i class="fa fa-file-text-o me-1"></i> Bukti Lunas
@@ -800,7 +800,7 @@
                                                                     style="font-size: 0.75rem; font-weight: 600;">
                                                                     Cara Bayar <i class="fa fa-chevron-right ms-1"></i>
                                                                 </a>
-                                                            @endif --}}
+                                                            @endif
                                                         </div>
                                                     </div>
 

@@ -182,7 +182,7 @@
 
                     <!-- Payment Options -->
                     <div class="row g-3 mb-4">
-                        <div class="col-6">
+                        <div class="col-12">
                             <input type="radio" name="paymentType" id="bayarLunas" class="payment-option" value="lunas"
                                 checked>
                             <label for="bayarLunas" class="payment-option-label h-100">
@@ -191,58 +191,6 @@
                                 <p class="desc">Bayar penuh sekarang</p>
                                 <i class="fa-solid fa-circle-check check-icon"></i>
                             </label>
-                        </div>
-                        <div class="col-6">
-                            <input type="radio" name="paymentType" id="bayarCicilan" class="payment-option"
-                                value="cicilan">
-                            <label for="bayarCicilan" class="payment-option-label h-100">
-                                <i class="fa-solid fa-calendar-alt icon-box"></i>
-                                <div class="title">Cicilan</div>
-                                <p class="desc">Bayar bertahap (DP)</p>
-                                <i class="fa-solid fa-circle-check check-icon"></i>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Installment Settings (Hidden by default) -->
-                    <div id="installmentSettings" style="display: none;">
-                        <div class="row g-3 mb-4">
-                            <div class="col-6">
-                                <label for="tenorSelect" class="form-label small fw-semibold mb-2" style="color: #0f2b5b;">
-                                    Pilih Tenor Cicilan
-                                </label>
-                                <select class="form-select form-select-custom shadow-sm w-100" id="tenorSelect"
-                                    name="tenor">
-                                    @if (!empty($installmentOptions))
-                                        @foreach ($installmentOptions as $value => $label)
-                                            <option value="{{ $value }}">
-                                                {{ $label }}
-                                            </option>
-                                        @endforeach
-                                    @else
-                                        <option value="">Konfigurasi Cicilan tidak ditemukan</option>
-                                    @endif
-                                </select>
-                            </div>
-
-                            <div class="col-6">
-                                <label for="dpSelect" class="form-label small fw-semibold mb-2" style="color: #0f2b5b;">
-                                    Pilih Down Payment (DP)
-                                </label>
-                                <select class="form-select form-select-custom shadow-sm w-100" id="dpSelect"
-                                    name="dp">
-                                    @if (!empty($dpOptions))
-                                        @foreach ($dpOptions as $value => $label)
-                                            <option value="{{ $value }}"
-                                                {{ $value == $configuration->recommended_down_payment ? 'selected' : '' }}>
-                                                {{ $label }}
-                                            </option>
-                                        @endforeach
-                                    @else
-                                        <option value="">Konfigurasi DP tidak ditemukan</option>
-                                    @endif
-                                </select>
-                            </div>
                         </div>
                     </div>
 
@@ -256,7 +204,7 @@
                         </div>
 
                         <!-- Only visible when Lunas is selected -->
-                        @if (isset($discount) && $discount > 0)
+                        @if (($discount ?? 0) > 0)
                             <div id="lunasSummary" style="display: none;">
                                 <div class="alert mt-2 p-3"
                                     style="background-color: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px;">
@@ -273,32 +221,10 @@
                                 <div class="summary-item text-success fw-medium mt-3">
                                     <span>Diskon Pelunasan ({{ $discount }}%)</span>
                                     <span id="textDiskonLunas">- Rp 0</span>
-                                    <input type="hidden" id="nominal_diskon_lunas" name="nominal_diskon_lunas"
-                                        value="0">
                                 </div>
                             </div>
-                        @else
-                            <input type="hidden" id="nominal_diskon_lunas" name="nominal_diskon_lunas" value="0">
                         @endif
-
-                        <!-- Only visible when Cicilan is selected -->
-                        <div id="installmentSummary" style="display: none;">
-                            <div class="summary-item text-primary fw-medium">
-                                <span>Down Payment (DP)</span>
-                                <span id="textNominalDP">Rp 0</span>
-                                <input type="hidden" id="nominal_dp" name="nominal_dp" value="0">
-                            </div>
-                            <div class="summary-item">
-                                <span>Sisa Pokok Hutang</span>
-                                <span id="textSisaHutang">Rp 0</span>
-                                <input type="hidden" id="sisa_hutang" name="sisa_hutang" value="0">
-                            </div>
-                            <div class="summary-item mt-2 pt-2 border-top">
-                                <span>Cicilan Per Bulan (<span id="textTenorLabel">3x</span>)</span>
-                                <span id="textCicilanPerBulan" class="fw-bold text-danger">Rp 0 / bln</span>
-                                <input type="hidden" id="cicilan_per_bulan" name="cicilan_per_bulan" value="0">
-                            </div>
-                        </div>
+                        <input type="hidden" id="nominal_diskon_lunas" name="nominal_diskon_lunas" value="0">
 
                         <div class="summary-total">
                             <span>Total Bayar Saat Ini</span>
@@ -327,17 +253,9 @@
 
                 // --- 2. DOM Elements Caching ---
                 const $paymentOptions = $('.payment-option');
-                const $installmentSettings = $('#installmentSettings');
-                const $installmentSummary = $('#installmentSummary');
                 const $lunasSummary = $('#lunasSummary');
-                const $tenorSelect = $('#tenorSelect');
-                const $dpSelect = $('#dpSelect');
 
                 // Summary Elements
-                const $textNominalDP = $('#textNominalDP');
-                const $textSisaHutang = $('#textSisaHutang');
-                const $textTenorLabel = $('#textTenorLabel');
-                const $textCicilanPerBulan = $('#textCicilanPerBulan');
                 const $textDiskonLunas = $('#textDiskonLunas');
                 const $textTotalBayarSekarang = $('#textTotalBayarSekarang');
                 const $btnSubmit = $('#btnSubmit');
@@ -358,20 +276,16 @@
                     const paymentType = $('input[name="paymentType"]:checked').val();
 
                     if (paymentType === 'lunas') {
-                        $('#nominal_dp').val(0);
-                        $('#sisa_hutang').val(0);
-                        $('#cicilan_per_bulan').val(0);
-                        // Sembunyikan form dan rincian cicilan
-                        $installmentSettings.slideUp(300);
-                        $installmentSummary.slideUp(300);
 
                         // Tampilkan rincian pelunasan
                         const diskonLunas = TOTAL_BILL * (DISCOUNT_PERCENTAGE / 100);
                         const totalBayarSekarang = TOTAL_BILL - diskonLunas;
 
-                        if (DISCOUNT_PERCENTAGE > 0) {
+                        if ($textDiskonLunas.length) {
                             $textDiskonLunas.text('- ' + formatRupiah(diskonLunas));
-                            $('#nominal_diskon_lunas').val(diskonLunas);
+                        }
+                        $('#nominal_diskon_lunas').val(diskonLunas);
+                        if (DISCOUNT_PERCENTAGE > 0) {
                             $lunasSummary.slideDown(300);
                         }
 
@@ -381,43 +295,6 @@
                         $textTotalBayarSekarang.text(formatRupiah(totalBayarSekarang));
 
                         $btnSubmit.html('Bayar Sekarang <i class="fa-solid fa-arrow-right ms-2"></i>');
-                    } else if (paymentType === 'cicilan') {
-                        $('#nominal_dp').val(0);
-                        $('#sisa_hutang').val(0);
-                        $('#cicilan_per_bulan').val(0);
-                        $('#nominal_diskon_lunas').val(0);
-
-                        // Sembunyikan rincian pelunasan
-                        $lunasSummary.slideUp(300);
-
-                        // Tampilkan form dan rincian cicilan
-                        $installmentSettings.slideDown(300);
-                        $installmentSummary.slideDown(300);
-                        $summaryTotal.slideUp(300);
-
-                        // Hitung rincian
-                        const dpPercentage = parseInt($dpSelect.val()) / 100;
-                        const tenor = parseInt($tenorSelect.val());
-
-                        const dpNominal = TOTAL_BILL * dpPercentage;
-                        const sisaHutang = TOTAL_BILL - dpNominal;
-                        const cicilanPerBulan = Math.ceil(sisaHutang / tenor);
-
-                        // Perbarui teks antarmuka (UI)
-                        $textNominalDP.text(formatRupiah(dpNominal));
-                        $textSisaHutang.text(formatRupiah(sisaHutang));
-                        $textTenorLabel.text(tenor + 'x');
-                        $textCicilanPerBulan.text(formatRupiah(cicilanPerBulan) + ' / bln');
-
-                        $('#nominal_dp').val(dpNominal);
-                        $('#sisa_hutang').val(sisaHutang);
-                        $('#cicilan_per_bulan').val(cicilanPerBulan);
-
-
-                        // Total yang harus dibayar saat ini adalah DP
-                        $textTotalBayarSekarang.text(formatRupiah(dpNominal));
-
-                        $btnSubmit.html('Setujui & Kunci Skema <i class="fa-solid fa-arrow-right ms-2"></i>');
                     }
                 };
 
@@ -425,8 +302,6 @@
                 const bindEvents = () => {
                     // Picu kalkulasi saat input radio atau dropdown berubah
                     $paymentOptions.on('change', calculatePayment);
-                    $tenorSelect.on('change', calculatePayment);
-                    $dpSelect.on('change', calculatePayment);
 
                     $btnSubmit.on('click', function(e) {
                         e.preventDefault();

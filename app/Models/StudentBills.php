@@ -18,6 +18,7 @@ class StudentBills extends Model
     const PAYMENT_TERM_INSTALLMENT = 'installment_payment';
 
     const BILL_TYPE_DEVELOPMENT = 'development';
+    const BILL_TYPE_ACTIVITY = 'activity';
 
     protected $fillable = [
         'ppdb_user_id',

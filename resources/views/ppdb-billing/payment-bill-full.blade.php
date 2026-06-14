@@ -210,7 +210,7 @@
                 Saya Sudah Bayar </a>
 
             @if (!empty($virtual_account_unpaid))
-                <a href="{{ route('ppdb.bills.payment-cancel', ['virtual_account_number' => $virtual_account_number]) }}"
+                <a href="{{ route('ppdb.bills.payment-cancel', ['virtual_account_number' => $virtual_account_number, 'dispensation_type' => $dispensation_type]) }}"
                     class="btn btn-outline-danger btn-block mt-3 font-weight-bold py-2 shadow-sm"
                     style="border-radius: 8px;"
                     onclick="return confirm('Apakah Anda yakin ingin membatalkan pembayaran ini?');">

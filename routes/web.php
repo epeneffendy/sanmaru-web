@@ -100,12 +100,13 @@ Route::group(['domain' => $routeService->getPpdbSubdomain()], function () use ($
         });
 
         Route::prefix("/$prefix/bills")->name('ppdb.bills.')->group(function () {
-            Route::get('/choise-payment', 'PPDBPaymentController@choisePayment')->name('choise-payment');
+            Route::get('/choise-payment/{type}', 'PPDBPaymentController@choisePayment')->name('choise-payment');
             Route::post('store', 'PPDBPaymentController@store')->name('store');
             Route::get('/payment-now', 'PPDBPaymentController@paymentNow')->name('payment-now');
             Route::get('/payment-cancel', 'PPDBPaymentController@paymentCancel')->name('payment-cancel');
             Route::get('/payment-paid-receipt', 'PPDBPaymentController@developmentPaymentReceipt')->name('payment-paid-receipt');
             Route::post('/payment-plan-date', 'PPDBPaymentController@paymentPlanDate')->name('payment-plan-date');
+            Route::get('/change-payment-method', 'PPDBPaymentController@changePaymentMethod')->name('change-payment-method');
         });
 
 

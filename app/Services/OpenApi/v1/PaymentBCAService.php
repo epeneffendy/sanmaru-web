@@ -1236,7 +1236,7 @@ class PaymentBCAService
         return $result;
     }
 
-    public function getBillPaymentDevelopment($ppdbId, $unitId, $typeCode, PaymentBcaBillRequest $data, PaymentBcaBillResponse $result, $type)
+    public function getBillPaymentDevelopment($ppdbId, $unitId, $dispensation_type, PaymentBcaBillRequest $data, PaymentBcaBillResponse $result)
     {
         $unit = Unit::where('unit_code', $unitId)->first();
 
@@ -1251,8 +1251,10 @@ class PaymentBCAService
             $result->setvirtualAccountData($failedResponse->toArray());
         } else {
             $ppdbUser = PpdbUser::where('register_number', $ppdbId)->first();
+
             $virtual_account_unpaid = PaymentVirtualAccounts::where([
                 'ppdb_user_id' => $ppdbUser->id,
+                'type'=> $dispensation_type,
                 'virtual_account_number'=> $data->getvirtualAccountNo()
                 ])->orderBy('id', 'desc')->first();
 
@@ -1335,7 +1337,7 @@ class PaymentBCAService
         return $result;
     }
 
-    public function flagPaymentDevelopment($ppdbId, $unitId, PaymentBcaInvocationRequest $data, PaymentBcaInvocationResponse $result, $external_id, $type)
+    public function flagPaymentDevelopment($ppdbId, $unitId, $dispensation_type, PaymentBcaInvocationRequest $data, PaymentBcaInvocationResponse $result, $external_id, $type)
     {
         $reason = array(
             'english' => '',
@@ -1360,6 +1362,7 @@ class PaymentBCAService
 
             $virtual_account_unpaid = PaymentVirtualAccounts::where([
                 'ppdb_user_id' => $ppdbUser->id,
+                'type'=> $dispensation_type,
                 'virtual_account_number'=> $data->getvirtualAccountNo()
                 ])->orderBy('id', 'desc')->first();
 
@@ -1397,7 +1400,7 @@ class PaymentBCAService
                                     $validateExternal = $this->ExternalID($external_id, $data->getpaymentRequestId(), 'payments', 1);
 
                                     if ($validateExternal['success']) {
-                                        $confirmed = $this->paymentVirtualAccountsService->confirmDevelopment($virtual_account_unpaid->id, $totalAmount, $type);
+                                        $confirmed = $this->paymentVirtualAccountsService->confirmDevelopment($virtual_account_unpaid->id, $totalAmount, $type, $dispensation_type);
                                         if ($confirmed) {
                                             $detail = new PaymentBcaInvocationDetailResponse();
                                             $detail->setpartnerServiceId($data->getpartnerServiceId());

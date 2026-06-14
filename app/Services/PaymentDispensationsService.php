@@ -18,8 +18,19 @@ class PaymentDispensationsService {
         return $data;
     }
 
-    public function getByUserPpdb($ppdb_user_id){
-        $data = PaymentDispensations::where('ppdb_user_id', $ppdb_user_id)->where('status', PaymentDispensations::STATUS_ACTIVE)->orderBy('id', 'desc')->first();
+    public function getAllBilling($ppdb_user_id){
+        $data = PaymentDispensations::where('ppdb_user_id',$ppdb_user_id)->where('status', PaymentDispensations::STATUS_ACTIVE)->orderBy('id', 'desc')->first();
+        return $data;
+    }
+
+    public function getByUserPpdb($ppdb_user_id, $type = null){
+        $query = PaymentDispensations::where('ppdb_user_id', $ppdb_user_id);
+
+        if (!is_null($type)) {
+            $query->where('dispensation_type', $type);
+        }
+
+        $data = $query->where('status', PaymentDispensations::STATUS_ACTIVE)->orderBy('id', 'desc')->first();
 
         return $data;
     }
@@ -42,7 +53,7 @@ class PaymentDispensationsService {
     }
 
     public function getDetailById($id){
-        $data = PaymentDispensations::select('payment_dispensations.*', 'payment_dispensation_details.virtual_account', 'payment_dispensation_details.nominal', 'payment_dispensation_details.id as detail_id')
+        $data = PaymentDispensations::select('payment_dispensations.*', 'payment_dispensation_details.virtual_account', 'payment_dispensation_details.nominal', 'payment_dispensation_details.id as detail_id','payment_dispensation_details.amount_paid')
             ->join('payment_dispensation_details', 'payment_dispensations.id', '=', 'payment_dispensation_details.payment_dispensation_id')
             ->where('payment_dispensation_details.id', $id)
             ->where('payment_dispensations.status', PaymentDispensations::STATUS_ACTIVE)
@@ -51,15 +62,15 @@ class PaymentDispensationsService {
         return $data;
     }
 
-    public function create($params, $ppdb, $operator = 'user'){
-        return \Illuminate\Support\Facades\DB::transaction(function () use ($params, $ppdb, $operator) {
+    public function create($params, $ppdb, $type, $operator = 'user'){
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($params, $ppdb, $type, $operator) {
 
             $paymentTerm = StudentBills::PAYMENT_TERM_FULL;
             if($params['dispensation_mode'] == PaymentDispensations::MODE_ONLY_DISCOUNT){
                 if($operator == 'admin'){
                     $paymentDispensation = PaymentDispensations::create($params);
                 }else{
-                    $paymentDispensation = $this->getByUserPpdb($params['ppdb_user_id']);
+                    $paymentDispensation = $this->getByUserPpdb($params['ppdb_user_id'], $type);
                 }
             }else{
                 $paymentDispensation = PaymentDispensations::create($params);
@@ -67,7 +78,7 @@ class PaymentDispensationsService {
 
             if(($params['dispensation_mode'] == PaymentDispensations::MODE_FULL_SETUP)){
                 $paymentTerm = StudentBills::PAYMENT_TERM_INSTALLMENT;
-                $this->calculate($paymentDispensation->id, $params['total_final_fee'], $params['down_payment'], $params['remaining_balance'], $params['tenor'], $params['dispensation_mode'], $ppdb);
+                $this->calculate($paymentDispensation->id, $params['total_final_fee'], $params['down_payment'], $params['remaining_balance'], $params['tenor'], $params['dispensation_mode'], $ppdb, $type);
             }
 
             if(($params['dispensation_mode'] == PaymentDispensations::MODE_REAL_PAYMENT) || ($params['dispensation_mode'] == PaymentDispensations::MODE_ONLY_DISCOUNT)){
@@ -87,13 +98,13 @@ class PaymentDispensationsService {
 
                 if($is_save_detail){
                     $mode = $params['dispensation_mode'];
-                    $this->calculate($paymentDispensation->id, $params['total_final_fee'], $dp, $params['remaining_balance'], $tenor, $mode, $ppdb);
+                    $this->calculate($paymentDispensation->id, $params['total_final_fee'], $dp, $params['remaining_balance'], $tenor, $mode, $ppdb, $type);
                 }
 
             }
 
             //update billing siswa
-            $bills = StudentBills::where('ppdb_user_id', $ppdb->id)->where('type', StudentBills::BILL_TYPE_DEVELOPMENT)->orderBy('id', 'desc')->first();
+            $bills = StudentBills::where('ppdb_user_id', $ppdb->id)->where('type', $type)->orderBy('id', 'desc')->first();
 
             if($bills){
                $bills->payment_term = $paymentTerm;
@@ -103,7 +114,8 @@ class PaymentDispensationsService {
         });
     }
 
-    public function calculate($paymentDispensationId, $total_final_fee, $down_payment, $remaining_balance, $tenor, $type, $ppdb){
+    public function calculate($paymentDispensationId, $total_final_fee, $down_payment, $remaining_balance, $tenor, $type, $ppdb, $dispensation_type){
+
         $arr_calculate = [];
         $nominal = $total_final_fee - $down_payment;
         $arr_calculate = $this->calculateInstallments($nominal, $down_payment, $tenor);
@@ -115,15 +127,20 @@ class PaymentDispensationsService {
             $is_installment = true;
         }
 
+        $code_payment = PaymentDispensations::CODE_PAYMENT_DEVELOPMENT;
+        if($dispensation_type == PaymentDispensations::DISPENSATION_TYPE_ACTIVITY){
+            $code_payment = PaymentDispensations::CODE_PAYMENT_ACTIVITY;
+        }
+
         foreach($arr_calculate as $key => $value){
-            $virtual_account_number = $this->virtualAccountNumber($ppdb,PaymentDispensations::CODE_PAYMENT_DEVELOPMENT, PaymentDispensations::TYPE_PENGEMBANGAN_LUNAS);
+            $virtual_account_number = $this->virtualAccountNumber($ppdb, $code_payment, PaymentDispensations::TYPE_PENGEMBANGAN_LUNAS);
 
             if($is_installment){
                 $const_type = PaymentDispensations::TYPE_PENGEMBANGAN_CICILAN;
                 if($key == 0){
                     $const_type = PaymentDispensations::TYPE_PENGEMBANGAN_DP;
                 }
-                $virtual_account_number = $this->virtualAccountNumber($ppdb,PaymentDispensations::CODE_PAYMENT_DEVELOPMENT, $const_type, $key);
+                $virtual_account_number = $this->virtualAccountNumber($ppdb,$code_payment, $const_type, $key);
             }
 
             $arr_dispensation[] = [
@@ -204,14 +221,23 @@ class PaymentDispensationsService {
         return $fillable;
     }
 
-    public function confirmPayment($id, $detail_id, $virtual_account, $nominal){
+    public function confirmPayment($id, $detail_id, $virtual_account, $nominal_payment){
 
         $status = false;
+        $is_part = false;
+        $nominal = $nominal_payment;
+        $status_payment = PaymentDispensationDetails::STATUS_PAID;
         $detail = PaymentDispensationDetails::where('id', $detail_id)->first();
         if($detail){
             $status_payment = PaymentDispensationDetails::STATUS_PARTIAL;
             if($detail->nominal == $nominal){
                 $status_payment = PaymentDispensationDetails::STATUS_PAID;
+            }else{
+                if($detail->nominal == ($detail->amount_paid + $nominal)){
+                    $is_part = true;
+                    $nominal = ($detail->amount_paid + $nominal);
+                    $status_payment = PaymentDispensationDetails::STATUS_PAID;
+                }
             }
 
             $detail->amount_paid = $nominal;
@@ -221,7 +247,9 @@ class PaymentDispensationsService {
 
             $dispensation = PaymentDispensations::where('id', $id)->first();
             if($dispensation){
-
+                if($is_part){
+                    $nominal = $nominal_payment;
+                }
                 $remaining_balance = $dispensation->remaining_balance - $nominal;
                 $dispensation->remaining_balance = $remaining_balance;
                 $dispensation->status_payment = PaymentDispensations::PAYMENT_STATUS_UNPAID;
@@ -293,6 +321,49 @@ class PaymentDispensationsService {
                 $bill->payment_method = $is_paid;
                 $bill->save();
             }
+
+            $status = true;
+        }
+
+        return $status;
+    }
+
+    public function confirmPaymentFullSettlement($id, $virtual_account, $nominal){
+        $status = false;
+        $message = '';
+        $dispensation = PaymentDispensations::where('id', $id)->first();
+        if($dispensation){
+            if($dispensation->remaining_balance == $nominal){
+                if(count($dispensation->details) > 0){
+                    foreach($dispensation->details as $detail){
+                        if($detail->status == PaymentDispensations::PAYMENT_STATUS_PAID){
+                            continue;
+                        }
+                        $detail->status = PaymentDispensations::PAYMENT_STATUS_PAID;
+                        $detail->amount_paid = $detail->amount_paid + ($detail->nominal - $detail->amount_paid);
+                        $detail->date = Carbon::now()->format('Y-m-d');
+                        $detail->save();
+                        $status = true;
+                    }
+                }
+            }
+        }
+
+        $remaining_balance = $dispensation->remaining_balance - $nominal;
+        $dispensation->remaining_balance = $remaining_balance;
+        $dispensation->status_payment = PaymentDispensations::PAYMENT_STATUS_UNPAID;
+
+        $is_paid = StudentBills::PAYMENT_METHOD_PARTIAL;
+        if($remaining_balance <= 0){
+            $is_paid = StudentBills::PAYMENT_METHOD_PAID;
+            $dispensation->status_payment = PaymentDispensations::PAYMENT_STATUS_PAID;
+        }
+        $dispensation->save();
+
+        $bill = StudentBills::where('ppdb_user_id', $dispensation->ppdb_user_id)->where('type', StudentBills::BILL_TYPE_DEVELOPMENT)->orderBy('id', 'desc')->first();
+        if($bill){
+            $bill->payment_method = $is_paid;
+            $bill->save();
 
             $status = true;
         }

@@ -392,11 +392,11 @@
                                                                     Bukti Lunas
                                                                 </button>
                                                             @else
-                                                                <a href="{{ route('ppdb.bills.choise-payment') }}"
+                                                                {{-- <a href="{{ route('ppdb.bills.choise-payment') }}"
                                                                     class="btn btn-sm btn-outline-green px-3"
                                                                     style="font-size: 0.75rem; font-weight: 600;">
                                                                     Cara Bayar <i class="fa fa-chevron-right ms-1"></i>
-                                                                </a>
+                                                                </a> --}}
                                                             @endif
                                                         </div>
                                                     </div>
@@ -471,8 +471,7 @@
                                                         <!-- Info Tagihan -->
                                                         <div class="d-flex align-items-start w-100">
                                                             <div class="ms-3 flex-grow-1">
-                                                                <div
-                                                                    class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                                                <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                                                                     <h6 class="mb-0 fw-bold text-dark me-1">Uang
                                                                         Pengembangan
                                                                     </h6>
@@ -576,8 +575,6 @@
                                                                 </div>
                                                             @endif
 
-
-
                                                             @if ($item['payment_method'] == 'paid')
                                                                 <a href={{ route('ppdb.bills.payment-paid-receipt', ['id' => 89]) }}
                                                                     class="btn btn-sm btn-light text-muted border px-3"
@@ -585,8 +582,8 @@
                                                                     <i class="fa fa-file-text-o me-1"></i> Bukti Lunas
                                                                 </a>
                                                             @else
-                                                                @if ($item['payment_method'] == 'unpaid')
-                                                                    <a href="{{ route('ppdb.bills.choise-payment') }}"
+                                                                @if ($item['payment_method'] == 'unpaid' || $item['payment_method'] == 'partial')
+                                                                    <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'development']) }}"
                                                                         class="btn btn-sm btn-outline-green px-3"
                                                                         style="font-size: 0.75rem; font-weight: 600;">
                                                                         Cara Bayar <i class="fa fa-chevron-right ms-1"></i>
@@ -795,7 +792,7 @@
                                                                     <i class="fa fa-file-text-o me-1"></i> Bukti Lunas
                                                                 </button>
                                                             @else
-                                                                <a href="{{ route('ppdb.bills.choise-payment') }}"
+                                                                <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'activity']) }}"
                                                                     class="btn btn-sm btn-outline-green px-3"
                                                                     style="font-size: 0.75rem; font-weight: 600;">
                                                                     Cara Bayar <i class="fa fa-chevron-right ms-1"></i>

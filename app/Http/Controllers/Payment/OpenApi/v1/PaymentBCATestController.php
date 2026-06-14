@@ -83,8 +83,7 @@ class PaymentBCATestController extends Controller
                             $unitId = substr($data->getcustomerNo(), 0, 2);
                             $paymentCode = substr($data->getcustomerNo(), 2, 2);
                             $orderId = substr($data->getcustomerNo(), 4, 7);
-                            $typeCode = substr($data->getcustomerNo(), 11, 2);
-                            $yearCode = substr($data->getcustomerNo(), 13, 2);
+                            $dispensation_type = null;
 
                             switch ($paymentCode) {
                                 case '08':
@@ -93,20 +92,13 @@ class PaymentBCATestController extends Controller
                                 case '07':
                                     $data = $paymentBCAService->getPpdbRegistration($orderId, $unitId, $data, $result);
                                     break;
-                                case '21': //Pengembangan Lunas
-                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $typeCode, $data, $result, $paymentCode);
+                                case '03': //Uang Pengembangan
+                                    $dispensation_type = 'development';
+                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $dispensation_type, $data, $result);
                                     break;
-                                case '22': //Pengembangan DP
-                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $typeCode, $data, $result, $paymentCode);
-                                    break;
-                                case '23': //Pengembangan Cicilan
-                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $typeCode, $data, $result, $paymentCode);
-                                    break;
-                                case '98': //Pengembangan Pembayaran Partial
-                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $typeCode, $data, $result, $paymentCode);
-                                    break;
-                                case '99': //Pengembangan Pembayaran Full
-                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $typeCode, $data, $result, $paymentCode);
+                                case '06': //Uang Kegiatan
+                                    $dispensation_type = 'activity';
+                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $dispensation_type, $data, $result);
                                     break;
                                 default:
                                     $result->setresponseCode("4042412");
@@ -273,9 +265,7 @@ class PaymentBCATestController extends Controller
                             $unitId = substr($data->getcustomerNo(), 0, 2);
                             $paymentCode = substr($data->getcustomerNo(), 2, 2);
                             $orderId = substr($data->getcustomerNo(), 4, 7);
-                            $typeCode = substr($data->getcustomerNo(), 11, 2);
-                            $yearCode = substr($data->getcustomerNo(), 13, 2);
-
+                            $dispensation_type = null;
                             switch ($paymentCode) {
                                 case '08':
                                     $result = $paymentBCAService->flagPaymentPpdb($orderId, $unitId, $data, $result, $request->header('x-external-id'));
@@ -283,20 +273,13 @@ class PaymentBCATestController extends Controller
                                 case '07':
                                     $result = $paymentBCAService->flagPaymentRegistration($orderId, $unitId, $data, $result, $request->header('x-external-id'));
                                     break;
-                                case '21': //Pengembangan Lunas
-                                    $data = $paymentBCAService->flagPaymentDevelopment($orderId, $unitId, $data, $result, $request->header('x-external-id'), $paymentCode);
+                                case '03': //Uang Pengembangan
+                                    $dispensation_type = 'development';
+                                    $data = $paymentBCAService->flagPaymentDevelopment($orderId, $unitId, $dispensation_type, $data, $result, $request->header('x-external-id'), $paymentCode);
                                     break;
-                                case '22': //Pengembangan DP
-                                    $data = $paymentBCAService->flagPaymentDevelopment($orderId, $unitId, $data, $result, $request->header('x-external-id'), $paymentCode);
-                                    break;
-                                case '23': //Pengembangan Cicilan
-                                    $data = $paymentBCAService->flagPaymentDevelopment($orderId, $unitId, $data, $result, $request->header('x-external-id'), $paymentCode);
-                                    break;
-                                case '98': //Pengembangan Pembayaran Partial
-                                    $data = $paymentBCAService->flagPaymentDevelopment($orderId, $unitId, $data, $result, $request->header('x-external-id'), $paymentCode);
-                                    break;
-                                case '99': //Pengembangan Pembayaran Full
-                                    $data = $paymentBCAService->flagPaymentDevelopment($orderId, $unitId, $data, $result, $request->header('x-external-id'), $paymentCode);
+                                case '06': //Uang Kegiatan
+                                    $dispensation_type = 'activity';
+                                    $data = $paymentBCAService->flagPaymentDevelopment($orderId, $unitId, $dispensation_type, $data, $result, $request->header('x-external-id'), $paymentCode);
                                     break;
                                 default:
                                     // $result->setPaymentFlagStatus('01');

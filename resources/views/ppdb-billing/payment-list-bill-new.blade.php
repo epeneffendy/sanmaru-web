@@ -259,65 +259,83 @@
                 <p class="mb-0" style="color: #15803d;">Terima kasih, seluruh tagihan Uang Pengembangan Anda sudah
                     diselesaikan.</p>
                 <div class="mt-4">
-                    <a href="{{ route('ppdb.bills.development-receipt', ['id' => $dispensation->id]) }}"
-                        class="btn btn-dark-green text-white"><i class="fa fa-receipt me-2"></i>Lihat Bukti Pembayaran</a>
+                    {{-- <a href="{{ route('ppdb.bills.development-receipt', ['id' => $dispensation->id]) }}"
+                        class="btn btn-dark-green text-white"><i class="fa fa-receipt me-2"></i>Lihat Bukti Pembayaran</a> --}}
                 </div>
             </div>
         @endif
 
-        {{-- @if ($dispensation->dispensation_mode > 0) --}}
-        <h5 class="font-weight-bold text-secondary mb-3">Alternatif Pembayaran</h5>
-        <div class="row mb-5">
-            <div class="col-md-6 mb-3 mb-md-0">
-                <div class="card card-option p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="font-weight-bold mb-0">Full Settlement (Bayar Lunas)</h6>
-                        <span class="badge badge-recommendation">Rekomendasi</span>
+        <div class="alert mt-2 p-3" style="background-color: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px;">
+            <h6 class="fw-bold mb-2" style="color: #075985; font-size: 13px;">
+                <i class="fa-solid fa-gift me-1"></i> Informasi Penting:
+            </h6>
+            <ul class="mb-0 ps-3" style="color: #075985; font-size: 13px;">
+                <li>1. Silahkan tentukan rencana bayar pada <b>Cicilan ke-1 dst</b>.</li>
+                <li>2. Tanggal rencana bayar harus beda bulan dari tanggal sebelumnya</li>
+                <li>3. Periode bulan pada rencana bayar harus berurutan dari bulan sebelumnya</li>
+                <li>4. Setelah simpan tanggal cicilan lakukan donwload dan upload <b>Surat Pernyataan</b></li>
+            </ul>
+        </div>
+
+        @if ($dispensation->status_payment != 'paid' && $ppdb['is_upload_development_statement'] == 1)
+            <h5 class="font-weight-bold text-secondary mb-3">Alternatif Pembayaran</h5>
+            <div class="row mb-5">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <div class="card card-option p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="font-weight-bold mb-0">Full Settlement (Bayar Lunas)</h6>
+                            <span class="badge badge-recommendation">Rekomendasi</span>
+                        </div>
+
+                        <p class="text-muted mb-3" style="font-size: 0.85rem; line-height: 1.4;">
+                            Anda dapat melunasi sisa pembayaran uang pengembangan secara langsung
+                        </p>
+
+                        <p class="text-muted mb-1" style="font-size: 0.85rem;">Total Nominal</p>
+                        <h5 class="font-weight-bold mb-4">Rp
+                            {{ number_format($dispensation['remaining_balance'] ?? 0) }}
+                        </h5>
+
+                        <a href="{{ route('ppdb.bills.payment-now', ['id' => $dispensation->id, 'type' => 'full_statement', 'dispensation_type' => $type]) }}"
+                            class="btn btn-dark-green btn-block py-2 text-white">Bayar
+                            Lunas Sekarang</a>
                     </div>
+                </div>
 
-                    <p class="text-muted mb-1" style="font-size: 0.85rem;">Nomor Virtual Account</p>
-                    <div class="d-flex align-items-center mb-3">
-                        <span class="va-text va-number mr-2 text-dark">{{ $va_full ?? 'Nomor VA Lunas' }}</span>
-                        {{-- <i class="copy-icon text-muted" style="cursor: pointer;" title="Salin">Salin</i> --}}
+
+                <div class="col-md-6">
+                    <div class="card card-option p-4">
+                        <h6 class="font-weight-bold mb-2">Partial Settlement (Bayar Sebagian)</h6>
+                        <p class="text-muted mb-3" style="font-size: 0.85rem; line-height: 1.4;">
+                            Jika anda akan melakukan pembayaran dengan nominal bebas untuk mengurangi beban cicilan
+                        </p>
+
+                        <div class="form-group mb-4">
+                            <label class="text-muted" style="font-size: 0.85rem;">Nominal yang akan dibayarkan</label>
+                            <input type="text" id="input-nominal-partial" class="form-control"
+                                placeholder="Contoh: 1.000.000" min="100000">
+                            <input type="hidden" id="input-nominal-remaining-balance" class="form-control"
+                                value="{{ $dispensation['remaining_balance'] ?? 0 }}">
+                        </div>
+
+                        <a href="{{ route('ppdb.bills.payment-now', ['id' => $dispensation->id, 'type' => 'partial', 'dispensation_type' => $type]) }}"
+                            id="btn-generate-partial"
+                            class="btn btn-outline-dark-green text-success btn-block py-2 mt-auto">Generate Virtual
+                            Account</a>
                     </div>
-
-                    <p class="text-muted mb-1" style="font-size: 0.85rem;">Total Nominal</p>
-                    <h5 class="font-weight-bold mb-4">Rp
-                        {{ number_format($dispensation['remaining_balance'] ?? 0, 0, ',', '.') }}</h5>
-
-                    <a href="{{ route('ppdb.bills.payment-now', ['id' => $dispensation->id, 'type' => 'full_statement']) }}"
-                        class="btn btn-dark-green btn-block py-2 text-white">Bayar
-                        Lunas Sekarang</a>
                 </div>
             </div>
+        @endif
 
-            <div class="col-md-6">
-                <div class="card card-option p-4">
-                    <h6 class="font-weight-bold mb-2">Partial Settlement (Bayar Sebagian)</h6>
-                    <p class="text-muted mb-3" style="font-size: 0.85rem; line-height: 1.4;">
-                        Jika anda akan melakukan pembayaran dengan nominal bebas untuk mengurangi beban cicilan
-                    </p>
-
-                    <div class="form-group mb-4">
-                        <label class="text-muted" style="font-size: 0.85rem;">Nominal yang akan dibayarkan</label>
-                        <input type="text" id="input-nominal-partial" class="form-control"
-                            placeholder="Contoh: 1.000.000" min="100000">
-                        <input type="hidden" id="input-nominal-remaining-balance" class="form-control"
-                            value="{{ $dispensation['remaining_balance'] ?? 0 }}">
-                    </div>
-
-                    <a href="{{ route('ppdb.bills.payment-now', ['id' => $dispensation->id, 'type' => 'partial']) }}"
-                        id="btn-generate-partial"
-                        class="btn btn-outline-dark-green text-success btn-block py-2 mt-auto">Generate Virtual
-                        Account</a>
-                </div>
+        @if ($dispensation->total_final_fee == $dispensation->remaining_balance)
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="font-weight-bold text-secondary mb-0">Rencana Cicilan / Setup Pembayaran</h5>
+                <a href="{{ route('ppdb.bills.change-payment-method', ['id' => $dispensation->id, 'dispensation_type' => $type]) }}"
+                    class=" font-weight-bold">
+                    Ubah Cara Bayar
+                </a>
             </div>
-        </div>
-        {{-- @endif --}}
-
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="font-weight-bold text-secondary mb-0">Rencana Cicilan / Setup Pembayaran</h5>
-        </div>
+        @endif
 
         <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
             <div class="table-responsive">
@@ -355,6 +373,13 @@
                                     </td>
                                     <td class="text-muted">Rp
                                         {{ number_format($detail['amount_paid'] ?? 0, 0, ',', '.') }}
+                                        </br>
+                                        @if ($detail['amount_paid'] > 0 && $detail['amount_paid'] != $detail['nominal'])
+                                            <span class="text-muted" style="font-size: 0.8rem; font-style: italic">Kurang
+                                                Bayar : Rp
+                                                {{ number_format($detail['nominal'] - $detail['amount_paid'], 0, ',', '.') }}
+                                            </span>
+                                        @endif
                                     </td>
                                     <td class="text-muted">
                                         {{ !empty($detail->date) ? \Carbon\Carbon::parse($detail->date)->format('d M Y') : '-' }}
@@ -390,7 +415,7 @@
                                     </td>
                                     <td>
                                         @if ($detail->status != 'paid' && $isPreviousPaid && !empty($detail->plan_date))
-                                            <a href="{{ route('ppdb.bills.payment-now', ['id' => $detail->id, 'type' => 'installment']) }}"
+                                            <a href="{{ route('ppdb.bills.payment-now', ['id' => $detail->id, 'type' => 'installment', 'dispensation_type' => $type]) }}"
                                                 class="btn btn-sm btn-dark-green btn-block py-2 text-white">Bayar</a>
                                         @endif
                                     </td>
@@ -448,7 +473,8 @@
                                         style="border: 2px dashed #a7f3d0; border-radius: 12px; background-color: #f0fdf4;">
                                         <div class="row justify-content-center align-items-center flex-column">
                                             <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: #166534;"></i>
-                                            <span class="d-block font-weight-bold mb-2" style="color: #166534;">Pilih file
+                                            <span class="d-block font-weight-bold mb-2" style="color: #166534;">Pilih
+                                                file
                                                 dari perangkat komputer Anda</span>
                                             <span class="text-muted d-block mb-3">Support: PDF</span>
                                             <span class="btn btn-dark-green text-white position-relative">

@@ -1809,7 +1809,7 @@ class PPDBController extends Controller
 
         $bills = $ppdbUserService->getBills($user['ppdb']['id']);
 
-        $dispensation = $paymentDispensationsService->getByUserPpdb($user['ppdb']['id']);
+        $dispensation = $paymentDispensationsService->getAllBilling($user['ppdb']['id']);
 
         $is_dispensation = false;
         if($dispensation){

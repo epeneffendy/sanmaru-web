@@ -35,6 +35,7 @@ class PaymentDispensations extends Model
     const PAYMENT_STATUS_PAID = 'paid';
 
     const DISPENSATION_TYPE_DEVELOPMENT = 'development';
+    const DISPENSATION_TYPE_ACTIVITY = 'activity';
 
     const TYPE_PENGEMBANGAN_LUNAS   = 21;
     const TYPE_PENGEMBANGAN_DP      = 22;

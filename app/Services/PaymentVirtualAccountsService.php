@@ -36,10 +36,11 @@ class PaymentVirtualAccountsService
             ->first();
     }
 
-    public function findByUserPpdbUnpaid($ppdb_user_id)
+    public function findByUserPpdbUnpaid($ppdb_user_id, $type)
     {
         return $this->paymentVirtualAccountsModel
             ->where('ppdb_user_id', $ppdb_user_id)
+            ->where('type', $type)
             ->where('status', \App\Models\PaymentVirtualAccounts::STATUS_UNPAID)
             ->first();
     }
@@ -58,11 +59,12 @@ class PaymentVirtualAccountsService
         ];
     }
 
-    public function confirmDevelopment($id, $nominal, $type)
+    public function confirmDevelopment($id, $nominal, $type, $dispensation_type)
     {
         DB::beginTransaction();
         try {
             $paymentVirtualAccount = $this->findById($id);
+
             if (!$paymentVirtualAccount) {
                 DB::rollBack();
                 return false;
@@ -77,25 +79,50 @@ class PaymentVirtualAccountsService
 
             $confirmed = false;
             if ($paymentVirtualAccount->save()) {
-                $dispensation = $this->paymentDispensationsService->getByUserPpdb($paymentVirtualAccount->ppdb_user_id);
+                $dispensation = $this->paymentDispensationsService->getByUserPpdb($paymentVirtualAccount->ppdb_user_id, $dispensation_type);
 
                 if ($dispensation) {
+                    $char_virtual_account = strlen($virtual_account_number);
+                    $is_full_payment = true;
+                    $is_part = false;
+                    if($char_virtual_account > 16){
+                        $is_full_payment = false;
+                        $payment_code = substr($virtual_account_number, -2);
+                        // if($payment_code == PaymentDispensations::TYPE_FULL){
+                        //     $is_full_payment = true;
+                        // }
+                    }
 
-                    // 99 = full payment, 98 = partial payment, 22 = down payment, 23 = installment payment
-                    if($type == 21){
+                    if($is_full_payment){
                         $detail_id = $dispensation->details[0]->id;
                         $confirmed = $this->paymentDispensationsService->confirmPayment($dispensation->id, $detail_id, $virtual_account_number, $nominal);
-                    }
+                    }else{
+                        if($payment_code == PaymentDispensations::TYPE_PARTIAL){
+                            $confirmed = $this->paymentDispensationsService->confirmPaymentPartial($dispensation->id, $virtual_account_number, $nominal);
+                        }else if($payment_code == PaymentDispensations::TYPE_FULL){
+                            $confirmed = $this->paymentDispensationsService->confirmPaymentFullSettlement($dispensation->id, $virtual_account_number, $nominal);
+                        }else{
+                            $dispensation_detail = $this->paymentDispensationsService->getByUserPpdbWithVirtualAccount($paymentVirtualAccount->ppdb_user_id, $virtual_account_number);
+                            $detail_id = $dispensation_detail ? $dispensation_detail->detail_id : 0;
+                            $confirmed = $this->paymentDispensationsService->confirmPayment($dispensation->id, $detail_id, $virtual_account_number, $nominal);
+                        }
 
-                    if(($type == 98) || ($type == 99)){
-                        $confirmed = $this->paymentDispensationsService->confirmPaymentPartial($dispensation->id, $virtual_account_number, $nominal);
                     }
+                    // 99 = full payment, 98 = partial payment, 22 = down payment, 23 = installment payment
+                    // if($type == 21){
+                    //     $detail_id = $dispensation->details[0]->id;
+                    //     $confirmed = $this->paymentDispensationsService->confirmPayment($dispensation->id, $detail_id, $virtual_account_number, $nominal);
+                    // }
 
-                    if(($type == 22) || ($type == 23)){
-                        $dispensation_detail = $this->paymentDispensationsService->getByUserPpdbWithVirtualAccount($paymentVirtualAccount->ppdb_user_id, $virtual_account_number);
-                        $detail_id = $dispensation_detail ? $dispensation_detail->detail_id : 0;
-                        $confirmed = $this->paymentDispensationsService->confirmPayment($dispensation->id, $detail_id, $virtual_account_number, $nominal);
-                    }
+                    // if(($type == 98) || ($type == 99)){
+                    //     $confirmed = $this->paymentDispensationsService->confirmPaymentPartial($dispensation->id, $virtual_account_number, $nominal);
+                    // }
+
+                    // if(($type == 22) || ($type == 23)){
+                    //     $dispensation_detail = $this->paymentDispensationsService->getByUserPpdbWithVirtualAccount($paymentVirtualAccount->ppdb_user_id, $virtual_account_number);
+                    //     $detail_id = $dispensation_detail ? $dispensation_detail->detail_id : 0;
+                    //     $confirmed = $this->paymentDispensationsService->confirmPayment($dispensation->id, $detail_id, $virtual_account_number, $nominal);
+                    // }
                 }
 
                 if($confirmed){

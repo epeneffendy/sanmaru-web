@@ -122,10 +122,17 @@ class PaymentDispensationController extends Controller
     public function store(PaymentDispensationsRequest $request, PaymentDispensationsService $paymentDispensationService){
 
         try {
+            $dispensation_type = $request->dispensation_type;
+            $code_payment = PaymentDispensations::CODE_PAYMENT_DEVELOPMENT;
+            if($dispensation_type == PaymentDispensations::DISPENSATION_TYPE_ACTIVITY){
+                $code_payment = PaymentDispensations::CODE_PAYMENT_ACTIVITY;
+            }
+
             $input = $request->validated();
             $ppdb = PPDBUser::where('id', $input['ppdb_user_id'])->first();
-            $va_full_statement = $paymentDispensationService->virtualAccountNumber($ppdb, PaymentDispensations::TYPE_FULL);
-            $va_partial = $paymentDispensationService->virtualAccountNumber($ppdb, PaymentDispensations::TYPE_PARTIAL);
+            $va_full_statement = $paymentDispensationService->virtualAccountNumber($ppdb, $code_payment, PaymentDispensations::TYPE_FULL);
+            $va_partial = $paymentDispensationService->virtualAccountNumber($ppdb, $code_payment, PaymentDispensations::TYPE_PARTIAL);
+
             $json_value = [];
 
             if($input['dispensation_mode'] == PaymentDispensations::MODE_FULL_SETUP){

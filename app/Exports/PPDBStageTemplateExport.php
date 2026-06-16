@@ -41,6 +41,7 @@ class PPDBStageTemplateExport  implements FromCollection, WithHeadings, WithMapp
 
         $ppdbUsers = PPDBUser::where('unit_id', $this->unit)
             ->where('periode', $this->period)
+            ->where('period_verified', '<>', 'waiting')
             ->whereIn('ppdb_users.id', $passedUserIds)
             ->select('ppdb_users.id', 'name', 'register_number', 'unit_id', 'periode', 'ppdb_user_stages.passed', 'ppdb_user_stages.note')
             ->leftJoin('ppdb_user_stages', function ($join) use ($stage) {

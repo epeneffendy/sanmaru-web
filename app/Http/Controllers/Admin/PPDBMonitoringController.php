@@ -18,6 +18,9 @@ use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\MessageBag;
+use App\Mail\PeriodConfirmed;
+use App\Models\StudentBills;
+use App\Services\EmailService;
 
 class PPDBMonitoringController extends Controller
 {
@@ -153,7 +156,6 @@ class PPDBMonitoringController extends Controller
         } else {
             $stage = Stage::where('id', $stage_id)->where('active', 1)->first();
             $data = [];
-
             $data = [
                 'nav' => $this->page,
                 'period' => $period,
@@ -317,5 +319,33 @@ class PPDBMonitoringController extends Controller
             'path' => $request->url(),
             'query' => $request->query(),
         ]);
+    }
+
+    public function periodVerified(Request $request, PPDBUserService $ppdbUserService){
+        DB::beginTransaction();
+        try {
+            $ppdb = PPDBUser::findOrFail($request->input('ppdb_user_id'));
+            $ppdb->periode = $request->input('periode');
+            $ppdb->period_verified = PPDBUser::PERIOD_VERIFIED;
+            if($ppdb->save()){
+               StudentBills::where('ppdb_user_id', $ppdb->id)->delete();
+
+                $newPpdb = PPDBUser::findOrFail($request->input('ppdb_user_id'));
+
+                $bills = $ppdbUserService->studentBills($newPpdb);
+
+                $email = $ppdb->user->email;
+                $template = (new PeriodConfirmed($ppdb));
+                (new EmailService())->sendMail($template, $email);
+            }
+            DB::commit();
+
+            return redirect()->route('admin.ppdb.show', ['id' => $ppdb->id])->with('message', 'Periode pendaftaran siswa berhasil diverifikasi.');
+        } catch (\Exception $e) {
+            dd($e);
+            DB::rollBack();
+            Log::error('PPDB Period Verified Error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat memverifikasi periode: ' . $e->getMessage());
+        }
     }
 }

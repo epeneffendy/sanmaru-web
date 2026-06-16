@@ -11,9 +11,17 @@
 */
 
 use Illuminate\Http\Request;
+use App\Models\PaymentDispensations;
+use App\Models\PaymentVirtualAccounts;
+use App\Mail\BillPaymentConfirmed;
+use App\Mail\PeriodConfirmed;
+use App\Models\PPDBUser;
+use Illuminate\Support\Facades\Route;
 
 $routeService = App::make('App\Services\RouteService');
 $helper = App::make('App\Helpers\Helper');
+
+
 
 Route::group(['domain' => $routeService->getPpdbSubdomain()], function () use ($routeService, $helper) {
     $prefix = 'ppdb-online';
@@ -788,6 +796,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::post('import-users-student/{id}', 'PPDBMonitoringController@importUserStudent')->name('import-users-student');
             Route::get('sync-stage-development/{id}/{stage_id}', 'PPDBMonitoringController@syncStageDevelopment')->name('sync-stage-development');
             Route::get('set-inactive/{id}', 'PPDBMonitoringController@setInactive')->name('set-inactive');
+            Route::post('period-verified', 'PPDBMonitoringController@periodVerified')->name('period-verified');
         });
 
         // AGE LIMIT
@@ -1024,4 +1033,25 @@ Route::group(['domain' => $routeService->getPaymentsSubdomain(), 'middleware' =>
         Route::post($prefix . 'v1.0/transfer-va/inquiry-test', 'Payment\OpenApi\v1\PaymentBCATestController@inquiryList')->name('payment.api.inquiry-test');
         Route::post($prefix . 'v1.0/transfer-va/payment-test', 'Payment\OpenApi\v1\PaymentBCATestController@paymentFlag')->name('payment.api.payments-test');
     }
+});
+
+Route::get('/debug-email/bill-payment', function () {
+    $dispensation = PaymentDispensations::has('ppdb')->first();
+    $paymentVirtualAccount = PaymentVirtualAccounts::first();
+
+    if (!$dispensation || !$paymentVirtualAccount) {
+        return 'Tidak ada data PaymentDispensations (yang memiliki relasi ppdb) atau PaymentVirtualAccounts di database untuk di-preview.';
+    }
+
+    return new BillPaymentConfirmed($dispensation, $paymentVirtualAccount);
+});
+
+Route::get('/debug-email/period-confirmed', function () {
+    $ppdb = PPDBUser::first();
+
+    if (!$ppdb) {
+        return 'Tidak ada data PaymentDispensations (yang memiliki relasi ppdb) atau PaymentVirtualAccounts di database untuk di-preview.';
+    }
+
+    return new PeriodConfirmed($ppdb);
 });

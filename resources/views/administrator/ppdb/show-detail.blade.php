@@ -566,6 +566,15 @@
                                 {{ $data->period->name }}
                             </span>
 
+                            @if ($data->period_verified == 'waiting')
+                                <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 py-2 fw-bold ms-2"
+                                    data-toggle="modal" data-target="#verifyPeriodModal"
+                                    style="box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); border: none; color: #fff;">
+                                    <i class="fa fa-check-square me-1"></i> Verifikasi Periode
+                                </button>
+                            @endif
+
+
                             @if (isset($data->student) && $data->student->status != 'inactive')
                                 <a href="{{ route('admin.ppdb-monitoring.set-inactive', ['id' => $data->id]) }}"
                                     class="btn btn-danger btn-sm rounded-pill px-3 py-2 fw-bold"
@@ -716,6 +725,51 @@
                     {{--                        </a> --}}
                     {{--                    </div> --}}
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Verify Period -->
+    <div class="modal fade" id="verifyPeriodModal" tabindex="-1" role="dialog"
+        aria-labelledby="verifyPeriodModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content" style="border-radius: 15px; border: none;">
+                {{-- Ubah action URL sesuai dengan route controller Anda --}}
+                <form action="{{ route('admin.ppdb-monitoring.period-verified') }}" method="POST">
+                    @csrf
+                    {{-- @method('PUT') --}}
+                    <div class="modal-header bg-success text-white"
+                        style="border-radius: 15px 15px 0 0; background: linear-gradient(135deg, #50c36f 0%, #26703B 100%) !important;">
+                        <h5 class="modal-title fw-bold" id="verifyPeriodModalLabel" style="margin:0;">Verifikasi Periode
+                            Pendaftaran</h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"
+                            style="opacity: 1; margin-top: -20px;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="form-group m-0">
+                            <input type="hidden" name="ppdb_user_id" value="{{ $data->user->ppdb->id }}" />
+                            <label for="periode" class="fw-bold text-muted small"
+                                style="font-size: 12px; text-transform: uppercase;">Pilih Periode</label>
+                            <select name="periode" id="periode" class="form-control" required
+                                style="border-radius: 8px; height: 45px;">
+                                <option value="">-- Pilih Periode --</option>
+                                @foreach (\App\Models\Period::where('unit_id', $data->unit_id)->get() as $period)
+                                    <option value="{{ $period->id }}"
+                                        {{ $data->periode == $period->id ? 'selected' : '' }}>{{ $period->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #f1f5f9; padding: 15px 25px;">
+                        <button type="button" class="btn btn-light rounded-pill px-4 fw-bold"
+                            data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold"
+                            style="background: #26703B; border: none;"><i class="fa fa-save me-1"></i> Simpan
+                            Verifikasi</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

@@ -34,6 +34,10 @@ class PPDBUser extends Authenticatable
     const ORDER_STATUS_ORDERED = 'ordered';
     const ORDER_STATUS_NOT_ORDERED = 'not_ordered';
 
+    const PERIOD_WAITING = 'waiting';
+    const PERIOD_SWITCH = 'switch';
+    const PERIOD_VERIFIED = 'verified';
+
     public $email, $mobilePhone;
 
     /**
@@ -158,6 +162,7 @@ class PPDBUser extends Authenticatable
         'kms',
         'kartu_golongan_darah',
         'is_cost',
+        'period_verified',
     ];
 
     /**

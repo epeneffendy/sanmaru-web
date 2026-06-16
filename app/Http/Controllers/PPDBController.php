@@ -74,6 +74,12 @@ class PPDBController extends Controller
             'notifiable_id' => $user['ppdb']['id']
         ]);
 
+        // if (($user->isDataCompleteWhitoutBca) && ($user->isParentsComplete)) {
+
+        $is_stage_show = true;
+        if(($user_ppdb->period_verified == PPDBUser::PERIOD_WAITING) && ($user_ppdb->isDataCompleteWhitoutBca) && ($user_ppdb->isParentsComplete)){
+            $is_stage_show = false;
+        }
 
         // if($user_ppdb->is_upload_development_statement == null){
         //     $max_date = \App\Helpers\PriceHelper::developmentStudent($user_ppdb);
@@ -115,6 +121,7 @@ class PPDBController extends Controller
             'notifications' => $notifications,
             'currentDateTime' => $currentDateTime,
             'is_stage' => $is_stage,
+            'is_stage_show' => $is_stage_show,
             'nav' => ['parent' => 'home', 'child' => 'Home'],
         );
         $view = 'new-welcome';
@@ -1811,6 +1818,40 @@ class PPDBController extends Controller
 
         $dispensation = $paymentDispensationsService->getAllBilling($user['ppdb']['id']);
 
+        $stages = Stage::where('periode', $user['ppdb']['periode'])->get();
+        $arr_stage = [];
+        foreach($stages as $ind => $stage){
+            $feature = 'no_feature';
+            if($stage->is_opening_shop_feature){
+                $feature = 'shop';
+            }
+            if($stage->is_opening_development_feature){
+                $feature = 'development';
+            }
+
+            $arr_stage[$ind][$stage->id] = $feature;
+        }
+        $cekStage = PPDBUserStage::where('ppdb_user_id', $user['ppdb']['id'])->orderBy('id', 'desc')->first();
+        if($cekStage && $cekStage->passed == 1){
+            $currentIndex = -1;
+            foreach ($arr_stage as $ind => $stageArray) {
+                if (isset($stageArray[$cekStage->stage_id])) {
+                    $currentIndex = $ind;
+                    break;
+                }
+            }
+
+            // Cek apabila tahapan berikutnya ada, dan valuenya adalah 'development'
+            if ($currentIndex !== -1 && isset($arr_stage[$currentIndex + 1])) {
+                $nextStage = $arr_stage[$currentIndex + 1];
+                $nextFeature = reset($nextStage); // Mengambil value array pertama
+
+                if ($nextFeature === 'development') {
+                    $is_show = true;
+                }
+            }
+        }
+
         $is_dispensation = false;
         if($dispensation){
             if($dispensation->dispensation_mode != PaymentDispensations::MODE_REAL_PAYMENT){
@@ -1823,6 +1864,8 @@ class PPDBController extends Controller
             'ppdb'=>$user['ppdb'],
             'is_dispensation'=>$is_dispensation,
             'dispensation'=>$dispensation,
+            'is_show' => $is_show,
+            'ppdbUser'=> $ppdbUser,
             'nav' => ['parent' => 'data', 'child' => 'Data Siswa']
         );
 

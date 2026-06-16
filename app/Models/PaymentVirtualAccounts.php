@@ -35,4 +35,9 @@ class PaymentVirtualAccounts extends Model
         'expired_at',
         'callback_raw'
     ];
+
+    public function ppdb()
+    {
+    	return $this->belongsTo(PPDBUser::class, 'ppdb_user_id', 'id');
+    }
 }

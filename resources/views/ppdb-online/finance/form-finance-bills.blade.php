@@ -236,8 +236,7 @@
     @endpush
 
     <div class="row-height bg-light" style="min-height: 100vh;">
-
-        @if ($ppdb['status'] == 'confirmed')
+        @if ($ppdbUser->status == 'confirmed')
             <div class="container py-4 px-2 px-md-4">
                 <div class="row justify-content-center">
                     <div class="form-group" style="padding:3em">
@@ -276,6 +275,17 @@
                                     {{ $ppdb['school_year'] . ' - ' . ($ppdb['school_year'] + 1) }}</p>
                                 <div class="header-accent mx-auto"></div>
                             </div>
+
+                            @if (!$is_show)
+                                <div class="alert mt-2 p-3"
+                                    style="background-color: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px;">
+                                    <h6 class="fw-bold mb-2" style="color: #075985; font-size: 13px;">
+                                        <i class="fa-solid fa-gift me-1"></i> Pembayaran Masih Belum Aktif, Silahkan
+                                        Selesaikan
+                                        Tahapan Penerimaan Terlebih Dahulu!
+                                    </h6>
+                                </div>
+                            @endif
 
                             <!-- Main Card -->
                             <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
@@ -471,7 +481,8 @@
                                                         <!-- Info Tagihan -->
                                                         <div class="d-flex align-items-start w-100">
                                                             <div class="ms-3 flex-grow-1">
-                                                                <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                                                <div
+                                                                    class="d-flex align-items-center flex-wrap gap-2 mb-1">
                                                                     <h6 class="mb-0 fw-bold text-dark me-1">Uang
                                                                         Pengembangan
                                                                     </h6>
@@ -582,12 +593,15 @@
                                                                     <i class="fa fa-file-text-o me-1"></i> Bukti Lunas
                                                                 </a>
                                                             @else
-                                                                @if ($item['payment_method'] == 'unpaid' || $item['payment_method'] == 'partial')
-                                                                    <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'development']) }}"
-                                                                        class="btn btn-sm btn-outline-green px-3"
-                                                                        style="font-size: 0.75rem; font-weight: 600;">
-                                                                        Cara Bayar <i class="fa fa-chevron-right ms-1"></i>
-                                                                    </a>
+                                                                @if ($is_show)
+                                                                    @if ($item['payment_method'] == 'unpaid' || $item['payment_method'] == 'partial')
+                                                                        <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'development']) }}"
+                                                                            class="btn btn-sm btn-outline-green px-3"
+                                                                            style="font-size: 0.75rem; font-weight: 600;">
+                                                                            Cara Bayar <i
+                                                                                class="fa fa-chevron-right ms-1"></i>
+                                                                        </a>
+                                                                    @endif
                                                                 @endif
                                                             @endif
                                                         </div>
@@ -792,11 +806,13 @@
                                                                     <i class="fa fa-file-text-o me-1"></i> Bukti Lunas
                                                                 </button>
                                                             @else
-                                                                <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'activity']) }}"
-                                                                    class="btn btn-sm btn-outline-green px-3"
-                                                                    style="font-size: 0.75rem; font-weight: 600;">
-                                                                    Cara Bayar <i class="fa fa-chevron-right ms-1"></i>
-                                                                </a>
+                                                                @if ($is_show)
+                                                                    <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'activity']) }}"
+                                                                        class="btn btn-sm btn-outline-green px-3"
+                                                                        style="font-size: 0.75rem; font-weight: 600;">
+                                                                        Cara Bayar <i class="fa fa-chevron-right ms-1"></i>
+                                                                    </a>
+                                                                @endif
                                                             @endif
                                                         </div>
                                                     </div>

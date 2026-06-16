@@ -259,7 +259,8 @@
 
                     <td class="text-center">
                         <div style="margin-bottom: 8px;">
-                            {!! $item['status_confirm'] !!}
+                            {!! $item['status_confirm'] !!}<br>
+                            {!! $item['status_period'] !!}
                         </div>
                         <div>
                             {!! $item['status_stage'] !!}

@@ -5,6 +5,9 @@ use \Illuminate\Support\Facades\DB;
 use \Illuminate\Support\Facades\Log;
 use App\Models\PaymentDispensations;
 use App\Models\PaymentVirtualAccounts;
+use App\Mail\BillPaymentConfirmed;
+use App\Models\PaymentDispensationDetails;
+use App\Services\EmailService;
 
 
 class PaymentVirtualAccountsService
@@ -70,12 +73,14 @@ class PaymentVirtualAccountsService
                 return false;
             }
 
+            $register_number = isset($paymentVirtualAccount->ppdb) ? $paymentVirtualAccount->ppdb->register_number :'00';
             $detail_id = 0;
             $virtual_account_number = $paymentVirtualAccount->virtual_account_number;
             $nominal = $paymentVirtualAccount->total_payment;
 
             $paymentVirtualAccount->status = PaymentVirtualAccounts::STATUS_PAID;
             $paymentVirtualAccount->payment_date = now();
+            $paymentVirtualAccount->invoice_number = $this->generateInvoice($paymentVirtualAccount->type, $paymentVirtualAccount->virtual_account_number, $paymentVirtualAccount->payment_dispensation_detail_id, $register_number );
 
             $confirmed = false;
             if ($paymentVirtualAccount->save()) {
@@ -108,25 +113,13 @@ class PaymentVirtualAccountsService
                         }
 
                     }
-                    // 99 = full payment, 98 = partial payment, 22 = down payment, 23 = installment payment
-                    // if($type == 21){
-                    //     $detail_id = $dispensation->details[0]->id;
-                    //     $confirmed = $this->paymentDispensationsService->confirmPayment($dispensation->id, $detail_id, $virtual_account_number, $nominal);
-                    // }
-
-                    // if(($type == 98) || ($type == 99)){
-                    //     $confirmed = $this->paymentDispensationsService->confirmPaymentPartial($dispensation->id, $virtual_account_number, $nominal);
-                    // }
-
-                    // if(($type == 22) || ($type == 23)){
-                    //     $dispensation_detail = $this->paymentDispensationsService->getByUserPpdbWithVirtualAccount($paymentVirtualAccount->ppdb_user_id, $virtual_account_number);
-                    //     $detail_id = $dispensation_detail ? $dispensation_detail->detail_id : 0;
-                    //     $confirmed = $this->paymentDispensationsService->confirmPayment($dispensation->id, $detail_id, $virtual_account_number, $nominal);
-                    // }
                 }
 
                 if($confirmed){
                     DB::commit();
+                    $email = $paymentVirtualAccount->ppdb->user->email;
+                    $template = (new BillPaymentConfirmed($dispensation, $paymentVirtualAccount));
+                    (new EmailService())->sendMail($template, $email);
                     return true;
                 }
             }
@@ -138,5 +131,44 @@ class PaymentVirtualAccountsService
             Log::error('Error confirming development payment: ' . $e->getMessage());
             return false;
         }
+    }
+
+    public function generateInvoice($type, $virtual_account_number, $detail_id, $register_number){
+        $yearMonth = date('ym');
+        $paymentCode = '00';
+        if ($type === 'development') {
+            $paymentCode = '03';
+        } elseif ($type === 'activity') {
+            $paymentCode = '06';
+        }
+
+        $initialCode = '';
+        $dispensation_detail = PaymentDispensationDetails::where('id', $detail_id)->first();
+        if($dispensation_detail){
+            $initialCode = sprintf("%02d", $dispensation_detail->installment_number);
+        }
+
+        $char_virtual_account = strlen($virtual_account_number);
+        if($char_virtual_account == 16){
+            $initialCode = 11;
+        }
+
+        $prefix = "{$yearMonth}{$paymentCode}{$register_number}{$initialCode}";
+
+        $lastTransaction = PaymentVirtualAccounts::selectRaw('RIGHT(invoice_number, 4) as urutan')
+        ->where('invoice_number', 'like', $yearMonth . '%')
+        ->orderByRaw('RIGHT(invoice_number, 4) DESC')
+        ->first();
+
+        if (!$lastTransaction) {
+            $urutan = 0;
+        } else {
+            $urutan = (int) $lastTransaction->urutan;
+        }
+
+        $urutan++;
+        $sequenceCode = sprintf("%04d", $urutan);
+
+        return "{$prefix}{$sequenceCode}";
     }
 }

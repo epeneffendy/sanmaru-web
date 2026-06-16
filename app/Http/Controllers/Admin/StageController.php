@@ -299,6 +299,7 @@ class StageController extends Controller
 
         $ppdbUsers = PPDBUser::where('unit_id', $unit)
             ->where('periode', $period)
+            ->where('period_verified', '<>', 'waiting')
             ->whereIn('ppdb_users.id', $passedUserIds)
             ->select('ppdb_users.id', 'name', 'register_number', 'unit_id', 'periode', 'ppdb_user_stages.passed', 'ppdb_user_stages.note')
             ->leftJoin('ppdb_user_stages', function ($join) use ($stage) {

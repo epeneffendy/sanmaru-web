@@ -204,6 +204,11 @@ class PPDBMonitoringService
                     }
                 }
 
+                $status_period = '<label class="label label-success">Periode Telah Terverifikasi</label>';
+                if($user->period_verified == PPDBUser::PERIOD_WAITING){
+                    $status_period = '<label class="label label-warning">Menunggu Verifikasi Periode</label>';
+                }
+
                 $baseData = [
                     'id' => $user->id,
                     'name' => $user->name,
@@ -230,6 +235,7 @@ class PPDBMonitoringService
                     'total_payment_form' => $user->total_payment_form,
                     'status_stage' => $stage_status,
                     'voucher' => $voucher,
+                    'status_period'=> $status_period,
                 ];
 
                 if ($flag == 'development-statement') {

@@ -34,11 +34,18 @@
                         @endif
 
                         <div class="button-collection" style="margin: 15px 0">
-                            <button class="btn btn-success btn-sm" id="div_export_temp"  style="display: none"><i class="fa fa-file-excel-o"></i> Export</button>
-                            <button class="btn btn-default btn-sm" id="div_download_temp"  style="display: none"><i class="fa fa-save"></i> Download Template .xls</button>
-                            <button class="btn btn-default btn-upload-modal btn-sm"><i class="fa fa-upload"></i> Import .xls</button>
-                            <a href="{{ route('admin.ppdb.export', request()->except('page')) }}" download  class="btn btn-success btn-sm div_export" style="display: none"><i class="fa fa-file-excel-o"></i> Export</a>
-                            <a href="{{ route('admin.ppdb.download-template', request()->except('page')) }}" download  class="btn btn-success btn-sm div_download" style="display: none"><i class="fa fa fa-save"></i> Download Template .xls</a>
+                            <button class="btn btn-success btn-sm" id="div_export_temp" style="display: none"><i
+                                    class="fa fa-file-excel-o"></i> Export</button>
+                            <button class="btn btn-default btn-sm" id="div_download_temp" style="display: none"><i
+                                    class="fa fa-save"></i> Download Template .xls</button>
+                            <button class="btn btn-default btn-upload-modal btn-sm"><i class="fa fa-upload"></i> Import
+                                .xls</button>
+                            <a href="{{ route('admin.ppdb.export', request()->except('page')) }}" download
+                                class="btn btn-success btn-sm div_export" style="display: none"><i
+                                    class="fa fa-file-excel-o"></i> Export</a>
+                            <a href="{{ route('admin.ppdb.download-template', request()->except('page')) }}" download
+                                class="btn btn-success btn-sm div_download" style="display: none"><i
+                                    class="fa fa fa-save"></i> Download Template .xls</a>
                             @if (\App\Helpers\Helper::isPpdbRole())
                                 <a href="{{ route('admin.ppdb.add') }}" class="btn btn-primary btn-sm"><i
                                         class="fa fa-plus"></i> Tambah data</a>
@@ -47,24 +54,24 @@
                         <div class="panel panel-primary">
                             <div class="panel-body">
                                 <form role="form" autocomplete="off" method="GET"
-                                      action="{{ route('admin.ppdb.index') }}">
+                                    action="{{ route('admin.ppdb.index') }}">
                                     <input autocomplete="false" name="hidden" disabled type="text"
-                                           style="display:none;">
+                                        style="display:none;">
                                     <div class="row">
                                         <div class="form-group col-md-3">
                                             <label for="search">Cari</label>
                                             <input type="text" name="search" placeholder="Search"
-                                                   value="{{ @$params['search'] }}" class="form-control input-sm"/>
+                                                value="{{ @$params['search'] }}" class="form-control input-sm" />
                                         </div>
                                         <div class="form-group col-md-3">
                                             <label for="scope">Berdasarkan</label>
                                             <select name="scope" class="form-control input-sm">
-                                                <option
-                                                    value="name" {{ @$params['scope'] == 'name' ? 'selected' : NULL }} >
+                                                <option value="name"
+                                                    {{ @$params['scope'] == 'name' ? 'selected' : null }}>
                                                     Nama
                                                 </option>
-                                                <option
-                                                    value="register_number" {{ @$params['scope'] == 'register_number' ? 'selected' : NULL }}>
+                                                <option value="register_number"
+                                                    {{ @$params['scope'] == 'register_number' ? 'selected' : null }}>
                                                     Nomor Registrasi
                                                 </option>
                                             </select>
@@ -74,8 +81,9 @@
                                             <select name="unit" id="unit" class="form-control input-sm">
                                                 <option value="0">== SEMUA ==</option>
                                                 @foreach (@$units as $unit)
-                                                    <option
-                                                        value="{{ $unit->id }}" {{ $unit->id == @$params['unit'] ? 'selected' : NULL }}>{{ $unit->name }}</option>
+                                                    <option value="{{ $unit->id }}"
+                                                        {{ $unit->id == @$params['unit'] ? 'selected' : null }}>
+                                                        {{ $unit->name }}</option>
                                                 @endforeach
                                             </select>
                                         </div>
@@ -83,15 +91,17 @@
                                             <label for="school_year">Tahun Ajaran</label>
                                             <select name="school_year" id="school_year" class="form-control input-sm">
                                                 @php($y = date('Y') + 1)
-                                                <option
-                                                    value="all" {{ (@$params['school_year'] == 'all') ? 'selected' : NULL }}>
+                                                <option value="all"
+                                                    {{ @$params['school_year'] == 'all' ? 'selected' : null }}>
                                                     == SEMUA ==
                                                 </option>
-                                                @for($i = 2020; $i <= $y; $i++)
-{{--                                                    <option--}}
-{{--                                                        value="{{ $i }}" {{ (@$params['school_year'] == $i) ? 'selected' : ($i == (now()->month > 6 ? (now()->year + 1) : now()->year) && @$params['school_year'] != 'all' ? 'selected' : NULL) }}>{{ $i }}--}}
-{{--                                                        - {{ $i + 1 }}</option>--}}
-                                                    <option value="{{ $i }}" {{empty($params) ?  ($i == $y) ? 'selected' : '' : (($params['school_year'] == $i) ? 'selected' : '') }}>{{ $i }} - {{ $i + 1 }}</option>
+                                                @for ($i = 2020; $i <= $y; $i++)
+                                                    {{--                                                    <option --}}
+                                                    {{--                                                        value="{{ $i }}" {{ (@$params['school_year'] == $i) ? 'selected' : ($i == (now()->month > 6 ? (now()->year + 1) : now()->year) && @$params['school_year'] != 'all' ? 'selected' : NULL) }}>{{ $i }} --}}
+                                                    {{--                                                        - {{ $i + 1 }}</option> --}}
+                                                    <option value="{{ $i }}"
+                                                        {{ empty($params) ? ($i == $y ? 'selected' : '') : ($params['school_year'] == $i ? 'selected' : '') }}>
+                                                        {{ $i }} - {{ $i + 1 }}</option>
                                                 @endfor
                                             </select>
                                         </div>
@@ -100,11 +110,12 @@
                                         <div class="form-group col-md-3">
                                             <label for="active_period">Periode</label>
                                             <select name="period" id="periode" class="form-control input-sm">
-                                                <option value="" {{ @$params['period'] == '' ? 'selected' : NULL }}>==
+                                                <option value="" {{ @$params['period'] == '' ? 'selected' : null }}>
+                                                    ==
                                                     SEMUA ==
                                                 </option>
-                                                <option
-                                                    value="ongoing" {{ @$params['period'] == 'ongoing' ? 'selected' : NULL }}>
+                                                <option value="ongoing"
+                                                    {{ @$params['period'] == 'ongoing' ? 'selected' : null }}>
                                                     Sedang berlangsung
                                                 </option>
                                             </select>
@@ -113,28 +124,28 @@
                                             <label for="status">Sort by Status</label>
                                             <select name="status" class="form-control input-sm">
                                                 <option value="0">== SEMUA ==</option>
-                                                <option
-                                                    value="email_verified" {{ @$params['status']=='email_verified' ? 'selected' : NULL }}>
+                                                <option value="email_verified"
+                                                    {{ @$params['status'] == 'email_verified' ? 'selected' : null }}>
                                                     Verified
                                                 </option>
-                                                <option
-                                                    value="payment_status" {{ @$params['status']=='payment_status' ? 'selected' : NULL }}>
+                                                <option value="payment_status"
+                                                    {{ @$params['status'] == 'payment_status' ? 'selected' : null }}>
                                                     Biaya Formulir
                                                 </option>
-                                                <option
-                                                    value="student_data" {{ @$params['status']=='student_data' ? 'selected' : NULL }}>
+                                                <option value="student_data"
+                                                    {{ @$params['status'] == 'student_data' ? 'selected' : null }}>
                                                     Data
                                                 </option>
-                                                <option
-                                                    value="parent_data" {{ @$params['status']=='parent_data' ? 'selected' : NULL }}>
+                                                <option value="parent_data"
+                                                    {{ @$params['status'] == 'parent_data' ? 'selected' : null }}>
                                                     Parent
                                                 </option>
-                                                <option
-                                                    value="statement_letter" {{ @$params['status']=='statement_letter' ? 'selected' : NULL }}>
+                                                <option value="statement_letter"
+                                                    {{ @$params['status'] == 'statement_letter' ? 'selected' : null }}>
                                                     Surat Pernyataan
                                                 </option>
-                                                <option
-                                                    value="accepted" {{ @$params['status']=='accepted' ? 'selected' : NULL }}>
+                                                <option value="accepted"
+                                                    {{ @$params['status'] == 'accepted' ? 'selected' : null }}>
                                                     Accepted
                                                 </option>
                                             </select>
@@ -143,11 +154,11 @@
                                     <div class="row">
                                         <div class="col-md-12">
                                             <button type="submit" class="pull-right btn btn-sm btn-success"
-                                                    style="margin-left: 5px">
+                                                style="margin-left: 5px">
                                                 <i class="fa fa-search"></i> Search
                                             </button>
                                             <a href="{{ route('admin.ppdb.index') }}"
-                                               class="pull-right btn btn-sm btn-warning">
+                                                class="pull-right btn btn-sm btn-warning">
                                                 <i class="fa fa-refresh"></i> Clear
                                             </a>
                                         </div>
@@ -157,289 +168,295 @@
                         </div>
                         <div class="fixed-table-head">
                             <table id="datatables-master-ppdb" class="table table-responsive table-striped display"
-                                   style="width: 100%; border-top-width: medium; border-top-style: solid;">
+                                style="width: 100%; border-top-width: medium; border-top-style: solid;">
                                 <thead>
-                                <tr>
-                                    <th rowspan="2" class="text-center">No</th>
-                                    <th rowspan="2">Detail Calon Siswa</th>
-                                    <th colspan="6" style="width: 100px" class="text-center">Status</th>
-                                    <th rowspan="2" style="width: 220px" class="text-center">Option</th>
-                                </tr>
-                                <tr>
-                                    <th class="text-center">Verified</th>
-                                    <th class="text-center">Biaya Formulir</th>
-                                    <th class="text-center">Data</th>
-                                    <th class="text-center">Parent</th>
-                                    <th class="text-center">Surat Pernyataan</th>
-                                    <th class="text-right">Accepted</th>
-                                </tr>
+                                    <tr>
+                                        <th rowspan="2" class="text-center">No</th>
+                                        <th rowspan="2">Detail Calon Siswa</th>
+                                        <th colspan="6" style="width: 100px" class="text-center">Status</th>
+                                        <th rowspan="2" style="width: 220px" class="text-center">Option</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-center">Verified</th>
+                                        <th class="text-center">Biaya Formulir</th>
+                                        <th class="text-center">Data</th>
+                                        <th class="text-center">Parent</th>
+                                        <th class="text-center">Surat Pernyataan</th>
+                                        <th class="text-right">Accepted</th>
+                                    </tr>
                                 </thead>
 
                                 <tbody>
-                                @php($number = ($data->currentPage() - 1) * $data->perPage())
-                                @foreach($data as $key => $value)
-                                    @php($number++)
-                                    <tr>
-                                        <td>{{ $number }}</td>
-                                        <td>
-                                            <b style="text-transform: uppercase">{{$value['name']}}</b><br/>
-                                            <u>{{$value->user->username}}</u><br/>
-                                            <label class="label label-info">{{$value->user->email}}</label><br/>
-                                            <label class="label label-warning label-sm">no
-                                                registrasi: {{$value->register_number}}</label><br/>
-                                            <label
-                                                class="label label-danger label-sm">{{@$value->unit->name}}</label><br/>
-                                            <label class="label label-info label-xs">{{ @$value->period->name }}</label><br/>
-                                            <label class="label label-xs"
-                                                   style="background-color: gray">{{ $value->origin_school }}</label><br/>
-                                            <small>phone: {{$value->user->mobile_phone}}</small><br/>
-                                            {{$value->gender}}
-                                        </td>
-                                        <td class="text-center">
-                                            <span
-                                                class="btn btn-circle btn-sm {{ $value->isEmailVerified ? "btn-success" : "btn-danger" }}">
-                                                <icon class="icon-plus">
-                                                    @if ($value->isEmailVerified)
-                                                        <i class="fa fa-check" title="Email Verified"></i>
-                                                    @else
-                                                        <i class="fa fa-times" title="Email belum Verified"></i>
-                                                    @endif
-                                                </icon>
-                                            </span>
-                                            @if (!$value->isEmailVerified)
-                                                <br/>
-                                                <br/>
-                                                <span class="btn btn-sm btn-default send-confirmation"
-                                                      data-id="{{ $value->id }}"><i class="fa fa-envelope"></i></span>
-                                            @endif
-                                        </td>
-                                        <td class="text-center">
-                                            @if($value->isPaymentFormWithVirtualAccount)
-                                                @if($value->payment_date == '')
-                                                    <span
-                                                        class="btn btn-circle btn-sm btn-danger">
-                                                        <icon class="icon-times"><i class="fa fa-times"
-                                                                                    title="Belum melakukan pembayaran"></i></icon>
-                                                    </span>
-                                                @else
-                                                    <span class="btn btn-circle btn-sm btn-success">
-                                                        <icon class="icon-times"><i class="fa fa-check"
-                                                                                    title="Pembayaran Terkonfirmasi"></i></icon>
-                                                    </span>
-                                                    <br/>
-                                                    <br/>
-                                                    <span
-                                                        class="label label-info">Pembayaran Terkonfirmasi</span>
-                                                    <br>
-                                                    <span
-                                                        class="label label-success">Rp.{{number_format($value->total_payment_form)}}</span>
+                                    @php($number = ($data->currentPage() - 1) * $data->perPage())
+                                    @foreach ($data as $key => $value)
+                                        @php($number++)
+                                        <tr>
+                                            <td>{{ $number }}</td>
+                                            <td>
+                                                <b style="text-transform: uppercase">{{ $value['name'] }}</b><br />
+                                                <u>{{ $value->user->username }}</u><br />
+                                                <label class="label label-info">{{ $value->user->email }}</label><br />
+                                                <label class="label label-warning label-sm">no
+                                                    registrasi: {{ $value->register_number }}</label><br />
+                                                <label
+                                                    class="label label-danger label-sm">{{ @$value->unit->name }}</label><br />
+                                                <label
+                                                    class="label label-info label-xs">{{ @$value->period->name }}</label><br />
+                                                <label class="label label-xs"
+                                                    style="background-color: gray">{{ $value->origin_school }}</label><br />
+                                                <small>phone: {{ $value->user->mobile_phone }}</small><br />
+                                                {{ $value->gender }}
+                                            </td>
+                                            <td class="text-center">
+                                                <span
+                                                    class="btn btn-circle btn-sm {{ $value->isEmailVerified ? 'btn-success' : 'btn-danger' }}">
+                                                    <icon class="icon-plus">
+                                                        @if ($value->isEmailVerified)
+                                                            <i class="fa fa-check" title="Email Verified"></i>
+                                                        @else
+                                                            <i class="fa fa-times" title="Email belum Verified"></i>
+                                                        @endif
+                                                    </icon>
+                                                </span>
+                                                @if (!$value->isEmailVerified)
+                                                    <br />
+                                                    <br />
+                                                    <span class="btn btn-sm btn-default send-confirmation"
+                                                        data-id="{{ $value->id }}"><i
+                                                            class="fa fa-envelope"></i></span>
                                                 @endif
-                                                <br/>
-                                                <br/>
-                                                @if($value->payment_date == '')
-                                                    @if (\App\Helpers\Helper::isVaBcaEnable())
-                                                        @if($value->isWaitingPayment)
-                                                            @if(@$value->payment_option == 'BCA')
-                                                                <a href="{{route('admin.ppdb.check-inquiry-status',@$value->id)}}" class="btn btn-primary btn-sm"><i class="fa fa-refresh"></i></a>
+                                            </td>
+                                            <td class="text-center">
+                                                @if ($value->isPaymentFormWithVirtualAccount)
+                                                    @if ($value->payment_date == '')
+                                                        <span class="btn btn-circle btn-sm btn-danger">
+                                                            <icon class="icon-times"><i class="fa fa-times"
+                                                                    title="Belum melakukan pembayaran"></i></icon>
+                                                        </span>
+                                                    @else
+                                                        <span class="btn btn-circle btn-sm btn-success">
+                                                            <icon class="icon-times"><i class="fa fa-check"
+                                                                    title="Pembayaran Terkonfirmasi"></i></icon>
+                                                        </span>
+                                                        <br />
+                                                        <br />
+                                                        <span class="label label-info">Pembayaran Terkonfirmasi</span>
+                                                        <br>
+                                                        <span
+                                                            class="label label-success">Rp.{{ number_format($value->total_payment_form) }}</span>
+                                                    @endif
+                                                    <br />
+                                                    <br />
+                                                    @if ($value->payment_date == '')
+                                                        @if (\App\Helpers\Helper::isVaBcaEnable())
+                                                            @if ($value->isWaitingPayment)
+                                                                @if (@$value->payment_option == 'BCA')
+                                                                    <a href="{{ route('admin.ppdb.check-inquiry-status', @$value->id) }}"
+                                                                        class="btn btn-primary btn-sm"><i
+                                                                            class="fa fa-refresh"></i></a>
+                                                                @endif
                                                             @endif
                                                         @endif
                                                     @endif
+                                                @else
+                                                    <span
+                                                        class="btn btn-circle btn-sm {{ $value->isPaymentStatusComplete ? 'btn-success' : ($value->isPaymentStatusVerified ? 'btn-primary' : 'btn-danger') }}">
+                                                        <icon class="icon-plus">
+                                                            @if ($value->isPaymentStatusComplete)
+                                                                <i class="fa fa-check" title="Lengkap"></i>
+                                                            @elseif ($value->isPaymentStatusVerified)
+                                                                <i class="fa fa-check" title="Verified"></i>
+                                                            @else
+                                                                <i class="fa fa-times" title="Belum Lengkap"></i>
+                                                            @endif
+                                                        </icon>
+                                                    </span>
                                                 @endif
-                                            @else
-                                                <span
-                                                    class="btn btn-circle btn-sm {{ $value->isPaymentStatusComplete ? "btn-success" : ($value->isPaymentStatusVerified ? "btn-primary" : "btn-danger") }}">
-                                                <icon class="icon-plus">
-                                                    @if ($value->isPaymentStatusComplete)
-                                                        <i class="fa fa-check" title="Lengkap"></i>
-                                                    @elseif ($value->isPaymentStatusVerified)
-                                                        <i class="fa fa-check" title="Verified"></i>
-                                                    @else
-                                                        <i class="fa fa-times" title="Belum Lengkap"></i>
-                                                    @endif
-                                                </icon>
-                                            </span>
-                                            @endif
 
 
-                                        </td>
-                                        <td class="text-center">
-                                            @if(@$value->payment_option == 'BCA')
+                                            </td>
+                                            <td class="text-center">
+                                                @if (@$value->payment_option == 'BCA')
+                                                    <span
+                                                        class="btn btn-circle btn-sm {{ $value->isDataCompleteWhitoutBca ? 'btn-success' : 'btn-danger' }}">
+                                                        <icon class="icon-plus">
+                                                            @if ($value->isDataCompleteWhitoutBca)
+                                                                <i class="fa fa-check" title="Lengkap"></i>
+                                                            @else
+                                                                <i class="fa fa-times" title="Belum Lengkap"></i>
+                                                            @endif
+                                                        </icon>
+                                                    </span>
+                                                @else
+                                                    <span
+                                                        class="btn btn-circle btn-sm {{ $value->isDataComplete ? 'btn-success' : 'btn-danger' }}">
+                                                        <icon class="icon-plus">
+                                                            @if ($value->isDataComplete)
+                                                                <i class="fa fa-check" title="Lengkap"></i>
+                                                            @else
+                                                                <i class="fa fa-times" title="Belum Lengkap"></i>
+                                                            @endif
+                                                        </icon>
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
                                                 <span
-                                                    class="btn btn-circle btn-sm {{ $value->isDataCompleteWhitoutBca ? "btn-success" : "btn-danger" }}">
+                                                    class="btn btn-circle btn-sm {{ $value->isParentsComplete ? 'btn-success' : 'btn-danger' }}">
                                                     <icon class="icon-plus">
-                                                        @if ($value->isDataCompleteWhitoutBca)
+                                                        @if ($value->isParentsComplete)
                                                             <i class="fa fa-check" title="Lengkap"></i>
                                                         @else
                                                             <i class="fa fa-times" title="Belum Lengkap"></i>
                                                         @endif
                                                     </icon>
                                                 </span>
-                                            @else
+                                            </td>
+                                            <td class="text-center">
                                                 <span
-                                                    class="btn btn-circle btn-sm {{ $value->isDataComplete ? "btn-success" : "btn-danger" }}">
+                                                    class="btn btn-circle btn-sm {{ $value->IsStatementLetterUploaded ? ($value->IsStatementLetterConfirmed ? 'btn-success btn-modal-statement-letter-success' : 'btn-warning btn-modal-statement-letter') : 'btn-danger' }}"
+                                                    data-id="{{ $value->id }}" data-name="{{ $value->name }}"
+                                                    data-register_number="{{ $value->register_number }}"
+                                                    data-unit_id="{{ $value->unit->id }}"
+                                                    data-unit_name="{{ $value->unit->name }}">
                                                     <icon class="icon-plus">
-                                                        @if ($value->isDataComplete)
-                                                            <i class="fa fa-check" title="Lengkap"></i>
+                                                        @if ($value->IsStatementLetterConfirmed)
+                                                            <i class="fa fa-check"></i>
+                                                        @elseif ($value->isStatementLetterUploaded)
+                                                            <i class="fa fa-question"></i>
                                                         @else
-                                                            <i class="fa fa-times" title="Belum Lengkap"></i>
+                                                            <i class="fa fa-times"></i>
                                                         @endif
                                                     </icon>
                                                 </span>
-                                            @endif
-                                        </td>
-                                        <td class="text-center">
-                                            <span
-                                                class="btn btn-circle btn-sm {{ $value->isParentsComplete ? "btn-success" : "btn-danger" }}">
-                                                <icon class="icon-plus">
-                                                    @if ($value->isParentsComplete)
-                                                        <i class="fa fa-check" title="Lengkap"></i>
-                                                    @else
-                                                        <i class="fa fa-times" title="Belum Lengkap"></i>
-                                                    @endif
-                                                </icon>
-                                            </span>
-                                        </td>
-                                        <td class="text-center">
-                                            <span
-                                                class="btn btn-circle btn-sm {{ $value->IsStatementLetterUploaded ? ($value->IsStatementLetterConfirmed ? "btn-success btn-modal-statement-letter-success" : "btn-warning btn-modal-statement-letter") : "btn-danger" }}"
-                                                data-id="{{$value->id}}" data-name="{{$value->name}}"
-                                                data-register_number="{{$value->register_number}}"
-                                                data-unit_id="{{$value->unit->id}}"
-                                                data-unit_name="{{$value->unit->name}}">
-                                                <icon class="icon-plus">
-                                                    @if ($value->IsStatementLetterConfirmed)
-                                                        <i class="fa fa-check"></i>
-                                                    @elseif ($value->isStatementLetterUploaded)
-                                                        <i class="fa fa-question"></i>
-                                                    @else
-                                                        <i class="fa fa-times"></i>
-                                                    @endif
-                                                </icon>
-                                            </span>
-                                            @if ($value->development_fee_option && !$value->isOrderConfirmed)
-                                                <button data-toggle="modal"
+                                                @if ($value->development_fee_option && !$value->isOrderConfirmed)
+                                                    <button data-toggle="modal"
                                                         data-target="#reset-development-payment-modal"
                                                         class="btn btn-sm btn-warning" style="margin-top: 5px"
                                                         onclick="return confirm('Apakah anda yakin akan mereset tahapan ini? Surat pernyataan akan terhapus');">
-                                                    Reset
-                                                </button>
-                                                <!-- Modal -->
-                                                <div id="reset-development-payment-modal" class="modal fade"
-                                                     role="dialog">
-                                                    <div class="modal-dialog">
-                                                        <!-- Modal content-->
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <button type="button" class="close"
+                                                        Reset
+                                                    </button>
+                                                    <!-- Modal -->
+                                                    <div id="reset-development-payment-modal" class="modal fade"
+                                                        role="dialog">
+                                                        <div class="modal-dialog">
+                                                            <!-- Modal content-->
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <button type="button" class="close"
                                                                         data-dismiss="modal">&times;
-                                                                </button>
-                                                                <h4 class="modal-title">Nofitication for student</h4>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <form
-                                                                    action="{{ route('admin.ppdb.reset-development-payment-method', $value) }}"
-                                                                    method="POST">
-                                                                    @csrf
-                                                                    <p style="text-align: left;">Silahkan isi alasan
-                                                                        mereset surat pernyataan.</p>
-                                                                    <input type="hidden" id="year" name="year"
-                                                                           value="{{ $value->school_year }}">
-                                                                    <input type="hidden" id="unit" name="unit"
-                                                                           value="{{ $value->unit_id }}">
-                                                                    <input type="hidden" id="periode" name="periode"
-                                                                           value="{{ $value->periode}}">
-                                                                    <input type="hidden" id="ppdb_user_id"
-                                                                           name="ppdb_user_id[]"
-                                                                           value="{{ $value->id}}">
-                                                                    <input type="hidden" id="title" name="title"
-                                                                           value="[RESET] Surat Pernyataan {{ $value->name }}">
-                                                                    <div class="form-group row">
-                                                                        <label for="body"
-                                                                               class="col-md-4 col-form-label text-md-right">Alasan
-                                                                            Reset</label>
-                                                                        <div class="col-md-6">
-                                                                            <textarea class="form-control" name="body"
-                                                                                      id="body" rows="3"
-                                                                                      placeholder="Enter Pesan">{!! old('body') !!}</textarea>
+                                                                    </button>
+                                                                    <h4 class="modal-title">Nofitication for student</h4>
+                                                                </div>
+                                                                <div class="modal-body">
+                                                                    <form
+                                                                        action="{{ route('admin.ppdb.reset-development-payment-method', $value) }}"
+                                                                        method="POST">
+                                                                        @csrf
+                                                                        <p style="text-align: left;">Silahkan isi alasan
+                                                                            mereset surat pernyataan.</p>
+                                                                        <input type="hidden" id="year"
+                                                                            name="year"
+                                                                            value="{{ $value->school_year }}">
+                                                                        <input type="hidden" id="unit"
+                                                                            name="unit" value="{{ $value->unit_id }}">
+                                                                        <input type="hidden" id="periode"
+                                                                            name="periode" value="{{ $value->periode }}">
+                                                                        <input type="hidden" id="ppdb_user_id"
+                                                                            name="ppdb_user_id[]"
+                                                                            value="{{ $value->id }}">
+                                                                        <input type="hidden" id="title"
+                                                                            name="title"
+                                                                            value="[RESET] Surat Pernyataan {{ $value->name }}">
+                                                                        <div class="form-group row">
+                                                                            <label for="body"
+                                                                                class="col-md-4 col-form-label text-md-right">Alasan
+                                                                                Reset</label>
+                                                                            <div class="col-md-6">
+                                                                                <textarea class="form-control" name="body" id="body" rows="3" placeholder="Enter Pesan">{!! old('body') !!}</textarea>
 
-                                                                            @error('body')
-                                                                            <span class="invalid-feedback" role="alert">
-                                                                            <strong>{{ $message }}</strong>
-                                                                        </span>
-                                                                            @enderror
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div class="form-group row">
-                                                                        <div class="col-sm-10 col-sm-offset-2">
-                                                                            <div class="checkbox checkbox-success">
-                                                                                <input type="checkbox" name="send_email"
-                                                                                       id="send_email"
-                                                                                       value="1" {{ old('send_email', 1) ? 'checked' : '' }}>
-                                                                                <label for="send_email">Kirim email
-                                                                                    pemberitahuan</label>
+                                                                                @error('body')
+                                                                                    <span class="invalid-feedback"
+                                                                                        role="alert">
+                                                                                        <strong>{{ $message }}</strong>
+                                                                                    </span>
+                                                                                @enderror
                                                                             </div>
                                                                         </div>
-                                                                    </div>
 
-                                                                    <div class="form-group row mb-0"
-                                                                         style="text-align: right; padding-right:10px">
-                                                                        <button type="submit" class="btn btn-warning">
-                                                                            Reset
-                                                                        </button>
+                                                                        <div class="form-group row">
+                                                                            <div class="col-sm-10 col-sm-offset-2">
+                                                                                <div class="checkbox checkbox-success">
+                                                                                    <input type="checkbox"
+                                                                                        name="send_email" id="send_email"
+                                                                                        value="1"
+                                                                                        {{ old('send_email', 1) ? 'checked' : '' }}>
+                                                                                    <label for="send_email">Kirim email
+                                                                                        pemberitahuan</label>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
 
-                                                                        <button type="button" class="btn btn-secondary"
+                                                                        <div class="form-group row mb-0"
+                                                                            style="text-align: right; padding-right:10px">
+                                                                            <button type="submit"
+                                                                                class="btn btn-warning">
+                                                                                Reset
+                                                                            </button>
+
+                                                                            <button type="button"
+                                                                                class="btn btn-secondary"
                                                                                 data-dismiss="modal">Cancel
-                                                                        </button>
-                                                                    </div>
-                                                                </form>
+                                                                            </button>
+                                                                        </div>
+                                                                    </form>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            @endif
-                                        </td>
+                                                @endif
+                                            </td>
 
-                                        <td class="text-center">
-                                            <span
-                                                class="btn btn-circle btn-sm {{ ($value->isSubmitted && $value->isOrderConfirmed) ? "btn-warning btn-modal-confirm-student" : "btn-danger" }}"
-                                                data-id="{{$value->id}}" data-name="{{$value->name}}"
-                                                data-register_number="{{$value->register_number}}"
-                                                data-unit_id="{{$value->unit->id}}"
-                                                data-unit_name="{{$value->unit->name}}"
-                                                data-periode="{{$value->periode}}">
-                                                <icon class="icon-plus">
-                                                    @if ($value->isSubmitted && $value->isOrderConfirmed)
-                                                        <i class="fa fa-question"></i>
-                                                    @else
-                                                        <i class="fa fa-times"></i>
-                                                    @endif
-                                                </icon>
-                                            </span>
-                                        </td>
+                                            <td class="text-center">
+                                                <span
+                                                    class="btn btn-circle btn-sm {{ $value->isSubmitted && $value->isOrderConfirmed ? 'btn-warning btn-modal-confirm-student' : 'btn-danger' }}"
+                                                    data-id="{{ $value->id }}" data-name="{{ $value->name }}"
+                                                    data-register_number="{{ $value->register_number }}"
+                                                    data-unit_id="{{ $value->unit->id }}"
+                                                    data-unit_name="{{ $value->unit->name }}"
+                                                    data-periode="{{ $value->periode }}">
+                                                    <icon class="icon-plus">
+                                                        @if ($value->isSubmitted && $value->isOrderConfirmed)
+                                                            <i class="fa fa-question"></i>
+                                                        @else
+                                                            <i class="fa fa-times"></i>
+                                                        @endif
+                                                    </icon>
+                                                </span>
+                                            </td>
 
-                                        <td class="text-right">
-                                            <?php
-                                            $show = 'show';
-                                            if ($value->isPaymentStatusComplete) {
-                                                $show = 'show-payment';
-                                            }
-                                            ?>
-                                            <a href="{{ route('admin.ppdb.'.$show, $value['id']) }}" title="Show"
-                                               class="btn btn-xs btn-success">
-                                                <icon class="icon-plus"><i class="fa fa-eye"></i></icon>
-                                            </a>
-                                            {{-- <a href="{{ route('admin.ppdb.edit',$value['id']) }}" title="Edit" class="btn btn-xs btn-info">
+                                            <td class="text-right">
+                                                <?php
+                                                $show = 'show';
+                                                if ($value->isPaymentStatusComplete) {
+                                                    $show = 'show-payment';
+                                                }
+                                                ?>
+                                                <a href="{{ route('admin.ppdb.' . $show, $value['id']) }}" title="Show"
+                                                    class="btn btn-xs btn-success">
+                                                    <icon class="icon-plus"><i class="fa fa-eye"></i></icon>
+                                                </a>
+                                                {{-- <a href="{{ route('admin.ppdb.edit',$value['id']) }}" title="Edit" class="btn btn-xs btn-info">
                                                 <icon class="icon-plus"><i class="fa fa-pencil"></i></icon>
                                             </a> --}}
-                                            <a href="{{ route('admin.ppdb.delete',$value['id']) }}" title="Delete"
-                                               class="btn btn-xs btn-danger"
-                                               onclick="return confirm('Are you sure you want to delete this item?');">
-                                                <icon class="icon-plus"><i class="fa fa-trash"></i></icon>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                @endforeach
+                                                <a href="{{ route('admin.ppdb.delete', $value['id']) }}" title="Delete"
+                                                    class="btn btn-xs btn-danger"
+                                                    onclick="return confirm('Are you sure you want to delete this item?');">
+                                                    <icon class="icon-plus"><i class="fa fa-trash"></i></icon>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
                                 </tbody>
                             </table>
                         </div>
@@ -502,16 +519,19 @@
                 </div>
                 <div class="modal-body">
                     <div class="form">
-                        <form class="fieldset-form" method="POST" enctype="multipart/form-data" action={{ route('admin.ppdb.import')}}>
+                        <form class="fieldset-form" method="POST" enctype="multipart/form-data"
+                            action={{ route('admin.ppdb.import') }}>
                             @csrf
                             <fieldset>
                                 <legend>Import menggunakan template .xls</legend>
-                                <span style="font-style: italic">Pastikan data siswa yang di import adalah data siswa yang sudah sudah memenuhi syarat untuk diterima dikampus Santa Maria </span>
+                                <span style="font-style: italic">Pastikan data siswa yang di import adalah data siswa yang
+                                    sudah sudah memenuhi syarat untuk diterima dikampus Santa Maria </span>
                                 <div class="form-group">
                                     <input type="file" name="file" class="form-control" />
                                 </div>
                                 <div class="form-group">
-                                    <button class="btn btn-default btn-upload-import" type="submit"><i class="fa fa-upload"></i> Upload</button>
+                                    <button class="btn btn-default btn-upload-import" type="submit"><i
+                                            class="fa fa-upload"></i> Upload</button>
                                 </div>
                             </fieldset>
                         </form>
@@ -530,7 +550,7 @@
     <!-- END Modal -->
 @endsection
 @push('styles')
-    <link href="{{asset('css/plugin/sweet-alert/sweet-alert.css')}}" rel="stylesheet"/>
+    <link href="{{ asset('css/plugin/sweet-alert/sweet-alert.css') }}" rel="stylesheet" />
     <style>
         .btn-circle {
             width: 30px;
@@ -554,10 +574,10 @@
 @endpush
 
 @push('scripts')
-    <script src="{{asset('js/sweet-alert/sweet-alert.min.js')}}"></script>
+    <script src="{{ asset('js/sweet-alert/sweet-alert.min.js') }}"></script>
     <script>
         var classes = {!! json_encode($classes) !!};
-        $(document).ready(function () {
+        $(document).ready(function() {
             load_filter();
 
             $('.btn-upload-modal').click(function(e) {
@@ -565,7 +585,7 @@
                 $('#import-modal').modal();
             });
 
-            $('.send-confirmation').click(function (e) {
+            $('.send-confirmation').click(function(e) {
                 var parent = this;
                 swal({
                     title: 'Kirim email konfirmasi pendaftaran ?',
@@ -575,9 +595,10 @@
                         'Tidak',
                         'Ya'
                     ],
-                }).then(function (isConfirm) {
+                }).then(function(isConfirm) {
                     if (isConfirm) {
-                        $.post('{{ route("admin.ppdb.send-confirmation", ["id"=>null]) }}/' + $(parent).data('id'), {
+                        $.post('{{ route('admin.ppdb.send-confirmation', ['id' => null]) }}/' + $(
+                            parent).data('id'), {
                             _token: '{{ csrf_token() }}'
                         });
                         setTimeout(() => {
@@ -585,7 +606,7 @@
                                 title: 'Email Berhasil di Kirim',
                                 icon: "success",
                                 dangerMode: false
-                            }).then(function (isConfirm) {
+                            }).then(function(isConfirm) {
                                 window.location.reload();
                             });
                         }, 1000);
@@ -593,26 +614,30 @@
                 });
             });
 
-            $(document).on('click', '.btn-modal-statement-letter', function (e) {
+            $(document).on('click', '.btn-modal-statement-letter', function(e) {
                 e.preventDefault();
                 var id = $(this).data('id'),
                     unitId = $(this).data('unit_id'),
                     fileUrl = "{{ route('show_file') }}";
 
-                var html = `
-                    <form role="form" action="{{ route("admin.ppdb.confirm-development-statement", ["id"=>null]) }}/` + id + `" method="POST" id="statement-letter-confirmation-form" class="form-horizontal">
+                var html =
+                    `
+                    <form role="form" action="{{ route('admin.ppdb.confirm-development-statement', ['id' => null]) }}/` +
+                    id + `" method="POST" id="statement-letter-confirmation-form" class="form-horizontal">
                         @csrf
                 <input type="hidden" name="id" value="` + id + `" />
                         <div><h4 class="text-primary modal-form-label">` + $(this).data('name') + `</h4></div>
                         <div>` + $(this).data('register_number') + `</div>
                         <div>` + $(this).data('unit_name') + `</div>
                         <div class="pull-right">
-                            <a href="{{ route("admin.ppdb.get-development-file", ["id"=>null]) }}/` + $(this).data('id') + `" target="_blank">
+                            <a href="{{ route('admin.ppdb.get-development-file', ['id' => null]) }}/` + $(this).data(
+                        'id') + `" target="_blank">
                                 open new tab
                             </a>
                         </div>
                         <div class="margin-t-5 text-center">
-                        <iframe src="{{ route("admin.ppdb.get-development-file", ["id"=>null]) }}/` + $(this).data('id') + `" width="100%" height="300">
+                        <iframe src="{{ route('admin.ppdb.get-development-file', ['id' => null]) }}/` + $(this).data(
+                        'id') + `" width="100%" height="300">
                         <div>
                     </form>
                 `;
@@ -623,26 +648,30 @@
                 $('#modal-confirmation').modal();
             });
 
-            $(document).on('click', '.btn-modal-statement-letter-success', function (e) {
+            $(document).on('click', '.btn-modal-statement-letter-success', function(e) {
                 e.preventDefault();
                 var id = $(this).data('id'),
                     unitId = $(this).data('unit_id'),
                     fileUrl = "{{ route('show_file') }}";
 
-                var html = `
-                    <form role="form" action="{{ route("admin.ppdb.confirm-development-statement", ["id"=>null]) }}/` + id + `" method="POST" id="statement-letter-confirmation-form" class="form-horizontal">
+                var html =
+                    `
+                    <form role="form" action="{{ route('admin.ppdb.confirm-development-statement', ['id' => null]) }}/` +
+                    id + `" method="POST" id="statement-letter-confirmation-form" class="form-horizontal">
                         @csrf
                 <input type="hidden" name="id" value="` + id + `" />
                         <div><h4 class="text-primary modal-form-label">` + $(this).data('name') + `</h4></div>
                         <div>` + $(this).data('register_number') + `</div>
                         <div>` + $(this).data('unit_name') + `</div>
                         <div class="pull-right">
-                            <a href="{{ route("admin.ppdb.get-development-file", ["id"=>null]) }}/` + $(this).data('id') + `" target="_blank">
+                            <a href="{{ route('admin.ppdb.get-development-file', ['id' => null]) }}/` + $(this).data(
+                        'id') + `" target="_blank">
                                 open new tab
                             </a>
                         </div>
                         <div class="margin-t-5 text-center">
-                        <iframe src="{{ route("admin.ppdb.get-development-file", ["id"=>null]) }}/` + $(this).data('id') + `" width="100%" height="300">
+                        <iframe src="{{ route('admin.ppdb.get-development-file', ['id' => null]) }}/` + $(this).data(
+                        'id') + `" width="100%" height="300">
                         <div>
                     </form>
                 `;
@@ -651,25 +680,25 @@
                 $('#modal-confirmation-success').modal();
             });
 
-            $(document).on('click', "#btn-confirm-modal", function (e) {
+            $(document).on('click', "#btn-confirm-modal", function(e) {
                 e.preventDefault();
                 var id = $(this).data('id');
                 $('#statement-letter-confirmation-form').submit();
             });
 
-            $('.btn-modal-confirm-student').click(function (e) {
+            $('.btn-modal-confirm-student').click(function(e) {
                 e.preventDefault();
                 var id = $(this).data('id'),
                     unitId = $(this).data('unit_id'),
                     periode = $(this).data('periode'),
-                    confirmUrl = `{{url('administrator/ppdb/${id}/accept-student')}}`;
+                    confirmUrl = `{{ url('administrator/ppdb/${id}/accept-student') }}`;
 
                 var html = `
                     <form role="form" id="student-confirmation-form" class="form-horizontal">
                         <input type="hidden" name="id" value="` + id + `" />
                         <input type="hidden" name="unit_id" value="` + unitId + `" />
                         <input type="hidden" name="periode" value="` + periode + `" />
-                        <input type="hidden" name="_token" value="{{csrf_token()}}" />
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}" />
                         <div class="validation-error"></div>
                         <div><h4 class="text-primary modal-form-label">` + $(this).data('name') + `</h4></div>
                         <div>` + $(this).data('register_number') + `</div>
@@ -679,7 +708,7 @@
                             <div class="col-sm-8"><select name="class_id" id="class_id" class="form-control">
                                 <option>--- Pilih kelas ---</option>`;
 
-                $.each(classes, function (key, row) {
+                $.each(classes, function(key, row) {
                     if (row.unit_id == unitId) {
                         html += `<option value="` + row.id + `">` + row.name + `</option>`
                     }
@@ -699,7 +728,7 @@
                 $('#modal-confirmation .modal-body').html(html);
                 $('#btn-confirm-modal').html('Simpan');
                 $('#modal-confirmation').modal();
-                $("#btn-confirm-modal").click(function (e) {
+                $("#btn-confirm-modal").click(function(e) {
                     e.preventDefault();
 
                     $('#btn-confirm-modal').html('Please Wait');
@@ -720,23 +749,24 @@
                         cache: false,
                         contentType: false,
                         processData: false,
-                        success: function (response) {
+                        success: function(response) {
                             console.log(response);
                             swal({
                                 title: response.message,
                                 icon: "success",
                                 dangerMode: false
-                            }).then(function (isConfirm) {
+                            }).then(function(isConfirm) {
                                 window.location.reload();
                             });
                         },
-                        error: function (response) {
+                        error: function(response) {
                             var errorHTML = "";
                             errorHTML += '<div class="alert alert-danger">';
                             if (response.status == 422) {
-                                let errors = Object.values(response.responseJSON.errors).flat();
+                                let errors = Object.values(response.responseJSON.errors)
+                                    .flat();
                                 errorHTML += '<ul>';
-                                $.each(errors, function (key, value) {
+                                $.each(errors, function(key, value) {
                                     errorHTML += `<li>${value}</li>`;
                                 });
                                 errorHTML += '</ul>';
@@ -752,7 +782,7 @@
                 });
             })
 
-            $(document).on('click', "#div_export_temp", function () {
+            $(document).on('click', "#div_export_temp", function() {
                 var periode = $('#periode').val();
                 var unit = $('#unit').val();
                 var school_year = $('#school_year').val();
@@ -764,56 +794,56 @@
                 //     message = 'Pilih Periode telebih dahulu!';
                 // }
 
-                if  (unit == 0){
+                if (unit == 0) {
                     message = 'Pilih Unit telebih dahulu!';
                 }
 
-                if  (school_year == '0'){
+                if (school_year == '0') {
                     message = 'Pilih Tahun Ajaran telebih dahulu!';
                 }
 
 
 
-                if(unit != 0 && school_year != ''){
+                if (unit != 0 && school_year != '') {
                     console.log('url' + url)
-                    if (url == ''){
+                    if (url == '') {
                         swal({
                             icon: 'error',
-                            title:"Gagal!",
+                            title: "Gagal!",
                             text: 'Lakukan pencarian data terlebih dahulu sesuai filter sebelum melakukan export data!',
                         });
                     }
-                }else{
+                } else {
                     swal({
                         icon: 'error',
-                        title:"Gagal!",
+                        title: "Gagal!",
                         text: message,
                     });
                 }
             });
         });
 
-        $(document).on('change', '#unit', function (e) {
+        $(document).on('change', '#unit', function(e) {
             load_filter();
         });
 
-        $(document).on('change', '#periode', function (e) {
+        $(document).on('change', '#periode', function(e) {
             load_filter();
         });
 
-        function load_filter(){
+        function load_filter() {
             var periode = $('#periode').val();
             var unit = $('#unit').val();
             var school_year = $('#school_year').val();
             var url = window.location.search.substring(1);
             console.log(url)
-            if( unit != 0 && school_year != '' && url != ''){
+            if (unit != 0 && school_year != '' && url != '') {
                 $('#div_export_temp').hide();
                 $('#div_download_temp').hide();
                 $('.div_export').show();
                 $('.div_download').show();
                 console.log("bisa")
-            }else{
+            } else {
                 $('#div_export_temp').show();
                 $('#div_download_temp').show();
                 $('.div_export').hide();
@@ -822,12 +852,9 @@
 
             }
         }
-        function aaa(){
+
+        function aaa() {
             console.log("okee")
         }
-
-
-
-
     </script>
 @endpush

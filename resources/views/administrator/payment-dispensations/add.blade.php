@@ -44,6 +44,20 @@
                             enctype="multipart/form-data">
                             <input type="hidden" value="{{ @$dispensation['id'] }}" name="id" />
 
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">Jenis Dispensasi</label>
+                                <div class="col-sm-10">
+                                    <select class="form-control selectpicker" name="dispensation_type" id="dispensation_type"
+                                        data-style="btn-success" data-live-search="true" required>
+                                        <option value="" selected>Pilih Jenis Dispensasi</option>
+                                        @foreach ($dispensation_type as $type)
+                                            <option value="{{ $type['value'] }}"
+                                                {{ @$dispensation['dispensation_type'] == $type['value'] ? 'selected' : '' }}>
+                                                {{ $type['label'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
 
                             <div class="form-group">
                                 <label class="col-sm-2 control-label">Tahun Ajaran</label>
@@ -86,14 +100,7 @@
 
                             </div>
 
-                            <div class="form-group">
-                                <label class="col-sm-2 control-label" style="display: none">Jenis Dispensasi</label>
-                                <div class="col-sm-10">
-                                    <input type="hidden" class="form-control" name="dispensation_type"
-                                        id="dispensation_type" value="development" required
-                                        placeholder="Contoh: Uang Gedung, SPP">
-                                </div>
-                            </div>
+                            
 
                             <div class="form-group">
                                 <label class="col-sm-2 control-label">Biaya Sebenarnya</label>
@@ -214,7 +221,8 @@
             e.preventDefault();
             var unit_id = $('#unit_id').val();
             var school_year = $('#school_year').val();
-            fetchStudent(unit_id, school_year)
+            var dispensation_type = $('#dispensation_type').val();
+            fetchStudent(unit_id, school_year, dispensation_type)
         });
 
         $(document).on('change', '#ppdb_user_id', function(e) {
@@ -306,13 +314,14 @@
             }
         }
 
-        function fetchStudent(unit_id, school_year) {
+        function fetchStudent(unit_id, school_year, type) {
             $("#ppdb_user_id").empty();
             $("#ppdb_user_id").append('<option value="">Pilih Siswa</option>');
 
-            $.get("{{ route('admin.dispensation.fetch-student') }}", {
+            $.get("{{ route('admin.dispensation.fetch-student-approved') }}", {
                 unit_id: unit_id,
-                school_year: school_year
+                school_year: school_year,
+                type: type
             }, function(students) {
                 var selectedStudent = '{{ @$arr_student ?? '' }}';
                 var arrStudent = [];

@@ -93,6 +93,7 @@
                                         <th class="text-center">No</th>
                                         <th class="text-center">Nama Siswa</th>
                                         <th class="text-center">Unit</th>
+                                        <th class="text-center">Tipe Dispensasi</th>
                                         <th class="text-center">Nominal</th>
                                         <th class="text-center">Nominal Setelah Potongan</th>
                                         <th class="text-center">Mode Dispensasi</th>
@@ -106,6 +107,7 @@
                                             <td class="text-center">{{ $no++ }}</td>
                                             <td class="text-center">{{ $dispensation['name'] }}</td>
                                             <td class="text-center">{{ $dispensation['unit_name'] }}</td>
+                                            <td class="text-center">{{ $dispensation['dispensation_type'] }}</td>
                                             <td class="text-center">
                                                 {{ number_format($dispensation['actual_cost'], 0, ',', '.') }}</td>
                                             <td class="text-center">

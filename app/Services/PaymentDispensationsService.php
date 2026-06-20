@@ -6,9 +6,11 @@ use App\Helpers\PriceHelper;
 use App\Lib\DbTrx;
 use App\Models\PaymentDispensationDetails;
 use App\Models\PaymentDispensations;
+use App\Models\PaymentDispensationRequest;
 use App\Models\PPDBUser;
 use App\Models\StudentBills;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class PaymentDispensationsService {
 
@@ -71,6 +73,7 @@ class PaymentDispensationsService {
                     $paymentDispensation = PaymentDispensations::create($params);
                 }else{
                     $paymentDispensation = $this->getByUserPpdb($params['ppdb_user_id'], $type);
+                    
                 }
             }else{
                 $paymentDispensation = PaymentDispensations::create($params);
@@ -102,6 +105,19 @@ class PaymentDispensationsService {
                 }
 
             }
+
+            
+
+            //update pengajuan dispensasi
+            $request = PaymentDispensationRequest::where('ppdb_user_id', $ppdb->id)->where('dispensation_type', $type)->orderBy('id', 'desc')->first();
+            $request->status = PaymentDispensationRequest::STATUS_CONFIRMED;
+            $request->verified_date = Carbon::now()->format('Y-m-d H:i:s');
+            $request->verified_user_id = Auth::user()->id;
+            $request->save();
+
+            $dispensation = PaymentDispensations::where('ppdb_user_id', $ppdb->id)->where('dispensation_type', $type)->orderBy('id', 'desc')->first();
+            $dispensation->dispensation_request_id = $request->id;
+            $dispensation->save();
 
             //update billing siswa
             $bills = StudentBills::where('ppdb_user_id', $ppdb->id)->where('type', $type)->orderBy('id', 'desc')->first();

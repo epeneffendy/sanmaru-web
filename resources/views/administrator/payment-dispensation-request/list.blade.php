@@ -93,7 +93,9 @@
                                         <th class="text-center">No</th>
                                         <th class="text-center">Nama Siswa</th>
                                         <th class="text-center">Unit</th>
-
+                                        <th class="text-center">Dispensation Type</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-center">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -102,10 +104,31 @@
                                     @foreach ($data as $key => $dispensation)
                                         <tr>
                                             <td class="text-center">{{ $no++ }}</td>
-                                            <td class="text-center">{{ $dispensation['name'] }}</td>
-                                            <td class="text-center">{{ $dispensation['unit_name'] }}</td>
-
+                                            <td class="text-center">{{ $dispensation->ppdb->name }}</td>
+                                            <td class="text-center">{{ $dispensation->ppdb->unit->name ?? '-' }}</td>
+                                            <td class="text-center">{{ $dispensation->dispensation_type }}</td>
+                                            <td class="text-center">
+                                                @if($dispensation->status == 'waiting')
+                                                    <label class="label label-warning">Menunggu</label>
+                                                @elseif($dispensation->status == 'approved')
+                                                    <label class="label label-success">Disetujui Oleh Admin</label>
+                                                @elseif($dispensation->status == 'confirmed')
+                                                    <label class="label label-info">Sudah Diajukan Dispensasi</label>
+                                                @elseif($dispensation->status == 'submitted')
+                                                    <label class="label label-primary">Dispensasi Telah Diterima Oleh Siswa</label>
+                                                @elseif($dispensation->status == 'rejected')
+                                                    <label class="label label-danger">Dispensasi Ditolak</label>
+                                                @else
+                                                    <span class="badge badge-modern badge-soft-secondary">{{ ucfirst($dispensation->status) }}</span>
+                                                @endif
+                                            </td>
+                                            <td class="text-center">
+                                                <a href="{{ route('admin.dispensation-request.show', ['id' => $dispensation->id]) }}" class="btn btn-sm btn-info">Detail</a>
+                                                {{-- <a href="{{ route('admin.dispensation-request.update', ['id' => $dispensation->id]) }}" class="btn btn-sm btn-primary">Edit</a> --}}
+                                            </td>
                                         </tr>
+
+                                       
                                     @endforeach
 
                                 </tbody>

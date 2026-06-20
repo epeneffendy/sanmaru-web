@@ -704,6 +704,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
            Route::post('/store', 'PaymentDispensationController@store')->name('store');
            Route::get('/update', 'PaymentDispensationController@update')->name('update');
            Route::get('fetch-student', 'PaymentDispensationController@fetchStudent')->name('fetch-student');
+           Route::get('fetch-student-approved', 'PaymentDispensationController@fetchStudentApproved')->name('fetch-student-approved');
            Route::get('fetch-anual-cost', 'PaymentDispensationController@fetchAnualCost')->name('fetch-anual-cost');
         });
 
@@ -712,6 +713,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
            Route::get('/add', 'PaymentDispensationRequestController@add')->name('add');
            Route::post('/store', 'PaymentDispensationRequestController@store')->name('store');
            Route::get('/update', 'PaymentDispensationRequestController@update')->name('update');
+           Route::get('/show/{id}', 'PaymentDispensationRequestController@show')->name('show');
         });
 
         // CLASS SCHEDULE

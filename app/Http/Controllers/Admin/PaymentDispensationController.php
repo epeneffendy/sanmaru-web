@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PaymentDispensationsRequest;
 use App\Models\PaymentDispensations;
+use App\Models\PaymentDispensationRequest;
 use App\Services\PaymentDispensationsService;
 use Illuminate\Http\Request;
 use App\Models\Unit;
 use App\Models\PPDBUser;
+
 
 
 class PaymentDispensationController extends Controller
@@ -56,10 +58,23 @@ class PaymentDispensationController extends Controller
         for($start_year; $start_year <= date('Y'); $start_year++){
             $school_year[] = $start_year;
         }
+
+        $dispensation_type = [
+            [
+                'value' => 'development',
+                'label' => 'Uang Pengembangan'
+            ],
+            [
+                'value' => 'activity',
+                'label' => 'Uang Kegiatan'
+            ]
+        ];
+
         $params = [
             'nav' => $this->page,
             'units' => Unit::byUserRole()->get(),
-            'school_year' => $school_year
+            'school_year' => $school_year,
+            'dispensation_type' => $dispensation_type
         ];
 
         return view('administrator/payment-dispensations/add', $params);
@@ -82,19 +97,37 @@ class PaymentDispensationController extends Controller
         return $collections;
     }
 
+    public function fetchStudentApproved(Request $request)
+    {
+        $users = PaymentDispensationRequest::where([
+                'status' => PaymentDispensationRequest::STATUS_APPROVED,
+                'dispensation_type' => $request->type,
+                'unit_id'=>$request->unit_id,
+                'school_year'=>$request->school_year
+            ])->get();
+        $collections = collect();
+        foreach ($users as $user) {
+            $collections->put($user->ppdb->id, '[' . $user->ppdb->register_number . '] ' . $user->ppdb->name);
+        }
+
+        return $collections;
+    }
+
     public function fetchAnualCost(Request $request, PaymentDispensationsService $paymentDispensationService){
         $price = 0;
         $status = 'error';
         $message = 'Tipe dispensasi tidak valid.';
         $ppdb = PPDBUser::where('id', $request->ppdb_user_id)->first();
         if ($ppdb) {
-            if($request->type == 'development'){
-                $dispensation = $paymentDispensationService->getByUserPpdb($request->ppdb_user_id);
+            
+            
+            $dispensation = $paymentDispensationService->getByUserPpdb($request->ppdb_user_id, $request->type);
+            if($request->type == 'development'){    
                 if(!empty($dispensation)){
                     $price = $dispensation->remaining_balance;
                     $status = 'success';
                     if($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT){
-                        $message = 'Siswa '. $ppdb->name .' sudah menentukan pembayaran dan muungkin sudah melakukan pembayaran';
+                        $message = 'Siswa '. $ppdb->name .' sudah menentukan pembayaran dan mungkin sudah melakukan pembayaran';
                     }else{
                         $message = 'Siswa '. $ppdb->name .' sudah mendapatkan dispensasi dan muungkin sudah melakukan pembayaran';
                     }
@@ -108,6 +141,28 @@ class PaymentDispensationController extends Controller
                     }
                 }
             }
+
+            if($request->type == 'activity'){    
+                if(!empty($dispensation)){
+                    $price = $dispensation->remaining_balance;
+                    $status = 'success';
+                    if($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT){
+                        $message = 'Siswa '. $ppdb->name .' sudah menentukan pembayaran dan mungkin sudah melakukan pembayaran';
+                    }else{
+                        $message = 'Siswa '. $ppdb->name .' sudah mendapatkan dispensasi dan muungkin sudah melakukan pembayaran';
+                    }
+                }else{
+                    $price = \App\Helpers\PriceHelper::activity($ppdb, false);
+                    if(!$price){
+                        $message = 'Biaya pengembangan tidak ditemukan untuk siswa ini.';
+                    }else{
+                        $status = 'success';
+                        $message = '';
+                    }
+                }
+            }
+
+
         } else {
             $message = 'Data siswa tidak ditemukan.';
         }
@@ -144,7 +199,8 @@ class PaymentDispensationController extends Controller
             $json_value['va_partial'] = $va_partial;
             $input['payment_type'] = 'cicilan';
             $input['value'] = json_encode($json_value);
-            $paymentDispensationService->create($input, $ppdb, 'admin');
+            
+            $paymentDispensationService->create($input, $ppdb, $input['dispensation_type'], 'admin');
         } catch (\Exception $e) {
             dd($e);
             return redirect()->route('admin.dispensation.index')->with('errors', collect(['Gagal ditambahkan']));

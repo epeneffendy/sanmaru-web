@@ -707,6 +707,13 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
            Route::get('fetch-anual-cost', 'PaymentDispensationController@fetchAnualCost')->name('fetch-anual-cost');
         });
 
+        Route::prefix('administrator/dispensation-request')->name('admin.dispensation-request.')->namespace('Admin')->group(function () {
+           Route::get('/', 'PaymentDispensationRequestController@index')->name('index');
+           Route::get('/add', 'PaymentDispensationRequestController@add')->name('add');
+           Route::post('/store', 'PaymentDispensationRequestController@store')->name('store');
+           Route::get('/update', 'PaymentDispensationRequestController@update')->name('update');
+        });
+
         // CLASS SCHEDULE
         Route::prefix('administrator/class-schedule')->name('admin.class-schedule.')->namespace('Admin')->group(function () {
             Route::get('/', 'ClassScheduleController@index')->name('index');

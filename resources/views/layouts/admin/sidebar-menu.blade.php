@@ -277,6 +277,11 @@
                                 class="icon color12"><i class="fa fa-sliders"></i></span>Konfigurasi
                             Pembiayaan</a></li>
 
+                    <li><a href="{{ route('admin.dispensation-request.index') }}"
+                            class="{{ $nav['child'] == 'dispensation-request' ? 'active' : '' }}"><span
+                                class="icon color12"><i class="fa fa-reply-all"></i></span>Pengajuan Dispensasi
+                            Siswa</a></li>
+
                     <li><a href="{{ route('admin.dispensation.index') }}"
                             class="{{ $nav['child'] == 'dispensations' ? 'active' : '' }}"><span
                                 class="icon color12"><i class="fa fa-calculator"></i></span>Kelola Dispensasi</a>

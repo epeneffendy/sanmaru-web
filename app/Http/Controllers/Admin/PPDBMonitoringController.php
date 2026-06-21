@@ -104,6 +104,7 @@ class PPDBMonitoringController extends Controller
     public function showDetailStage(Request $request, $id, $type, $stage_id, PPDBMonitoringService $PPDBMonitoringService)
     {
         $period = Period::find($id);
+
         $collection = [];
         if ($type == 'administration') {
             $data = $PPDBMonitoringService->stagesAdministrasi($period, true, 'administration');
@@ -133,14 +134,18 @@ class PPDBMonitoringController extends Controller
             ];
         } elseif ($type == 'last-stage') {
             $data = $PPDBMonitoringService->stagesAdministrasi($period, true, 'last-stage');
-            $stage = [];
+            $stage = Stage::where([
+                'periode' => $period->id,
+                'is_opening_development_feature' => 1,
+                'active'=> 1
+                ])->first();
 
             $data = [
                 'nav' => $this->page,
                 'period' => $period,
                 'type' => $type,
                 'data' => $data,
-                'stage' => $stage
+                'stage'=>$stage
             ];
         } elseif ($type == 'setting-class') {
             $data = $PPDBMonitoringService->stagesAdministrasi($period, true, 'setting-class');

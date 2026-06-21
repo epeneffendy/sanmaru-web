@@ -235,6 +235,7 @@ class PaymentBCATestController extends Controller
             'additionalInfo' => ['nullable', 'string'],
         ]);
         try {
+
             $data = new PaymentBcaInvocationRequest($request->all());
             $result = new PaymentBcaInvocationResponse($request->all());
             // $validateHeader = $this->validateHeader($request, $ClientID, $ChannelID, $partnerServiceId, $relativeUrl);

@@ -119,10 +119,10 @@ class PaymentDispensationController extends Controller
         $message = 'Tipe dispensasi tidak valid.';
         $ppdb = PPDBUser::where('id', $request->ppdb_user_id)->first();
         if ($ppdb) {
-            
-            
+
+
             $dispensation = $paymentDispensationService->getByUserPpdb($request->ppdb_user_id, $request->type);
-            if($request->type == 'development'){    
+            if($request->type == 'development'){
                 if(!empty($dispensation)){
                     $price = $dispensation->remaining_balance;
                     $status = 'success';
@@ -142,7 +142,7 @@ class PaymentDispensationController extends Controller
                 }
             }
 
-            if($request->type == 'activity'){    
+            if($request->type == 'activity'){
                 if(!empty($dispensation)){
                     $price = $dispensation->remaining_balance;
                     $status = 'success';
@@ -199,7 +199,7 @@ class PaymentDispensationController extends Controller
             $json_value['va_partial'] = $va_partial;
             $input['payment_type'] = 'cicilan';
             $input['value'] = json_encode($json_value);
-            
+
             $paymentDispensationService->create($input, $ppdb, $input['dispensation_type'], 'admin');
         } catch (\Exception $e) {
             dd($e);

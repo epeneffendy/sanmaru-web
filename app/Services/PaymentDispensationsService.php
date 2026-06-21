@@ -73,7 +73,7 @@ class PaymentDispensationsService {
                     $paymentDispensation = PaymentDispensations::create($params);
                 }else{
                     $paymentDispensation = $this->getByUserPpdb($params['ppdb_user_id'], $type);
-                    
+
                 }
             }else{
                 $paymentDispensation = PaymentDispensations::create($params);
@@ -194,7 +194,7 @@ class PaymentDispensationsService {
         }
 
         $installment_type = '';
-        if($code_payment == PaymentDispensations::CODE_PAYMENT_DEVELOPMENT){
+        if($code_payment == PaymentDispensations::CODE_PAYMENT_DEVELOPMENT || $code_payment == PaymentDispensations::CODE_PAYMENT_ACTIVITY){
             $installment_type = PaymentDispensations::TYPE_PENGEMBANGAN_CICILAN;
         }
 
@@ -262,7 +262,7 @@ class PaymentDispensationsService {
             $detail->save();
 
             $dispensation = PaymentDispensations::where('id', $id)->first();
-            
+
             if($dispensation){
                 if($is_part){
                     $nominal = $nominal_payment;

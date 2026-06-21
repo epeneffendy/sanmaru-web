@@ -81,6 +81,7 @@ class PPDBPaymentController extends Controller
 
             if(($dispensation->dispensation_mode == PaymentDispensations::MODE_FULL_SETUP) || ($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT)){
                 if(($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT)){
+
                     if(count($dispensation->details) > 1){
                         if($virtual_account_unpaid){
                             if($virtual_account_unpaid->status == PaymentVirtualAccounts::STATUS_UNPAID){
@@ -97,6 +98,8 @@ class PPDBPaymentController extends Controller
                                     // return redirect()->route('ppdb.bills.check-payment-status', ['virtual_account_number' => $virtual_account_unpaid->virtual_account_number, 'dispensation_type' => $type])->with('message', 'Data berhasil disimpan!');
                                 // }
                             }
+                        }else{
+                            return view('ppdb-billing.payment-list-bill-new', $data);
                         }
                     }
                 }else{
@@ -134,10 +137,14 @@ class PPDBPaymentController extends Controller
         try{
             $paymentType = $request->paymentType;
             $type = $request->type;
-            $ppdb = PPDBUser::where('id', $request->ppdb_user_id)->first();
-            $va_full_statement = $paymentDispensationService->virtualAccountNumber($ppdb,PaymentDispensations::CODE_PAYMENT_DEVELOPMENT, PaymentDispensations::TYPE_FULL);
-            $va_partial = $paymentDispensationService->virtualAccountNumber($ppdb,PaymentDispensations::CODE_PAYMENT_DEVELOPMENT, PaymentDispensations::TYPE_PARTIAL);
+            $code_payment = PaymentDispensations::CODE_PAYMENT_DEVELOPMENT;
+            if($type == PaymentDispensations::DISPENSATION_TYPE_ACTIVITY){
+                $code_payment = PaymentDispensations::CODE_PAYMENT_ACTIVITY;
+            }
 
+            $ppdb = PPDBUser::where('id', $request->ppdb_user_id)->first();
+            $va_full_statement = $paymentDispensationService->virtualAccountNumber($ppdb,$code_payment, PaymentDispensations::TYPE_FULL);
+            $va_partial = $paymentDispensationService->virtualAccountNumber($ppdb,$code_payment, PaymentDispensations::TYPE_PARTIAL);
             $dispensation = $paymentDispensationService->getByUserPpdb($request->ppdb_user_id, $type);
 
 

@@ -483,18 +483,16 @@
 </div>
 
 @push('scripts')
-    <!-- Tambahan CDN jQuery dan Bootstrap untuk memastikan variabel $ (jQuery) dan fungsi Modal tersedia -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/sweet-alert/sweet-alert.min.js') }}"></script>
     <script>
         // Membungkus script dengan DOMContentLoaded agar berjalan setelah DOM dan script selesai dimuat
         document.addEventListener('DOMContentLoaded', function() {
-            $(document).on('click', '.btn-modal-statement-letter', function(e) {
+            $(document).on('click', '.btn-modal-statement-letter, .btn-modal-statement-letter-success', function(
+                e) {
                 e.preventDefault();
                 var id = $(this).data('id'),
                     unitId = $(this).data('unit_id'),
-                    fileUrl = "{{ route('show_file') }}";
+                    isConfirmed = $(this).hasClass('btn-modal-statement-letter-success');
 
                 var html =
                     `<form role="form" action="{{ route('admin.ppdb.confirm-development-statement', ['id' => null]) }}/` +
@@ -522,10 +520,17 @@
                             </div>
                         </form>`;
 
-                $('#modal-confirmation .modal-title').html('Konfirmasi Surat Pernyataan?');
+                $('#modal-confirmation .modal-title').html('Detail Surat Pernyataan');
                 $('#modal-confirmation .modal-body').html(html);
-                $('#btn-confirm-modal').attr('data-id', id);
-                $('#btn-confirm-modal').html('<i class="fa fa-check mr-1"></i> Setujui Dokumen');
+
+                if (isConfirmed) {
+                    $('#btn-confirm-modal').hide();
+                } else {
+                    $('#btn-confirm-modal').show();
+                    $('#btn-confirm-modal').attr('data-id', id);
+                    $('#btn-confirm-modal').html('<i class="fa fa-check mr-1"></i> Setujui Dokumen');
+                }
+
                 $('#modal-confirmation').modal('show');
             });
 

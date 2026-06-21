@@ -236,12 +236,15 @@ class PPDBMonitoringService
                     'status_stage' => $stage_status,
                     'voucher' => $voucher,
                     'status_period'=> $status_period,
+                    'status_student'=>$user->user->type ?? null
                 ];
 
                 if ($flag == 'development-statement') {
-
                     if (!empty($user->IsStatementLetterUploaded)) {
-                        $collection[$user->id] = $baseData;
+                        // $collection[$user->id] = $baseData;
+                        $collection[$user->id] = array_merge($baseData, [
+                            'IsStageDevelopment' => false,
+                        ]);
                     }
 
                 } elseif ($flag == 'last-stage') {
@@ -295,7 +298,7 @@ class PPDBMonitoringService
                     $collection[$user->id] = array_merge($baseData, [
                         'IsStageDevelopment' => $is_stage_development,
                         'stage_id'=>$stage_id,
-                        'status_student'=> $user->user->type ?? null,
+                        // 'status_student'=> $user->user->type ?? null,
                         'nis'=> isset($user->user->student)? $user->user->student->nis : '-',
                         'class_name'=> isset($user->user->student->class) ? $user->user->student->class->name : '-',
                     ]);

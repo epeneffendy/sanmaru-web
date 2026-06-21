@@ -944,7 +944,6 @@ class PPDBController extends Controller
 
     public function downloadDevelopmentStatement(string $type = 'lunas')
     {
-
         if (request()->input('type')) {
             $type = request()->input('type');
         }
@@ -1010,6 +1009,7 @@ class PPDBController extends Controller
 
         $installment = PaymentDispensations::where('ppdb_user_id', $ppdb->id)->where('status', PaymentDispensations::STATUS_ACTIVE)->orderBy('id', 'desc')->first();
         $dataAngsuran = [];
+
         if($installment){
             foreach($installment->details as $item){
                 $dataAngsuran[] = [
@@ -1061,23 +1061,25 @@ class PPDBController extends Controller
             'school_year' => $school_year,
         ]);
 
-        // PERUBAHAN DISINI: Proses Loop Dynamic Table menggunakan cloneRow
-        if (!empty($dataAngsuran)) {
-            // Kita jadikan placeholder 'desc' sebagai acuan untuk menduplikasi baris tabel
-            $templateProcessor->cloneRow('desc', count($dataAngsuran));
+        if($type == 'cicilan'){
+            // PERUBAHAN DISINI: Proses Loop Dynamic Table menggunakan cloneRow
+            if (!empty($dataAngsuran)) {
+                // Kita jadikan placeholder 'desc' sebagai acuan untuk menduplikasi baris tabel
+                $templateProcessor->cloneRow('desc', count($dataAngsuran));
 
-            foreach ($dataAngsuran as $index => $angsuran) {
-                $rowNumber = $index + 1; // PHPWord penomoran baris hasil klon dimulai dari 1
-                $templateProcessor->setValue('desc#' . $rowNumber, $angsuran['desc']);
-                $templateProcessor->setValue('plan_date#' . $rowNumber, $angsuran['plan_date']);
-                $templateProcessor->setValue('nominal#' . $rowNumber, $angsuran['nominal']);
+                foreach ($dataAngsuran as $index => $angsuran) {
+                    $rowNumber = $index + 1; // PHPWord penomoran baris hasil klon dimulai dari 1
+                    $templateProcessor->setValue('desc#' . $rowNumber, $angsuran['desc']);
+                    $templateProcessor->setValue('plan_date#' . $rowNumber, $angsuran['plan_date']);
+                    $templateProcessor->setValue('nominal#' . $rowNumber, $angsuran['nominal']);
+                }
+            } else {
+                // Antisipasi jika data angsuran kosong (misal tipe lunas), agar template tidak rusak/bocor code
+                $templateProcessor->cloneRow('desc', 1);
+                $templateProcessor->setValue('desc#1', '-');
+                $templateProcessor->setValue('plan_date#1', '-');
+                $templateProcessor->setValue('nominal#1', '-');
             }
-        } else {
-            // Antisipasi jika data angsuran kosong (misal tipe lunas), agar template tidak rusak/bocor code
-            $templateProcessor->cloneRow('desc', 1);
-            $templateProcessor->setValue('desc#1', '-');
-            $templateProcessor->setValue('plan_date#1', '-');
-            $templateProcessor->setValue('nominal#1', '-');
         }
 
         header("Content-Description: File Transfer");
@@ -1853,17 +1855,24 @@ class PPDBController extends Controller
         }
 
         $is_dispensation = false;
+        $arr_dispensation = [];
         if($dispensation){
-            if($dispensation->dispensation_mode != PaymentDispensations::MODE_REAL_PAYMENT){
-                $is_dispensation = true;
+            foreach($dispensation as $ind => $d){
+                if($d->dispensation_mode != PaymentDispensations::MODE_REAL_PAYMENT){
+                    $arr_dispensation[$d->dispensation_type]['type'] = $d->dispensation_type;
+                    $arr_dispensation[$d->dispensation_type]['total_final_fee'] = $d->total_final_fee;
+                    $arr_dispensation[$d->dispensation_type]['is_dispensation'] = true;
+                }
             }
         }
+
         $data = array(
             'bills' => $bills['bills'],
             'bill_amount' => $bills['bill_amount'],
             'ppdb'=>$user['ppdb'],
             'is_dispensation'=>$is_dispensation,
             'dispensation'=>$dispensation,
+            'arr_dispensation'=>$arr_dispensation,
             'is_show' => $is_show,
             'ppdbUser'=> $ppdbUser,
             'nav' => ['parent' => 'data', 'child' => 'Data Siswa']

@@ -85,7 +85,7 @@ class PaymentVirtualAccountsService
             $confirmed = false;
             if ($paymentVirtualAccount->save()) {
                 $dispensation = $this->paymentDispensationsService->getByUserPpdb($paymentVirtualAccount->ppdb_user_id, $dispensation_type);
-
+                
                 if ($dispensation) {
                     $char_virtual_account = strlen($virtual_account_number);
                     $is_full_payment = true;

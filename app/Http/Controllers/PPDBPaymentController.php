@@ -10,6 +10,7 @@ use App\Services\FinanceSystemConfigurationService;
 use App\Services\PaymentDispensationsService;
 use App\Services\PaymentVirtualAccountsService;
 use App\Models\PaymentVirtualAccounts;
+use App\Models\StudentBills;
 use App\Services\GeneralSettingService;
 use Illuminate\Http\Request;
 
@@ -108,30 +109,20 @@ class PPDBPaymentController extends Controller
         }else{
             if($type == PaymentDispensations::DISPENSATION_TYPE_DEVELOPMENT){
                 $total_bill = PriceHelper::development($ppdb, false);
-                $data = [
-                    'ppdb' => $user['ppdb'],
-                    'dpOptions'=>$dpOptions,
-                    'installmentOptions'=> $installmentOptions,
-                    'configuration'=>$configuration,
-                    'total_bill'=>$total_bill,
-                    'discount'=>$discount,
-                    'type'=>$type
-                ];
-                return view('ppdb-billing.payment-options', $data);
-
             }else{
                 $total_bill = PriceHelper::activity($ppdb, false);
-                $data = [
-                    'ppdb' => $user['ppdb'],
-                    'dpOptions'=>$dpOptions,
-                    'installmentOptions'=> $installmentOptions,
-                    'configuration'=>$configuration,
-                    'total_bill'=>$total_bill,
-                    'discount'=>$discount,
-                    'type'=>$type
-                ];
-                return view('ppdb-billing.payment-options-full', $data);
             }
+
+            $data = [
+                'ppdb' => $user['ppdb'],
+                'dpOptions'=>$dpOptions,
+                'installmentOptions'=> $installmentOptions,
+                'configuration'=>$configuration,
+                'total_bill'=>$total_bill,
+                'discount'=>$discount,
+                'type'=>$type
+            ];
+            return view('ppdb-billing.payment-options', $data);
         }
     }
 
@@ -307,7 +298,8 @@ class PPDBPaymentController extends Controller
     {
         $id = $request->id;
         $user = $request->session()->get('user');
-        $dispensation = $paymentDispensationsService->getById($id);
+        $bill = StudentBills::where('id', $request->id)->first();
+        $dispensation = $paymentDispensationsService->getByUserPpdb($user['ppdb']['id'], $bill->type);
 
         if (!$dispensation || $dispensation->ppdb_user_id !== $user['ppdb']['id']) {
             return redirect()->route('ppdb.bills.choise-payment')->with('error', 'Data tagihan tidak ditemukan.');
@@ -318,10 +310,15 @@ class PPDBPaymentController extends Controller
         }
 
         $ppdb = PPDBUser::find($user['ppdb']['id']);
+        $title = 'Uang Pengembangan';
+        if($dispensation->dispensation_type == 'activity'){
+            $title = 'Uang Kegiatan';
+        }
 
         $data = [
             'dispensation' => $dispensation,
             'ppdb' => $ppdb,
+            'title'=> $title,
             'nav' => ['parent' => 'finance', 'child' => 'Bukti Pembayaran']
         ];
 
@@ -340,16 +337,19 @@ class PPDBPaymentController extends Controller
 
     public function changePaymentMethod(Request $request){
         $dispensation = PaymentDispensations::where('id', $request->id)->first();
+        $type = $request->dispensation_type;
         if($dispensation){
+            if($type == 'development'){
+                $ppdbUser = PPDBUser::find($dispensation->ppdb_user_id);
+                if($ppdbUser){
+                    $ppdbUser->development_fee_option = null;
+                    $ppdbUser->development_statement = null;
 
-            $ppdbUser = PPDBUser::find($dispensation->ppdb_user_id);
-            if($ppdbUser){
-                $ppdbUser->development_fee_option = null;
-                $ppdbUser->development_statement = null;
-
-                $ppdbUser->save();
-                $ppdbUser->refresh();
+                    $ppdbUser->save();
+                    $ppdbUser->refresh();
+                }
             }
+
             PaymentDispensationDetails::where('payment_dispensation_id', $dispensation->id)->delete();
             $dispensation->delete();
             return redirect()->route('ppdb.bills.choise-payment', ['type' => $request->dispensation_type])->with('message', 'Cara Bayar Berhasil Batalkan!');

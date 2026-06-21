@@ -189,6 +189,7 @@
                                 <input type="hidden" name="total_bill" value="{{ $dispensation['total_final_fee'] ?? 0 }}">
                                 <input type="hidden" name="ppdb_user_id" value="{{ $ppdb['id'] }}">
                                 <input type="hidden" name="paymentType" value="cicilan">
+                                <input type="hidden" name="type" value="{{ $type }}">
                             </div>
                             @if (isset($dispensation['actual_cost']) && $dispensation['actual_cost'] > $dispensation['total_final_fee'])
                                 <div class="text-end">

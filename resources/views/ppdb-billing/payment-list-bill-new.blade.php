@@ -265,17 +265,19 @@
             </div>
         @endif
 
-        <div class="alert mt-2 p-3" style="background-color: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px;">
-            <h6 class="fw-bold mb-2" style="color: #075985; font-size: 13px;">
-                <i class="fa-solid fa-gift me-1"></i> Informasi Penting:
-            </h6>
-            <ul class="mb-0 ps-3" style="color: #075985; font-size: 13px;">
-                <li>1. Silahkan tentukan rencana bayar pada <b>Cicilan ke-1 dst</b>.</li>
-                <li>2. Tanggal rencana bayar harus beda bulan dari tanggal sebelumnya</li>
-                <li>3. Periode bulan pada rencana bayar harus berurutan dari bulan sebelumnya</li>
-                <li>4. Setelah simpan tanggal cicilan lakukan donwload dan upload <b>Surat Pernyataan</b></li>
-            </ul>
-        </div>
+        @if ($type == 'development')
+            <div class="alert mt-2 p-3" style="background-color: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px;">
+                <h6 class="fw-bold mb-2" style="color: #075985; font-size: 13px;">
+                    <i class="fa-solid fa-gift me-1"></i> Informasi Penting:
+                </h6>
+                <ul class="mb-0 ps-3" style="color: #075985; font-size: 13px;">
+                    <li>1. Silahkan tentukan rencana bayar pada <b>Cicilan ke-1 dst</b>.</li>
+                    <li>2. Tanggal rencana bayar harus beda bulan dari tanggal sebelumnya</li>
+                    <li>3. Periode bulan pada rencana bayar harus berurutan dari bulan sebelumnya</li>
+                    <li>4. Setelah simpan tanggal cicilan lakukan donwload dan upload <b>Surat Pernyataan</b></li>
+                </ul>
+            </div>
+        @endif
 
         @if ($dispensation->status_payment != 'paid' && $ppdb['is_upload_development_statement'] == 1)
             <h5 class="font-weight-bold text-secondary mb-3">Alternatif Pembayaran</h5>
@@ -328,13 +330,15 @@
         @endif
 
         @if ($dispensation->total_final_fee == $dispensation->remaining_balance)
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="font-weight-bold text-secondary mb-0">Rencana Cicilan / Setup Pembayaran</h5>
-                <a href="{{ route('ppdb.bills.change-payment-method', ['id' => $dispensation->id, 'dispensation_type' => $type]) }}"
-                    class=" font-weight-bold">
-                    Ubah Cara Bayar
-                </a>
-            </div>
+            @if ($dispensation->dispensation_mode == 'real_payment')
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="font-weight-bold text-secondary mb-0">Rencana Cicilan / Setup Pembayaran</h5>
+                    <a href="{{ route('ppdb.bills.change-payment-method', ['id' => $dispensation->id, 'dispensation_type' => $type]) }}"
+                        class=" font-weight-bold">
+                        Ubah Cara Bayar
+                    </a>
+                </div>
+            @endif
         @endif
 
         <div class="card border-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
@@ -414,7 +418,11 @@
                                         @endif
                                     </td>
                                     <td>
-                                        @if ($detail->status != 'paid' && $isPreviousPaid && !empty($detail->plan_date))
+                                        @if (
+                                            $detail->status != 'paid' &&
+                                                $isPreviousPaid &&
+                                                !empty($detail->plan_date) &&
+                                                !empty($dispensation->ppdb->development_statement))
                                             <a href="{{ route('ppdb.bills.payment-now', ['id' => $detail->id, 'type' => 'installment', 'dispensation_type' => $type]) }}"
                                                 class="btn btn-sm btn-dark-green btn-block py-2 text-white">Bayar</a>
                                         @endif
@@ -438,67 +446,69 @@
         </div>
 
         @if (!$hasEmptyDate)
-            <div class="d-flex justify-content-between align-items-center mt-5 mb-3">
-                <h5 class="font-weight-bold text-secondary mb-0">Upload Surat Pernyataan</h5>
-            </div>
-            <div class="card border-0 shadow-sm p-4" style="border-radius: 12px;">
-                <form id="form-development">
-                    <input type="hidden" name="development_fee_option" value="cicilan" />
-                    <div class="row">
-                        <div class="col-md-12">
-                            @if (!empty($dispensation->ppdb->development_statement))
-                                <div class="alert alert-success d-flex align-items-center border-0 shadow-sm mb-3"
-                                    role="alert" style="background-color: #ebfcf1; color: #155736;">
-                                    <i class="fas fa-check-circle fa-2x mr-3"></i>
-                                    <div>
-                                        <h6 class="fw-bold mb-1">Dokumen Berhasil Diunggah!</h6>
-                                        <p class="mb-0">Surat pernyataan Anda telah berhasil disimpan di sistem.</p>
-                                    </div>
-                                </div>
-                                <div>
-                                    <a target="_blank" class="btn btn-outline-dark-green font-weight-bold"
-                                        href="{{ route('ppdb.download-development-statement-letter') }}">
-                                        <i class="fas fa-file-pdf mr-2"></i>Lihat Surat Pernyataan
-                                    </a>
-                                </div>
-                            @else
-                                <div id="upload-instruction">
-                                    <p class="text-muted">Silahkan download form surat pernyataan terlebih dahulu <a
-                                            href="{{ route('ppdb.download-biaya-pengembangan', ['type' => 'cicilan']) }}"
-                                            target="_blank" class="font-weight-bold text-success">disini</a></p>
-                                </div>
-
-                                <div class="upload-image-desktop mt-4" id="upload-box">
-                                    <div class="btn-upload p-4 text-center"
-                                        style="border: 2px dashed #a7f3d0; border-radius: 12px; background-color: #f0fdf4;">
-                                        <div class="row justify-content-center align-items-center flex-column">
-                                            <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: #166534;"></i>
-                                            <span class="d-block font-weight-bold mb-2" style="color: #166534;">Pilih
-                                                file
-                                                dari perangkat komputer Anda</span>
-                                            <span class="text-muted d-block mb-3">Support: PDF</span>
-                                            <span class="btn btn-dark-green text-white position-relative">
-                                                Browse
-                                                <input type="file" name="development_statement"
-                                                    accept="application/pdf" class="position-absolute w-100 h-100"
-                                                    id="development_statement"
-                                                    style="left: 0; top: 0; opacity: 0; cursor: pointer;" />
-                                            </span>
+            @if ($type == 'development')
+                <div class="d-flex justify-content-between align-items-center mt-5 mb-3">
+                    <h5 class="font-weight-bold text-secondary mb-0">Upload Surat Pernyataan</h5>
+                </div>
+                <div class="card border-0 shadow-sm p-4" style="border-radius: 12px;">
+                    <form id="form-development">
+                        <input type="hidden" name="development_fee_option" value="cicilan" />
+                        <div class="row">
+                            <div class="col-md-12">
+                                @if (!empty($dispensation->ppdb->development_statement))
+                                    <div class="alert alert-success d-flex align-items-center border-0 shadow-sm mb-3"
+                                        role="alert" style="background-color: #ebfcf1; color: #155736;">
+                                        <i class="fas fa-check-circle fa-2x mr-3"></i>
+                                        <div>
+                                            <h6 class="fw-bold mb-1">Dokumen Berhasil Diunggah!</h6>
+                                            <p class="mb-0">Surat pernyataan Anda telah berhasil disimpan di sistem.</p>
                                         </div>
                                     </div>
-                                </div>
-
-                                <div class="d-flex flex-column mt-4" id="message_development_statement_container">
-                                    <div class="text-danger font-weight-bold" id="message_development_statement">
-                                        <i class="fas fa-times-circle me-2"></i>
-                                        <span>Belum Terupload</span>
+                                    <div>
+                                        <a target="_blank" class="btn btn-outline-dark-green font-weight-bold"
+                                            href="{{ route('ppdb.download-development-statement-letter') }}">
+                                            <i class="fas fa-file-pdf mr-2"></i>Lihat Surat Pernyataan
+                                        </a>
                                     </div>
-                                </div>
-                            @endif
+                                @else
+                                    <div id="upload-instruction">
+                                        <p class="text-muted">Silahkan download form surat pernyataan terlebih dahulu <a
+                                                href="{{ route('ppdb.download-biaya-pengembangan', ['type' => 'cicilan']) }}"
+                                                target="_blank" class="font-weight-bold text-success">disini</a></p>
+                                    </div>
+
+                                    <div class="upload-image-desktop mt-4" id="upload-box">
+                                        <div class="btn-upload p-4 text-center"
+                                            style="border: 2px dashed #a7f3d0; border-radius: 12px; background-color: #f0fdf4;">
+                                            <div class="row justify-content-center align-items-center flex-column">
+                                                <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: #166534;"></i>
+                                                <span class="d-block font-weight-bold mb-2" style="color: #166534;">Pilih
+                                                    file
+                                                    dari perangkat komputer Anda</span>
+                                                <span class="text-muted d-block mb-3">Support: PDF</span>
+                                                <span class="btn btn-dark-green text-white position-relative">
+                                                    Browse
+                                                    <input type="file" name="development_statement"
+                                                        accept="application/pdf" class="position-absolute w-100 h-100"
+                                                        id="development_statement"
+                                                        style="left: 0; top: 0; opacity: 0; cursor: pointer;" />
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex flex-column mt-4" id="message_development_statement_container">
+                                        <div class="text-danger font-weight-bold" id="message_development_statement">
+                                            <i class="fas fa-times-circle me-2"></i>
+                                            <span>Belum Terupload</span>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
-                    </div>
-                </form>
-            </div>
+                    </form>
+                </div>
+            @endif
         @endif
 
     </div>

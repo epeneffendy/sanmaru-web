@@ -204,8 +204,31 @@
                 </div>
             </div>
 
+            @php
+                // Menghitung jumlah potongan
+                $discount = $dispensation->actual_cost - $dispensation->total_final_fee;
+            @endphp
+
+            <div class="student-info" style="background-color: #fdfaf6; border-color: #f5e2c8;">
+                <h3 style="color: #b87b2b; border-bottom-color: #f5e2c8;">Ringkasan Tagihan {{ $title }}</h3>
+                <div class="info-grid">
+                    <span>Tagihan Awal</span>
+                    <span>: Rp {{ number_format($dispensation->actual_cost, 0, ',', '.') }}</span>
+
+                    @if ($discount > 0)
+                        <span>Dispensasi / Potongan</span>
+                        <span style="color: #d9534f;">: - Rp {{ number_format($discount, 0, ',', '.') }}</span>
+                    @endif
+
+                    <span style="font-weight: 700; color: #333; margin-top: 5px;">Total Kewajiban</span>
+                    <span style="font-weight: 700; color: #1a4d2e; margin-top: 5px; font-size: 1.05rem;">
+                        : Rp {{ number_format($dispensation->total_final_fee, 0, ',', '.') }}
+                    </span>
+                </div>
+            </div>
+
             <div class="payment-details">
-                <h3>Rincian Pembayaran Uang Pengembangan</h3>
+                <h3>Rincian Pembayaran {{ $title }}</h3>
                 <table>
                     <thead>
                         <tr>
@@ -214,33 +237,43 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>Total Tagihan Uang Pengembangan</td>
-                            <td style="text-align: right;">Rp {{ number_format($dispensation->actual_cost, 0, ',', '.') }}
-                            </td>
-                        </tr>
-                        @php
-                            $discount = $dispensation->actual_cost - $dispensation->total_final_fee;
-                        @endphp
-                        @if ($discount > 0)
+                        @if (count($dispensation->details) > 0)
+                            @foreach ($dispensation->details as $item)
+                                @if (count($dispensation->details) == 1)
+                                    <tr>
+                                        <td>Pembayaran Lunas</td>
+                                        <td style="text-align: right;">Rp
+                                            {{ number_format($item->amount_paid, 0, ',', '.') }}</td>
+                                    </tr>
+                                @else
+                                    <tr>
+                                        <td>{{ $item->installment_number == 0 ? 'Pembayaran DP' : 'Cicilan ke- ' . $item->installment_number }}
+                                        </td>
+                                        <td style="text-align: right;">Rp
+                                            {{ number_format($item->amount_paid, 0, ',', '.') }}</td>
+                                    </tr>
+                                @endif
+                            @endforeach
+
+                            <tr class="total-row" style="border-top: 2px solid #333; border-bottom: 2px solid #333;">
+                                <td>Total Telah Dibayar</td>
+                                <td style="text-align: right;">Rp
+                                    {{ number_format($dispensation->total_final_fee, 0, ',', '.') }}</td>
+                            </tr>
+                        @else
                             <tr>
-                                <td>Dispensasi / Potongan</td>
-                                <td style="text-align: right; color: #d9534f;">- Rp
-                                    {{ number_format($discount, 0, ',', '.') }}</td>
+                                <td colspan="2" style="font-style: italic; text-align: center;">Data Pembayaran Tidak
+                                    Ditemukan</td>
                             </tr>
                         @endif
-                        <tr class="total-row" style="border-top: 2px solid #333; border-bottom: 2px solid #333;">
-                            <td>Total Telah Dibayar</td>
-                            <td style="text-align: right;">Rp
-                                {{ number_format($dispensation->total_final_fee, 0, ',', '.') }}</td>
-                        </tr>
+
                     </tbody>
                 </table>
             </div>
         </div>
 
         <div class="receipt-footer">
-            <p>Terima kasih telah menyelesaikan pembayaran Uang Pengembangan. Simpan bukti ini dengan baik.</p>
+            <p>Terima kasih telah menyelesaikan pembayaran {{ $title }}. Simpan bukti ini dengan baik.</p>
             <p>&copy; {{ date('Y') }} Yayasan Paratha Bhakti.</p>
         </div>
     </div>

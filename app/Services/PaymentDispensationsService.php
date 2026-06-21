@@ -21,7 +21,7 @@ class PaymentDispensationsService {
     }
 
     public function getAllBilling($ppdb_user_id){
-        $data = PaymentDispensations::where('ppdb_user_id',$ppdb_user_id)->where('status', PaymentDispensations::STATUS_ACTIVE)->orderBy('id', 'desc')->first();
+        $data = PaymentDispensations::where('ppdb_user_id',$ppdb_user_id)->where('status', PaymentDispensations::STATUS_ACTIVE)->orderBy('id', 'desc')->get();
         return $data;
     }
 
@@ -106,18 +106,18 @@ class PaymentDispensationsService {
 
             }
 
-            
+            if($operator == 'admin'){
+                //update pengajuan dispensasi
+                $request = PaymentDispensationRequest::where('ppdb_user_id', $ppdb->id)->where('dispensation_type', $type)->orderBy('id', 'desc')->first();
+                $request->status = PaymentDispensationRequest::STATUS_CONFIRMED;
+                $request->verified_date = Carbon::now()->format('Y-m-d H:i:s');
+                $request->verified_user_id = Auth::user()->id;
+                $request->save();
 
-            //update pengajuan dispensasi
-            $request = PaymentDispensationRequest::where('ppdb_user_id', $ppdb->id)->where('dispensation_type', $type)->orderBy('id', 'desc')->first();
-            $request->status = PaymentDispensationRequest::STATUS_CONFIRMED;
-            $request->verified_date = Carbon::now()->format('Y-m-d H:i:s');
-            $request->verified_user_id = Auth::user()->id;
-            $request->save();
-
-            $dispensation = PaymentDispensations::where('ppdb_user_id', $ppdb->id)->where('dispensation_type', $type)->orderBy('id', 'desc')->first();
-            $dispensation->dispensation_request_id = $request->id;
-            $dispensation->save();
+                $dispensation = PaymentDispensations::where('ppdb_user_id', $ppdb->id)->where('dispensation_type', $type)->orderBy('id', 'desc')->first();
+                $dispensation->dispensation_request_id = $request->id;
+                $dispensation->save();
+            }
 
             //update billing siswa
             $bills = StudentBills::where('ppdb_user_id', $ppdb->id)->where('type', $type)->orderBy('id', 'desc')->first();
@@ -262,6 +262,7 @@ class PaymentDispensationsService {
             $detail->save();
 
             $dispensation = PaymentDispensations::where('id', $id)->first();
+            
             if($dispensation){
                 if($is_part){
                     $nominal = $nominal_payment;
@@ -276,7 +277,7 @@ class PaymentDispensationsService {
                 }
                 $dispensation->save();
 
-                $bill = StudentBills::where('ppdb_user_id', $dispensation->ppdb_user_id)->where('type', StudentBills::BILL_TYPE_DEVELOPMENT)->orderBy('id', 'desc')->first();
+                $bill = StudentBills::where('ppdb_user_id', $dispensation->ppdb_user_id)->where('type', $dispensation->dispensation_type)->orderBy('id', 'desc')->first();
                 if($bill){
                     $bill->payment_method = $is_paid;
                     $bill->save();
@@ -332,7 +333,7 @@ class PaymentDispensationsService {
                 $detail->save();
             }
 
-            $bill = StudentBills::where('ppdb_user_id', $dispensation->ppdb_user_id)->where('type', StudentBills::BILL_TYPE_DEVELOPMENT)->orderBy('id', 'desc')->first();
+            $bill = StudentBills::where('ppdb_user_id', $dispensation->ppdb_user_id)->where('type', $dispensation->dispensation_type)->orderBy('id', 'desc')->first();
             if($bill){
                 $bill->payment_method = $is_paid;
                 $bill->save();
@@ -376,7 +377,7 @@ class PaymentDispensationsService {
         }
         $dispensation->save();
 
-        $bill = StudentBills::where('ppdb_user_id', $dispensation->ppdb_user_id)->where('type', StudentBills::BILL_TYPE_DEVELOPMENT)->orderBy('id', 'desc')->first();
+        $bill = StudentBills::where('ppdb_user_id', $dispensation->ppdb_user_id)->where('type', $dispensation->dispensation_type)->orderBy('id', 'desc')->first();
         if($bill){
             $bill->payment_method = $is_paid;
             $bill->save();

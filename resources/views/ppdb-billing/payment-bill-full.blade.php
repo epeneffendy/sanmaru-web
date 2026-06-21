@@ -204,7 +204,7 @@
 
         <!-- Tombol Aksi -->
         <div class="mt-4">
-            <a href={{ route('ppdb.bills.choise-payment', ['refresh' => true]) }}
+            <a href="{{ route('ppdb.bills.check-payment-status', ['virtual_account_number' => $virtual_account_number, 'dispensation_type' => $dispensation_type]) }}"
                 class="btn btn-primary btn-block text-white font-weight-bold py-2 shadow-sm"
                 style="background-color: #0d6efd; border-radius: 8px; border: none;">
                 Saya Sudah Bayar </a>

@@ -418,13 +418,16 @@
                                         @endif
                                     </td>
                                     <td>
-                                        @if (
-                                            $detail->status != 'paid' &&
-                                                $isPreviousPaid &&
-                                                !empty($detail->plan_date) &&
-                                                !empty($dispensation->ppdb->development_statement))
-                                            <a href="{{ route('ppdb.bills.payment-now', ['id' => $detail->id, 'type' => 'installment', 'dispensation_type' => $type]) }}"
-                                                class="btn btn-sm btn-dark-green btn-block py-2 text-white">Bayar</a>
+                                        @if ($detail->status != 'paid' && $isPreviousPaid && !empty($detail->plan_date))
+                                            @if ($type == 'development')
+                                                @if (!empty($dispensation->ppdb->development_statement))
+                                                    <a href="{{ route('ppdb.bills.payment-now', ['id' => $detail->id, 'type' => 'installment', 'dispensation_type' => $type]) }}"
+                                                        class="btn btn-sm btn-dark-green btn-block py-2 text-white">Bayar</a>
+                                                @endif
+                                            @else
+                                                <a href="{{ route('ppdb.bills.payment-now', ['id' => $detail->id, 'type' => 'installment', 'dispensation_type' => $type]) }}"
+                                                    class="btn btn-sm btn-dark-green btn-block py-2 text-white">Bayar</a>
+                                            @endif
                                         @endif
                                     </td>
                                 </tr>

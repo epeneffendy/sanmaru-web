@@ -74,27 +74,31 @@ class PPDBPaymentController extends Controller
                 'va_partial' =>$arr_value->va_partial,
                 'virtual_account_unpaid' => $virtual_account_unpaid,
                 'discount'=>$discount,
+                'virtual_account_number' => isset($virtual_account_unpaid) ? $virtual_account_unpaid->virtual_account_number : '',
+                'dispensation_type'=> $type,
                 'type'=>$type
             ];
 
             if(($dispensation->dispensation_mode == PaymentDispensations::MODE_FULL_SETUP) || ($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT)){
-
                 if(($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT)){
                     if(count($dispensation->details) > 1){
-                        // return view('ppdb-billing.payment-bill-list', $data);
-                        return view('ppdb-billing.payment-list-bill-new', $data);
-                    }else{
-                        $is_refresh = false;
                         if($virtual_account_unpaid){
                             if($virtual_account_unpaid->status == PaymentVirtualAccounts::STATUS_UNPAID){
-                                $is_refresh = true;
+                                return view('ppdb-billing.payment-bill-full', $data);
+                            }
+                        }else{
+                            return view('ppdb-billing.payment-list-bill-new', $data);
+                        }
+                    } else{
+                        if($virtual_account_unpaid){
+                            if($virtual_account_unpaid->status == PaymentVirtualAccounts::STATUS_UNPAID){
+                                // if($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT){
+                                    return view('ppdb-billing.payment-bill-full', $data);
+                                    // return redirect()->route('ppdb.bills.check-payment-status', ['virtual_account_number' => $virtual_account_unpaid->virtual_account_number, 'dispensation_type' => $type])->with('message', 'Data berhasil disimpan!');
+                                // }
                             }
                         }
-
-                        return redirect()->route('ppdb.bills.payment-now', ['id' =>$dispensation->id, 'type' => PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT,'refresh'=> $is_refresh])->with('message', 'Data berhasil disimpan!');
-                        // return view('ppdb-billing.payment-bill-full', $data);
                     }
-
                 }else{
                     return view('ppdb-billing.payment-list-bill-new', $data);
                 }
@@ -104,7 +108,6 @@ class PPDBPaymentController extends Controller
                 }else{
                     return view('ppdb-billing.payment-discount-only', $data);
                 }
-
             }
         }else{
             if($type == PaymentDispensations::DISPENSATION_TYPE_DEVELOPMENT){
@@ -228,7 +231,7 @@ class PPDBPaymentController extends Controller
                         $va_unpaid->save();
                     }
 
-                    if($va_unpaid->total_payment != $request->nominal){
+                    if($va_unpaid->total_payment != $remaining_balance){
                         $is_create = true;
                         $va_unpaid->status = PaymentVirtualAccounts::STATUS_CANCELED;
                         $va_unpaid->save();
@@ -264,26 +267,31 @@ class PPDBPaymentController extends Controller
         $va_unpaid = $paymentVirtualAccountsService->findByVirtualAccountUnpaid($request->virtual_account_number);
         $dispensation_type = $request->dispensation_type;
         if($va_unpaid){
-            if($va_unpaid->virtual_account_type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT){
-                //cek disepensation jika mode real payment maka cancel juga dispensasi
-                $dispensation = PaymentDispensations::where([
-                    'ppdb_user_id' => $va_unpaid->ppdb_user_id,
-                    'dispensation_type'=>$dispensation_type,
-                    'status' => PaymentDispensations::STATUS_ACTIVE,
-                ])->first();
-                if($dispensation){
-                    if($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT){
-                        $dispensation->status = PaymentDispensations::STATUS_CANCELLED;
-                        $dispensation->save();
+            if($va_unpaid->status == PaymentVirtualAccounts::STATUS_UNPAID){
+                    if($va_unpaid->virtual_account_type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT){
+                    //cek disepensation jika mode real payment maka cancel juga dispensasi
+                    $dispensation = PaymentDispensations::where([
+                        'ppdb_user_id' => $va_unpaid->ppdb_user_id,
+                        'dispensation_type'=>$dispensation_type,
+                        'status' => PaymentDispensations::STATUS_ACTIVE,
+                    ])->first();
+                    if($dispensation){
+                        if($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT){
+                            $dispensation->status = PaymentDispensations::STATUS_CANCELLED;
+                            $dispensation->save();
+                        }
                     }
                 }
+
+                if($va_unpaid->status == PaymentVirtualAccounts::STATUS_UNPAID){
+                    $va_unpaid->status = PaymentVirtualAccounts::STATUS_CANCELED;
+                    $va_unpaid->save();
+                }
+                return redirect()->route('ppdb.bills.choise-payment', ['type'=>$dispensation_type])->with('message', 'Pembayaran berhasil dibatalkan!');
+            }else{
+                return redirect()->route('ppdb.bills.choise-payment', ['type'=>$dispensation_type])->with('message', 'Pembayaran sudah lunas!');
             }
 
-            if($va_unpaid->status == PaymentVirtualAccounts::STATUS_UNPAID){
-                $va_unpaid->status = PaymentVirtualAccounts::STATUS_CANCELED;
-                $va_unpaid->save();
-            }
-            return redirect()->route('ppdb.bills.choise-payment', ['type'=>$dispensation_type])->with('message', 'Pembayaran berhasil dibatalkan!');
         }else{
             return redirect()->route('ppdb.bills.choise-payment', ['type'=>$dispensation_type])->with('error', 'Data tidak ditemukan!');
         }
@@ -358,5 +366,32 @@ class PPDBPaymentController extends Controller
         return redirect()->route('ppdb.bills.choise-payment', ['type' => $request->dispensation_type])->with('message', 'Data Tidak Ditemukan!');
     }
 
+    public function checkPaymentStatus(Request $request, \App\Services\OpenApi\v1\PaymentBCAService $paymentBCAService, PaymentVirtualAccountsService $paymentVirtualAccountsService)
+    {
+
+        $virtual_account_number = $request->virtual_account_number;
+        $dispensation_type = $request->dispensation_type;
+        $va_unpaid = $paymentVirtualAccountsService->findByVirtualAccountUnpaid($virtual_account_number);
+
+        if (!$va_unpaid) {
+            return redirect()->route('ppdb.bills.choise-payment', ['type' => $dispensation_type])->with('message', 'Cek status berhasil, pembayaran sudah terbayar dan terkonfirmasi.');
+            // return redirect()->back()->with('error', 'Tagihan tidak ditemukan atau sudah kadaluarsa.');
+        }
+
+        if (!\App\Helpers\Helper::isVaBcaEnable()) {
+            return redirect()->back()->with('message', 'Pembayaran menggunakan Virtual Account BCA sedang dinonaktifkan.');
+        }
+
+        try {
+            if($va_unpaid->status == PaymentVirtualAccounts::STATUS_UNPAID){
+                return redirect()->back()->with('message', 'Cek status berhasil, belum ada pembayaran yang diterima.');
+            }else{
+                return redirect()->route('ppdb.bills.choise-payment', ['type' => $dispensation_type])->with('message', 'Cek status berhasil, pembayaran sudah terbayar dan terkonfirmasi.');
+                // return redirect()->back()->with('message', 'Cek status berhasil, belum ada pembayaran yang diterima.');
+            }
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat mengecek status: ' . $e->getMessage());
+        }
+    }
 
 }

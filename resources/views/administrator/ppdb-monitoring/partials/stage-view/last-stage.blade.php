@@ -133,7 +133,7 @@
             <h3>Pengumuman Privasi</h3>
         </div> <!-- /widget-header -->
         <div class="widget-content">
-            <form action="{{ route('admin.ppdb-monitoring.import-users-last-stage', ['stage' => @$stage['id']]) }}"
+            <form action="{{ route('admin.ppdb-monitoring.import-users-last-stage', ['stage' => @$period->id]) }}"
                   method="post"
                   enctype="multipart/form-data">
                 @csrf

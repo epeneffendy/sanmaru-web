@@ -165,6 +165,21 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
     Route::get('/logout', 'AuthController@logout')->name('logout');
     Route::group(['middleware' => 'auth:siswa'], function () {
         Route::get('/welcome', 'DashboardController@welcome')->name('welcome');
+        Route::get('/finance-bills', 'DashboardController@financeBills')->name('finance-bills');
+        Route::get("/registration-payment-receipt/{id}", 'DashboardController@registrationPaymentReceipt')->name('registration-payment-receipt');
+        Route::get("/download-development-statement-letter", 'DashboardController@getDevelopmentStatementLetterFile')->name('download-development-statement-letter');
+        Route::post("/upload-development-fee", 'DashboardController@uploadDevelopmentFee')->name('upload-development-fee');
+        Route::get("/biaya-pengembangan/download", 'DashboardController@downloadDevelopmentStatement')->name('download-biaya-pengembangan');
+        Route::prefix("/bills")->name('bills.')->group(function () {
+            Route::get('/choise-payment/{type}', 'StudentPaymentController@choisePayment')->name('choise-payment');
+            Route::post('store', 'StudentPaymentController@store')->name('store');
+            Route::get('/payment-now', 'StudentPaymentController@paymentNow')->name('payment-now');
+            Route::get('/check-payment-status', 'StudentPaymentController@checkPaymentStatus')->name('check-payment-status');
+            Route::get('/payment-cancel', 'StudentPaymentController@paymentCancel')->name('payment-cancel');
+            Route::get('/payment-paid-receipt', 'StudentPaymentController@developmentPaymentReceipt')->name('payment-paid-receipt');
+            Route::post('/payment-plan-date', 'StudentPaymentController@paymentPlanDate')->name('payment-plan-date');
+            Route::get('/change-payment-method', 'StudentPaymentController@changePaymentMethod')->name('change-payment-method');
+        });
 
         Route::prefix("embed-product")->name('embed-product')->group(function () {
             Route::get('/', 'ShopController@embedProduct');
@@ -801,7 +816,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::get('show-detail-stage/{id}/{type}/{stage_id}', 'PPDBMonitoringController@showDetailStage')->name('show-detail-stage');
             Route::get('users-last-stage/{id}', 'PPDBMonitoringController@userLastStage')->name('users-last-stage');
             Route::post('post-users/{id}', 'PPDBMonitoringController@postUsers')->name('post-users');
-            Route::get('import-users-last-stage/{id}', 'PPDBMonitoringController@importUsers')->name('import-users-last-stage');
+            Route::post('import-users-last-stage/{id}', 'PPDBMonitoringController@importUsersLastStage')->name('import-users-last-stage');
             Route::get('template-setting-class', 'PPDBMonitoringController@templateSettingClass')->name('template-setting-class');
             Route::post('import-users-student/{id}', 'PPDBMonitoringController@importUserStudent')->name('import-users-student');
             Route::get('sync-stage-development/{id}/{stage_id}', 'PPDBMonitoringController@syncStageDevelopment')->name('sync-stage-development');

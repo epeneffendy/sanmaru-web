@@ -6,6 +6,7 @@ use App\Exports\PPDBSettingClassExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ImportExcelRequest;
 use App\Imports\PPDBSettingClassesImport;
+use App\Imports\PPDBLastStageImport;
 use App\Models\Period;
 use App\Models\PPDBUser;
 use App\Models\Stage;
@@ -347,10 +348,45 @@ class PPDBMonitoringController extends Controller
 
             return redirect()->route('admin.ppdb.show', ['id' => $ppdb->id])->with('message', 'Periode pendaftaran siswa berhasil diverifikasi.');
         } catch (\Exception $e) {
-            dd($e);
             DB::rollBack();
             Log::error('PPDB Period Verified Error: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat memverifikasi periode: ' . $e->getMessage());
         }
+    }
+
+    public function importUsersLastStage(ImportExcelRequest $request, $id)
+    {
+        $sessionFlash = [];
+        $period= Period::where('id', $id)->firstOrFail();
+
+        $input = $request->validated();
+
+        $userStagesImport = new PPDBLastStageImport($period, app(PPDBUserService::class));
+        if ($input['type'] === 'overwrite') {
+            $userStagesImport->setOverwrite(true);
+        }
+
+        $userStagesImport->import($input['file']);
+        $reports = $userStagesImport->getReport();
+
+        $message = count($reports['success']) . ' data berhasil diimport.';
+        $sessionFlash = ['message' => $message];
+
+        if (!empty($reports['failure'])) {
+            $messageBag = new MessageBag();
+
+            $messageBag->add('errors', count($reports['failure']) . ' data gagal diimport:');
+            foreach ($reports['failure'] as $error) {
+                $messageBag->add('errors', $error);
+            }
+            $sessionFlash['errors'] = $messageBag;
+        }
+
+        return redirect()->route('admin.ppdb-monitoring.show-detail-stage', [
+            'id'       => $id,
+            'type'     => 'setting-class',
+            'stage_id' => 0
+        ])->with($sessionFlash);
+
     }
 }

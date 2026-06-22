@@ -206,7 +206,8 @@
     }
 </style>
 
-<div class="fixed-table-head">
+
+<div class="fixed-table-head" style="max-height: calc(100vh - 280px);">
     <table id="datatables-master-ppdb" class="table table-modern display" style="width: 100%;">
         <thead>
             <tr>
@@ -272,10 +273,10 @@
                                     Telah diterima menjadi siswa
                                 </span>
                                 <span class="badge-modern badge-soft-warning" title="No Registrasi">
-                                    NISN: {{ $item['nis'] }}
+                                    NISN: {{ isset($item['nis']) ? $item['nis'] : '' }}
                                 </span>
                                 <span class="badge-modern badge-soft-info" title="Unit">
-                                    Kelas: {{ $item['class_name'] }}
+                                    Kelas: {{ isset($item['class_name']) ? $item['class_name'] : '' }}
                                 </span>
                             </div>
                         @endif

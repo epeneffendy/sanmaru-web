@@ -143,7 +143,7 @@
                     </div>
 
 
-                    @if (!$is_stage_show)
+                    @if (!$is_stage_show || $user->status == 'confirmed')
                         <div class="alert mt-2 p-3"
                             style="background-color: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px;">
                             <h6 class="fw-bold mb-2" style="color: #075985; font-size: 13px;">

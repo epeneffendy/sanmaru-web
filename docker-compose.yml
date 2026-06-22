@@ -1,12 +1,53 @@
-version: '3.1'
+version: "3.8"
 
 services:
-
-  mysql:
-    image: mysql:5.7
-    restart: always
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sanmaru
     ports:
-      - "127.0.0.1:3306:3306"
-      - "3322:3306"
+      - "5000:5000"
+    volumes:
+      - ./:/app
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      - DB_HOST=sanmaru_db
+      - DB_DATABASE=scl_sanmarudb_production
+      - DB_USERNAME=root
+      - DB_PASSWORD=rootpassword
+      - DB_DATABASE_ERP=scl_sanmaruerpdb_production
+      - DB_USERNAME_ERP=root
+      - DB_PASSWORD_ERP=rootpassword
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        composer install --no-interaction
+        npm install && npm run dev
+        php artisan migrate --force
+        php artisan serve --host=0.0.0.0 --port=5000
+    depends_on:
+      - db
+    networks:
+      - sanmaru-network
+
+  db:
+    image: mysql:8.0
+    container_name: sanmaru_db
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    volumes:
+      - sanmaru-mysql-data:/var/lib/mysql
+      - ./docker-mysql-init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+    networks:
+      - sanmaru-network
+
+networks:
+  sanmaru-network:
+    driver: bridge
+
+volumes:
+  sanmaru-mysql-data:
+    driver: local

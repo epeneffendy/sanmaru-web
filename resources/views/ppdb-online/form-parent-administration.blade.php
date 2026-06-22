@@ -371,7 +371,7 @@
 
                         $.each(response, (key, city) => {
                             // Cek apakah ID kota ini adalah yang harus terpilih (untuk handle edit/old data)
-                            const isSelected = (selectedCityId && city.name == selectedCityId);
+                            const isSelected = (selectedCityId && (city.name == selectedCityId || city.id == selectedCityId));
                             citySelect.append(new Option(city.name, city.name, isSelected, isSelected));
                         });
 
@@ -404,7 +404,7 @@
 
                         $.each(response, (key, city) => {
                             // Cek apakah ID kota ini adalah yang harus terpilih (untuk handle edit/old data)
-                            const isSelected = (selectedCityId && city.name == selectedCityId);
+                            const isSelected = (selectedCityId && (city.name == selectedCityId || city.id == selectedCityId));
                             citySelect.append(new Option(city.name, city.name, isSelected, isSelected));
                         });
 

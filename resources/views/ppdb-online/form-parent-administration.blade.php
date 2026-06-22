@@ -229,46 +229,13 @@
 
                 const initialFatherProvince = $('#f_region').val();
                 if (initialFatherProvince) {
-                    this.fetchFatherCities(initialFatherProvince, "{{ @$dad->city }}"); // Kirim ID kota lama jika ada
+                    this.fetchFatherCities(initialFatherProvince, "{!! old('f_city', @$dad->city) !!}"); // Kirim ID kota lama jika ada
                 }
 
                 const initialMotherProvince = $('#m_region').val();
                 if (initialMotherProvince) {
-                    this.fetchMotherCities(initialMotherProvince, "{{ @$mom->city }}"); // Kirim ID kota lama jika ada
+                    this.fetchMotherCities(initialMotherProvince, "{!! old('m_city', @$mom->city) !!}"); // Kirim ID kota lama jika ada
                 }
-
-                // Menangani validasi warna border saat Select2 berubah
-                $('.select2-provinces').on('change', function() {
-                    let provinceId = $(this).val();
-                    let citySelect = $('#f_city');
-
-                    citySelect.empty().append('<option value=""></option>').trigger('change');
-
-                    if (provinceId) {
-                        // Tampilkan loading pada select kota
-                        citySelect.prop('disabled', true);
-
-                        // Ganti URL sesuai dengan route di Laravel Anda
-                        $.ajax({
-                            url: "{{ route('ppdb.get-cities') }}",
-                            type: "GET",
-                            data: { province_id: provinceId },
-                            success: function(response) {
-                                // Isi data kota ke select2
-                                $.each(response, function(key, city) {
-                                    citySelect.append(new Option(city.name, city.id, false, false));
-                                });
-
-                                citySelect.prop('disabled', false).trigger('change');
-                            },
-                            error: function() {
-                                alert('Gagal mengambil data kota.');
-                                citySelect.prop('disabled', false);
-                            }
-                        });
-                    }
-                });
-
 
             },
 

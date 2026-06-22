@@ -200,7 +200,9 @@ class PaymentBCAController extends Controller
                         } else {
                             $unitId = substr($data->getcustomerNo(), 0, 2);
                             $paymentCode = substr($data->getcustomerNo(), 2, 2);
-                            $orderId = substr($data->getcustomerNo(), 4);
+                            $orderId = substr($data->getcustomerNo(), 4, 7);
+                            $dispensation_type = null;
+
                             switch ($paymentCode) {
                                 case '08':
                                     $data = $paymentBCAService->getPpdbBills($orderId, $unitId, $data, $result);
@@ -208,20 +210,13 @@ class PaymentBCAController extends Controller
                                 case '07':
                                     $data = $paymentBCAService->getPpdbRegistration($orderId, $unitId, $data, $result);
                                     break;
-                                case '21': //Pengembangan Lunas
-                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $data, $result);
+                                case '03': //Uang Pengembangan
+                                    $dispensation_type = 'development';
+                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $dispensation_type, $data, $result);
                                     break;
-                                case '22': //Pengembangan DP
-                                    $data = $paymentBCAService->getPpdbRegistration($orderId, $unitId, $data, $result);
-                                    break;
-                                case '23': //Pengembangan Cicilan
-                                    $data = $paymentBCAService->getPpdbRegistration($orderId, $unitId, $data, $result);
-                                    break;
-                                case '98': //Pengembangan Pembayaran Partial
-                                    $data = $paymentBCAService->getPpdbRegistration($orderId, $unitId, $data, $result);
-                                    break;
-                                case '99': //Pengembangan Pembayaran Full
-                                    $data = $paymentBCAService->getPpdbRegistration($orderId, $unitId, $data, $result);
+                                case '06': //Uang Kegiatan
+                                    $dispensation_type = 'activity';
+                                    $data = $paymentBCAService->getBillPaymentDevelopment($orderId, $unitId, $dispensation_type, $data, $result);
                                     break;
                                 default:
                                     $result->setresponseCode("4042412");
@@ -383,13 +378,22 @@ class PaymentBCAController extends Controller
                         } else {
                             $unitId = substr($data->getcustomerNo(), 0, 2);
                             $paymentCode = substr($data->getcustomerNo(), 2, 2);
-                            $orderId = substr($data->getcustomerNo(), 4);
+                            $orderId = substr($data->getcustomerNo(), 4, 7);
+                            $dispensation_type = null;
                             switch ($paymentCode) {
                                 case '08':
                                     $result = $paymentBCAService->flagPaymentPpdb($orderId, $unitId, $data, $result, $request->header('x-external-id'));
                                     break;
                                 case '07':
                                     $result = $paymentBCAService->flagPaymentRegistration($orderId, $unitId, $data, $result, $request->header('x-external-id'));
+                                    break;
+                                case '03': //Uang Pengembangan
+                                    $dispensation_type = 'development';
+                                    $data = $paymentBCAService->flagPaymentDevelopment($orderId, $unitId, $dispensation_type, $data, $result, $request->header('x-external-id'), $paymentCode);
+                                    break;
+                                case '06': //Uang Kegiatan
+                                    $dispensation_type = 'activity';
+                                    $data = $paymentBCAService->flagPaymentDevelopment($orderId, $unitId, $dispensation_type, $data, $result, $request->header('x-external-id'), $paymentCode);
                                     break;
                                 default:
                                     $result->setPaymentFlagStatus('01');

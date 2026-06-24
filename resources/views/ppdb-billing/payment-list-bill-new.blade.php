@@ -752,20 +752,33 @@
                 const maxNominal = parseInt($('#input-nominal-remaining-balance').val(), 10);
 
                 if (!nominalStr || nominalStr.trim() === '') {
-                    alert('Nominal pembayaran belum diisi!');
+                    swal({
+                        icon: 'error',
+                        title: "Informasi!",
+                        text: 'Nominal pembayaran belum diisi!',
+                    });
                     $('#input-nominal-partial').focus();
                     return;
                 }
 
                 if (nominal <= 100000) {
-                    alert('Nominal pembayaran harus di atas Rp 100.000!');
+                    swal({
+                        icon: 'error',
+                        title: "Informasi!",
+                        text: 'Nominal pembayaran harus di atas Rp 100.000!',
+                    });
                     $('#input-nominal-partial').focus();
                     return;
                 }
 
                 if (nominal > maxNominal) {
-                    alert('Nominal pembayaran tidak boleh melebihi sisa tagihan (Rp ' + maxNominal
-                        .toLocaleString('id-ID') + ')!');
+                    swal({
+                        icon: 'error',
+                        title: "Informasi!",
+                        text: 'Nominal pembayaran tidak boleh melebihi sisa tagihan (Rp ' +
+                            maxNominal
+                            .toLocaleString('id-ID') + ')!',
+                    });
                     $('#input-nominal-partial').focus();
                     return;
                 }

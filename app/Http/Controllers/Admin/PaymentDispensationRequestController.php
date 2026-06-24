@@ -33,7 +33,7 @@ class PaymentDispensationRequestController extends Controller
 
     public function show($id, Request $request, PaymentDispensationRequestService $paymentDispensationRequestService){
         $data = $paymentDispensationRequestService->find($id);
-        
+
         return view('administrator.payment-dispensation-request.show', [
             'nav' => $this->page,
             'data' => $data
@@ -41,6 +41,7 @@ class PaymentDispensationRequestController extends Controller
     }
 
     public function add(Request $request){
+
         $start_year = date('Y') - 3;
         $school_year = [];
         for($start_year; $start_year <= date('Y'); $start_year++){
@@ -66,13 +67,13 @@ class PaymentDispensationRequestController extends Controller
         ];
 
         return view('administrator/payment-dispensation-request/add', $params);
-    }  
-    
+    }
+
     public function store(PaymentDispensationReqRequest $request, PaymentDispensationRequestService $paymentDispensationRequestService){
         DB::beginTransaction();
         try {
             $data = $request->validated();
-            
+
             if ($request->filled('id')) {
                 $dispensation = PaymentDispensationRequestModel::findOrFail($request->id);
                 $dispensation->update($data);
@@ -87,13 +88,13 @@ class PaymentDispensationRequestController extends Controller
                     return redirect()->route('admin.dispensation-request.index')->with(['message' => $store['message'], 'success' => false])->withErrors(new \Illuminate\Support\MessageBag());
                 }
             }
-        
+
         } catch (\Throwable $th) {
             DB::rollBack();
             return redirect()->back()->with('errors', collect([$th->getMessage()]))->withInput();
         }
     }
-    
+
     public function update(Request $request){
         $id = $request->query('id');
         $dispensation = PaymentDispensationRequestModel::findOrFail($id);

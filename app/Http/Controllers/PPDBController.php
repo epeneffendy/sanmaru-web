@@ -16,6 +16,7 @@ use App\Models\ComplaintPeriode;
 use App\Models\CustomForm;
 use App\Models\CustomFormInput;
 use App\Models\Faq;
+use App\Models\GeneralSettings;
 use App\Models\Notification;
 use App\Models\Parents;
 use App\Models\PaymentDispensations;
@@ -975,10 +976,21 @@ class PPDBController extends Controller
         $totalBayarDiskon = PriceHelper::rupiah(PriceHelper::development($ppdb));
         $keteranganDiskon = "";
 
+        $development_discount = GeneralSettings::where('slug', 'development-fee-discount')->first();
+
+        $discount = $discount_fix = 0;
+
+        if($development_discount){
+            $discount = $development_discount->value;
+            if($discount > 0){
+                $discount_fix = (100 - $discount);
+            }
+        }
+
         $statusDiskon = PriceHelper::getDevelopmentDiscountStatus($ppdb);
         if ($statusDiskon) {
-            $totalBayarDiskon = PriceHelper::rupiah((95 / 100) * PriceHelper::development($ppdb));
-            $keteranganDiskon = "mendapatkan Diskon 5%";
+            $totalBayarDiskon = PriceHelper::rupiah(($discount_fix / 100) * PriceHelper::development($ppdb));
+            $keteranganDiskon = "mendapatkan Diskon ". $discount ."%";
         }
 
         $statusVoucher = PriceHelper::getFreeVouchersOlahRagaProductStatus($ppdb, $type);

@@ -327,14 +327,17 @@
                                                         @elseif ($stage->is_opening_development_feature)
                                                             @if ($stage->passed != 'TIDAK LOLOS')
                                                                 <div class="status-tab status-tab-grey">
-                                                                    {{-- <a href="{{route('ppdb.biaya-pengembangan')}}"
-                                                                        class="btn-detail"
-                                                                        title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
-                                                                            Penerimaan</a> --}}
-                                                                    <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'development']) }}"
-                                                                        class="btn-detail"
-                                                                        title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
-                                                                        Penerimaan</a>
+                                                                    @if ($user->period_verified == 'waiting')
+                                                                        <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'development']) }}"
+                                                                            class="btn-detail"
+                                                                            title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
+                                                                            Penerimaan</a>
+                                                                    @else
+                                                                        <a href="{{ route('ppdb.biaya-pengembangan') }}"
+                                                                            class="btn-detail"
+                                                                            title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
+                                                                            Penerimaan</a>
+                                                                    @endif
                                                                 </div>
                                                             @endif
                                                         @endif

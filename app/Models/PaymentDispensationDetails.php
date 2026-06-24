@@ -26,5 +26,10 @@ class PaymentDispensationDetails extends Model
     const DISPENSATION_TYPE_DEVELOPMENT = 'development';
     const DISPENSATION_TYPE_ACTIVITY = 'activity';
 
+    public function dispensation()
+    {
+        return $this->belongsTo(PaymentDispensations::class, 'payment_dispensation_id');
+    }
+
 
 }

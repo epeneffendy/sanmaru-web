@@ -19,7 +19,7 @@
         @if (\App\Helpers\Helper::isPpdbRole())
             <li class="treeview {{ $nav['parent'] == 'ppdb' ? 'active menu-open' : '' }}">
                 <a href="#" class="{{ $nav['parent'] == 'ppdb' ? 'active' : '' }}">
-                    <span class="icon color12"><i class="fa fa-users"></i></span>PPDB
+                    <span class="icon color12"><i class="fa fa-users"></i></span>SPMB
                     <span class="pull-right-container"><i class="fa fa-angle-right"></i></span></a>
                 <ul class="treeview-menu">
                     <li><a href="{{ route('admin.ppdb.index') }}"
@@ -27,7 +27,7 @@
                             <span class="icon color12"><i class="fa fa-user-plus"></i></span>Pendaftar</a></li>
                     <li><a href="{{ route('admin.ppdb-monitoring.index') }}"
                             class="{{ $nav['child'] == 'ppdb-monitoring' ? 'active' : '' }}">
-                            <span class="icon color12"><i class="fa fa-tachometer"></i></span>Monitoring PPDB</a></li>
+                            <span class="icon color12"><i class="fa fa-tachometer"></i></span>Monitoring SPMB</a></li>
                     <li><a href="{{ route('admin.period.index') }}"
                             class="{{ $nav['child'] == 'period' ? 'active' : '' }}">
                             <span class="icon color12"><i class="fa fa-clock-o"></i></span>Periode</a></li>
@@ -251,6 +251,11 @@
                             class="{{ $nav['child'] == 'admission-report' ? 'active' : '' }}"><span
                                 class="icon color12"><i class="fa fa-user-plus"></i></span>Laporan Penerimaan Siswa
                             Baru</a>
+                    </li>
+                    <li><a href="{{ route('admin.report.recapitulation-admission.index') }}"
+                            class="{{ $nav['child'] == 'recapitulation-admission' ? 'active' : '' }}"><span
+                                class="icon color12"><i class="fa fa-user-plus"></i></span>Rekap Pendaftaran Per
+                            Unit</a>
                     </li>
                     <li><a href="{{ route('admin.report.payment-ppdb-report.index') }}"
                             class="{{ $nav['child'] == 'payment-ppdb-report' ? 'active' : '' }}"><span

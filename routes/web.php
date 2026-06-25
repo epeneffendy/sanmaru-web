@@ -775,6 +775,11 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
                 Route::get('/export', 'AdmissionReportController@export')->name('export');
             });
 
+            Route::prefix('recapitulation-admission')->name('recapitulation-admission.')->group(function () {
+                Route::get('/', 'RecapitulationController@index')->name('index');
+                Route::get('/export', 'RecapitulationController@export')->name('export');
+            });
+
         });
 
         Route::prefix('administrator/dashboard-ppdb')->name('admin.dashboard-ppdb.')->namespace('Admin')->group(function () {

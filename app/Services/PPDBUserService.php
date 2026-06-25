@@ -1013,4 +1013,42 @@ class PPDBUserService
         return $tahunAjaran;
     }
 
+    public function getRecapitulationAdmission($params){
+        $ppdbUsers = PPDBUser::orderBy('ppdb_users.created_at', 'ASC');
+
+        $query = PPDBUser::query()
+            ->join('units', 'ppdb_users.unit_id', '=', 'units.id')
+            ->select(
+                'ppdb_users.unit_id',
+                'units.name as unit_name',
+                DB::raw('COUNT(ppdb_users.id) as total_student'),
+                DB::raw("SUM(CASE WHEN ppdb_users.payment_date IS NOT NULL AND ppdb_users.payment_date != '' THEN 1 ELSE 0 END) as payment_registration"),
+                DB::raw("SUM(CASE WHEN ppdb_users.is_data_complete_whitout_bca = 1 THEN 1 ELSE 0 END) as administration"),
+                DB::raw("SUM(CASE WHEN ppdb_users.statement_letter IS NOT NULL AND ppdb_users.statement_letter != '' THEN 1 ELSE 0 END) as upload_statement_letter"),
+                DB::raw("SUM(CASE WHEN ppdb_users.is_statement_letter_confirmed = 1 THEN 1 ELSE 0 END) as verif_statement_letter"),
+                DB::raw("SUM(CASE WHEN ppdb_users.is_order_confirmed = 1 THEN 1 ELSE 0 END) as order_uniform"),
+                DB::raw("SUM(CASE WHEN ppdb_users.status = 'accepted' THEN 1 ELSE 0 END) as final_stage")
+            )
+            ->groupBy('ppdb_users.unit_id', 'units.name');
+
+        if (isset($params['period']) && $params['period'] != 'all') {
+            $query->where('ppdb_users.periode', $params['period']);
+        }
+
+        if (isset($params['year']) && $params['year'] != 'all') {
+            $query->where('ppdb_users.school_year', $params['year']);
+        }
+
+        $results = $query->get();
+
+        // Mengubah hasil query menjadi format array yang diinginkan (key berdasarkan unit_id)
+        return $results->keyBy('unit_id')->map(function ($item) {
+            // Mengonversi stdClass menjadi array
+            $itemArray = (array)$item;
+            // Mengonversi nilai numerik dari string ke integer/float
+            return array_map(function ($value) {
+                return is_numeric($value) ? (strpos($value, '.') === false ? (int)$value : (float)$value) : $value;
+            }, $itemArray);
+        })->all();
+    }
 }

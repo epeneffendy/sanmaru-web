@@ -297,9 +297,12 @@ class StageController extends Controller
 
         $stage = Stage::byUserRole()->where('id', $stage)->firstOrFail();
 
-        $ppdbUsers = PPDBUser::where('unit_id', $unit)
+		$ppdbUsers = PPDBUser::where('unit_id', $unit)
             ->where('periode', $period)
-            ->where('period_verified', '<>', 'waiting')
+            ->where(function($query) {
+                $query->where('period_verified', '<>', 'waiting')
+                      ->orWhereNull('period_verified');
+            })
             ->whereIn('ppdb_users.id', $passedUserIds)
             ->select('ppdb_users.id', 'name', 'register_number', 'unit_id', 'periode', 'ppdb_user_stages.passed', 'ppdb_user_stages.note')
             ->leftJoin('ppdb_user_stages', function ($join) use ($stage) {

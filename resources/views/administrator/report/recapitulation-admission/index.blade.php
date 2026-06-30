@@ -164,7 +164,7 @@
                                             <td style="text-align: left">{{ $item['unit_name'] }} Siswa</td>
                                             <td style="text-align: left">{{ $item['total_student'] }} Siswa</td>
                                             <td style="text-align: left">{{ $item['payment_registration'] }} Siswa</td>
-                                            <td style="text-align: left">{{ $item['administration'] }} Siswa</td>
+                                            <td style="text-align: left">0 Siswa</td>
                                             <td style="text-align: left">{{ $item['upload_statement_letter'] }} Siswa
                                             </td>
                                             <td style="text-align: left">{{ $item['verif_statement_letter'] }} Siswa</td>

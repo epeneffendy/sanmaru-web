@@ -206,6 +206,44 @@
     }
 </style>
 
+<div class="panel panel-default" style="border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-bottom: 20px;">
+    <div class="panel-body" style="padding: 15px 20px; background-color: #f8fafc; border-radius: 10px;">
+        <form role="form" autocomplete="off" method="GET"
+            action="{{ route('admin.ppdb-monitoring.show-detail-stage', [$period->id, $type, $stage->id ?? 'xx']) }}">
+            <input autocomplete="false" name="hidden" disabled type="text" style="display:none;">
+            <div class="row" style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px;">
+                <div class="col-md-4" style="padding-left: 15px; padding-right: 0;">
+                    <label for="search" style="font-weight: 600; color: #475569; margin-bottom: 5px; font-size: 13px;">Pencarian</label>
+                    <input type="text" name="name" placeholder="Ketik kata pencarian..." value="{{ @$params['name'] }}"
+                        class="form-control" style="border-radius: 8px; height: 38px; border: 1px solid #cbd5e1; box-shadow: inset 0 1px 2px rgba(0,0,0,0.01);" />
+                </div>
+                
+                <div class="col-md-3" style="padding-left: 15px; padding-right: 0;">
+                    <label for="scope" style="font-weight: 600; color: #475569; margin-bottom: 5px; font-size: 13px;">Berdasarkan</label>
+                    <select name="scope" class="form-control" style="border-radius: 8px; height: 38px; border: 1px solid #cbd5e1;">
+                        <option value="name"
+                            {{ (@$params['scope'] == 'name' || !isset($params['scope'])) ? 'selected' : null }}>
+                            Nama Siswa
+                        </option>
+                        <option value="register_number"
+                            {{ @$params['scope'] == 'register_number' ? 'selected' : null }}>
+                            Nomor Registrasi
+                        </option>
+                    </select>
+                </div>
+                
+                <div class="col-md-4" style="padding-left: 15px;">
+                    <button type="submit" class="btn btn-success" style="border-radius: 8px; height: 38px; padding: 0 20px; font-weight: 600; margin-right: 5px; display: inline-flex; align-items: center; gap: 5px;">
+                        <i class="fa fa-search"></i> Terapkan
+                    </button>
+                    <a href="{{ route('admin.ppdb-monitoring.show-detail-stage', [$period->id, $type, $stage->id ?? 'xx']) }}" class="btn btn-default" style="border-radius: 8px; height: 38px; padding: 0 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; border: 1px solid #cbd5e1; background: #fff; color: #475569;">
+                        <i class="fa fa-refresh"></i> Reset
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
 <div class="fixed-table-head" style="max-height: calc(100vh - 280px);">
     <table id="datatables-master-ppdb" class="table table-modern display" style="width: 100%;">
@@ -400,6 +438,8 @@
             @endforeach
         </tbody>
     </table>
+</div>
+
 </div>
 {{ $data->appends(request()->except('page'))->links() }}
 

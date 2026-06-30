@@ -1860,12 +1860,13 @@ class PPDBController extends Controller
                 $nextStage = $arr_stage[$currentIndex + 1];
                 $nextFeature = reset($nextStage); // Mengambil value array pertama
 
-                if ($nextFeature === 'development') {
-                    $is_show = true;
-                }
+                // Cek jika tahapan saat ini adalah development dan sudah passed (lolos)
+				if ($stageArray[$cekStage->stage_id] === 'development') {
+					$is_show = true;
+				}
             }
         }
-
+		
         $is_dispensation = false;
         $arr_dispensation = [];
         if($dispensation){
@@ -1877,6 +1878,7 @@ class PPDBController extends Controller
                 }
             }
         }
+		
 
         $data = array(
             'bills' => $bills['bills'],
@@ -1902,6 +1904,123 @@ class PPDBController extends Controller
         );
 
         return view('ppdb-online.finance.partial._registration_receipt', $data);
+    }
+
+    public function downloadDevelopmentStatementOld(string $type = 'lunas')
+    {
+        if (request()->input('type')) {
+            $type = request()->input('type');
+        }
+
+        if (!in_array($type, ['lunas', 'cicilan', 'lainnya'])) {
+            abort(404);
+        }
+
+        $user = session()->get('user');
+        $ppdb = PPDBUser::where('user_id', $user['id'])->with('unit', 'user', 'parents')->firstOrFail();
+        $filename = $type;
+        $jurusan = "";
+        if ($ppdb->unit_id == 5) {
+            foreach ($ppdb->stages() as $stage) {
+                if ($stage->note) {
+                    $note = strtoupper($stage->note);
+                    $jurusan = Str::contains(strtoupper($stage->note), 'MIPA') ? 'MIPA' : $jurusan;
+                    $jurusan = Str::contains(strtoupper($stage->note), 'IPS') ? 'IPS' : $jurusan;
+                    $jurusan = Str::contains(strtoupper($stage->note), 'BAHASA') ? 'Bahasa' : $jurusan;
+                }
+            }
+            $filename = $type . '-' . 'sma';
+        }
+
+        $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor(public_path("docs/surat-pernyataan-pengembangan/" . $filename . "-old.docx"));
+
+        $startAngsuran = PriceHelper::getDevelopmentStartDateFinance($ppdb);
+
+        $totalBayarDiskon = PriceHelper::rupiah(PriceHelper::development($ppdb));
+        $keteranganDiskon = "";
+
+        $statusDiskon = PriceHelper::getDevelopmentDiscountStatus($ppdb);
+        if ($statusDiskon) {
+            $totalBayarDiskon = PriceHelper::rupiah((95 / 100) * PriceHelper::development($ppdb));
+            $keteranganDiskon = "mendapatkan Diskon 5%";
+        }
+
+        $statusVoucher = PriceHelper::getFreeVouchersOlahRagaProductStatus($ppdb, $type);
+        if ($statusVoucher) {
+            if ($keteranganDiskon != "") {
+                $keteranganDiskon .= ' dan ';
+            }
+            $keteranganDiskon .= "Free Seragam OR";
+        }
+
+        if ($keteranganDiskon != "") {
+            $keteranganDiskon = "(" . $keteranganDiskon . ")";
+        }
+
+        // Hardcoded
+        $deadline = UniformDeadline::where([
+            'unit_id' => $ppdb->unit_id,
+            'status' => 1
+        ])->first();
+        $uniform_deadline = date('Y') .' - '. (date('Y') + 1);
+        $school_year = '';
+        if ($deadline){
+            $uniform_deadline = $deadline->uniform_payment_deadline;
+            $school_year = $deadline->school_year .' - '. ($deadline->school_year + 1);
+        }
+
+        $uniformPaymentDeadline = strtolower($ppdb->unit->city) != 'pacet' ? ', '. $uniform_deadline : '';
+
+        $templateProcessor->setValues([
+            'register_number' => $ppdb->register_number,
+            'nama_lengkap' => $ppdb->name,
+            'alamat' => $ppdb->address,
+            'nomor_hp' => $ppdb->user->mobile_phone,
+            'nama_ayah' => $ppdb->father() ? $ppdb->father()->name : NULL,
+            'nama_ibu' => $ppdb->mother() ? $ppdb->mother()->name : NULL,
+            'total_bayar' => PriceHelper::development($ppdb, true),
+            'keterangan' => PriceHelper::getDescriptionFinance($ppdb, 'development'),
+            'total_bayar_kegiatan' => PriceHelper::activity($ppdb, true),
+            'keterangan_kegiatan' => PriceHelper::getDescriptionFinance($ppdb, 'activity'),
+            'total_bayar_spp' => PriceHelper::tuition($ppdb, true),
+            'keterangan_spp' => PriceHelper::getDescriptionFinance($ppdb, 'tuition'),
+            'total_bayar_diskon' => $totalBayarDiskon,
+            'keterangan_diskon' => $keteranganDiskon,
+            'total_bayar_awal' => PriceHelper::rupiah((50 / 100) * PriceHelper::development($ppdb)),
+            'batas_angsuran' => $startAngsuran ? @\Carbon\Carbon::parse($startAngsuran)->addMonths(5)->format('M Y') : null,
+            'nama_unit' => $ppdb->unit->letter_header_name,
+            'alamat_unit' => Str::title($ppdb->unit->address),
+            'email_unit' => $ppdb->unit->email,
+            'kota_unit' => $ppdb->unit->letter_header_city,
+            'telp_unit' => $ppdb->unit->telp ? implode(', ', $ppdb->unit->telp) : null,
+            'fax_unit' => $ppdb->unit->fax ? implode(', ', $ppdb->unit->fax) : null,
+            'angsuran_1' => @\Carbon\Carbon::parse($ppdb->angsuran_1)->format('d M Y'),
+            'angsuran_2' => @\Carbon\Carbon::parse($ppdb->angsuran_2)->format('d M Y'),
+            'angsuran_3' => @\Carbon\Carbon::parse($ppdb->angsuran_3)->format('d M Y'),
+            'angsuran_4' => @\Carbon\Carbon::parse($ppdb->angsuran_4)->format('d M Y'),
+            'angsuran_5' => @\Carbon\Carbon::parse($ppdb->angsuran_5)->format('d M Y'),
+            'cicilan_1' => @PriceHelper::rupiah($ppdb->cicilan_1),
+            'cicilan_2' => @PriceHelper::rupiah($ppdb->cicilan_2),
+            'cicilan_3' => @PriceHelper::rupiah($ppdb->cicilan_3),
+            'cicilan_4' => @PriceHelper::rupiah($ppdb->cicilan_4),
+            'cicilan_5' => @PriceHelper::rupiah($ppdb->cicilan_5),
+            'jurusan' => $jurusan,
+            'pembayaran' => $ppdb->unit->payment_option,
+            'kota' => $ppdb->unit->city,
+            // Hardcode for uniform deadline
+            'uniform_payment_deadline' => $uniformPaymentDeadline,
+            'school_year' => $school_year,
+        ]);
+
+        header("Content-Description: File Transfer");
+        header("Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        header("Content-Disposition: attachment; filename=" . $filename . ".docx");
+        header("Content-Transfer-Encoding: binary");
+        header("Expires: 0");
+        header("Cache-Control: must-revalidate, post-check=0, pre-check=0");
+        header("Pragma: public");
+
+        $templateProcessor->saveAs('php://output');
     }
 
 }

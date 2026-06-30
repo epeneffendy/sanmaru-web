@@ -33,22 +33,23 @@ class PPDBMonitoringController extends Controller
 
     public function index(Request $request, PPDBMonitoringService $PPDBMonitoringService)
     {
-        $periods = new Period();
+        $periods = Period::query();
 
-       if ($request->input('name')) {
-           $periods = $periods->where('name', 'like', '%' . $request->input('name') . '%');
-       }
-       if ($request->input('unit')) {
-           $periods = $periods->where('unit_id', $request->input('unit'));
-       }
+        if ($request->filled('name')) {
+            $periods = $periods->where('name', 'like', '%' . $request->input('name') . '%');
+        }
+        
+        if ($request->filled('unit') && $request->input('unit') != '0') {
+            $periods = $periods->where('unit_id', $request->input('unit'));
+        }
 
-       if ($request->input('year')) {
-           $periods = $periods->where('school_year', $request->input('year'));
-       }
+        if ($request->filled('period') && $request->input('period') != '0') {
+            $periods = $periods->where('id', $request->input('period'));
+        }
 
         $currentSchoolYear = now()->month > 6 ? now()->year + 1 : now()->year;
 
-        if ($request->filled('year') && $request->input('year') != 'all') {
+        if ($request->filled('year') && $request->input('year') != '0' && $request->input('year') != 'all') {
             $periods = $periods->where('school_year', $request->input('year'));
         } elseif (!$request->has('year')) {
             $periods = $periods->where('school_year', $currentSchoolYear);
@@ -105,33 +106,38 @@ class PPDBMonitoringController extends Controller
     public function showDetailStage(Request $request, $id, $type, $stage_id, PPDBMonitoringService $PPDBMonitoringService)
     {
         $period = Period::find($id);
+        $params = $request->only(['name', 'scope']);
 
         $collection = [];
         if ($type == 'administration') {
-            $data = $PPDBMonitoringService->stagesAdministrasi($period, true, 'administration');
+            $rawData = $PPDBMonitoringService->stagesAdministrasi($period, true, 'administration');
+            $rawData = $this->applySearchFilter(collect($rawData), $params)->all();
 
-            $data = $this->paginateArray($data, 15, $request);
-
-            $data = [
-                'nav' => $this->page,
-                'period' => $period,
-                'type' => $type,
-                'data' => $data
-            ];
-
-        } elseif ($type == 'development-statement') {
-            $data = $PPDBMonitoringService->stagesAdministrasi($period, true, 'development-statement');
-
-            $stage = Stage::where('id', $stage_id)->where('active', 1)->first();
-
-            $data = $this->paginateArray($data, 15, $request);
+            $data = $this->paginateArray($rawData, 15, $request);
 
             $data = [
                 'nav' => $this->page,
                 'period' => $period,
                 'type' => $type,
                 'data' => $data,
-                'stage' => $stage
+                'params' => $params,
+            ];
+
+        } elseif ($type == 'development-statement') {
+            $rawData = $PPDBMonitoringService->stagesAdministrasi($period, true, 'development-statement');
+            $rawData = $this->applySearchFilter(collect($rawData), $params)->all();
+
+            $stage = Stage::where('id', $stage_id)->where('active', 1)->first();
+
+            $data = $this->paginateArray($rawData, 15, $request);
+
+            $data = [
+                'nav' => $this->page,
+                'period' => $period,
+                'type' => $type,
+                'data' => $data,
+                'stage' => $stage,
+                'params' => $params,
             ];
         } elseif ($type == 'last-stage') {
             $data = $PPDBMonitoringService->stagesAdministrasi($period, true, 'last-stage');
@@ -146,7 +152,7 @@ class PPDBMonitoringController extends Controller
                 'period' => $period,
                 'type' => $type,
                 'data' => $data,
-                'stage'=>$stage
+                'stage'=> $stage
             ];
         } elseif ($type == 'setting-class') {
             $data = $PPDBMonitoringService->stagesAdministrasi($period, true, 'setting-class');
@@ -304,6 +310,28 @@ class PPDBMonitoringController extends Controller
         $student = $studentService->setInactive($ppdb->student->id);
 
         return redirect()->route('admin.ppdb.show', [$id])->with('message', 'Siswa berhasil dinonaktifkan.');
+    }
+
+    /**
+     * Apply name/register_number search filter to a collection.
+     *
+     * @param \Illuminate\Support\Collection $collection
+     * @param array $params
+     * @return \Illuminate\Support\Collection
+     */
+    private function applySearchFilter($collection, array $params)
+    {
+        $searchValue = $params['name'] ?? null;
+        $scope = $params['scope'] ?? 'name';
+
+        if (!$searchValue) {
+            return $collection;
+        }
+
+        return $collection->filter(function ($item) use ($searchValue, $scope) {
+            $fieldValue = $item[$scope] ?? '';
+            return stripos($fieldValue, $searchValue) !== false;
+        });
     }
 
     /**

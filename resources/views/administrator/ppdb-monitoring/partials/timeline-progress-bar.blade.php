@@ -9,15 +9,15 @@
                 </p>
             </div>
             <div class="text-end">
-                <h3 class="fw-bold text-success mb-0">{{$detailStages[$stage->id]['overallProgress']}}%</h3>
+                <h3 class="fw-bold text-success mb-0">{{ round($detailStages[$stage->id]['overallProgress']) }}%</h3>
             </div>
         </div>
 
         <div class="progress rounded-pill" style="height: 12px; background-color: #e9ecef;">
             <div class="progress-bar progress-bar-striped progress-bar-animated bg-success rounded-pill"
                  role="progressbar"
-                 style="width: {{$detailStages[$stage->id]['overallProgress']}}%"
-                 aria-valuenow="{{$detailStages[$stage->id]['overallProgress']}}"
+                 style="width: {{ round($detailStages[$stage->id]['overallProgress']) }}%"
+                 aria-valuenow="{{ round($detailStages[$stage->id]['overallProgress']) }}"
                  aria-valuemin="0"
                  aria-valuemax="100">
             </div>

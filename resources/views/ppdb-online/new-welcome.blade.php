@@ -325,9 +325,10 @@
                                                                     title="Silahkan klik tombol detail untuk melihat informasi lengkap mengenai tahap ini">Detail</a>
                                                             </div>
                                                         @elseif ($stage->is_opening_development_feature)
+
                                                             @if ($stage->passed != 'TIDAK LOLOS')
                                                                 <div class="status-tab status-tab-grey">
-                                                                    @if ($user->period_verified == 'waiting')
+                                                                    @if (($user->period_verified == 'waiting') ||  $user->period_verified == 'verified')
                                                                         <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'development']) }}"
                                                                             class="btn-detail"
                                                                             title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
@@ -373,7 +374,7 @@
                                                                 @if ($stage->is_opening_development_feature)
                                                                     @if ($ppdbUser->development_statement == null)
                                                                         <span style="color: #555555"><i
-                                                                                class="fa fa-file-excel-o"></i>Info</span>
+                                                                                class="fa fa-file-excel-o"></i>Infoxxx</span>
                                                                     @else
                                                                         <span style="color: #555555"><i
                                                                                 class="fa fa-file-excel-o"></i>Menunggu

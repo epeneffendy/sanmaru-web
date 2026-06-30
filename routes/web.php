@@ -59,6 +59,7 @@ Route::group(['domain' => $routeService->getPpdbSubdomain()], function () use ($
         Route::post("/$prefix/biaya-pengembangan/cicilan", 'PPDBController@postBiayaPengembanganCicilanPpdb')->name('ppdb.biaya-pengembangan.post-cicilan');
         Route::get("/$prefix/biaya-pengembangan/lainnya", 'PPDBController@biayaPengembanganLainnyaPpdb')->name('ppdb.biaya-pengembangan.lainnya');
         Route::get("/$prefix/biaya-pengembangan/download", 'PPDBController@downloadDevelopmentStatement')->name('ppdb.download-biaya-pengembangan');
+        Route::get("/$prefix/biaya-pengembangan-old/download", 'PPDBController@downloadDevelopmentStatementOld')->name('ppdb.download-biaya-pengembangan-old');
         Route::get("/$prefix/faq-ppdb", 'PPDBController@faqPpdb')->name('ppdb.faq-ppdb');
         Route::get("/$prefix/notifikasi-ppdb", 'PPDBController@notifikasiPpdb')->name('ppdb.notifikasi-ppdb');
         Route::get("/$prefix/data-siswa-ppdb", 'PPDBController@dataSiswaPpdb')->name('ppdb.data-siswa-ppdb');
@@ -802,6 +803,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
         Route::post('/administrator/ppdb/confirm-development-statement/{id}', 'Admin\PPDBController@confirmDevelopmentStatement')->name('admin.ppdb.confirm-development-statement');
         Route::post('/administrator/ppdb/update/{id}', 'Admin\PPDBController@update')->name('admin.ppdb.update');
         Route::get('/administrator/ppdb/show/{id}', 'Admin\PPDBController@show')->name('admin.ppdb.show');
+        Route::get('/administrator/ppdb/show-old/{id}', 'Admin\PPDBController@showOld')->name('admin.ppdb.show-old');
         Route::get('/administrator/ppdb/show-payment/{id}', 'Admin\PPDBController@showPayment')->name('admin.ppdb.show-payment');
         Route::post('/administrator/ppdb/send-confirmation/{id}', 'Admin\PPDBController@sendConfirmation')->name('admin.ppdb.send-confirmation')->middleware('web', 'auth', 'admin');
         Route::get('/administrator/ppdb/delete/{id}', 'Admin\PPDBController@delete')->name('admin.ppdb.delete');
@@ -1084,4 +1086,16 @@ Route::get('/debug-email/period-confirmed', function () {
     }
 
     return new PeriodConfirmed($ppdb);
+});
+
+Route::get('/debug-email/installment-reminder', function () {
+    $detail = \App\Models\PaymentDispensationDetails::whereHas('dispensation.ppdb')->first();
+
+    if (!$detail) {
+        return 'Tidak ada data PaymentDispensationDetails yang memiliki relasi ke PPDBUser di database untuk di-preview.';
+    }
+
+    $ppdb = $detail->dispensation->ppdb;
+
+    return new \App\Mail\DevelopmentFeeInstallmentReminderMail($detail, $ppdb);
 });

@@ -251,6 +251,19 @@ class PPDBController extends Controller
         return view('administrator/ppdb/show-detail', $data);
     }
 
+    public function showOld($id, PPDBUserService $ppdbUserService, ParentService $parentService)
+    {
+        $ppdbUser = $ppdbUserService->show($id);
+       
+
+        $data = array(
+            'data' => $ppdbUser,
+            'nav' => $this->page,
+        );
+
+        return view('administrator/ppdb/show', $data);
+    }
+
     public function showPayment($id, PPDBUserService $ppdbUserService, ParentService $parentService)
     {
         $ppdbUser = $ppdbUserService->show($id);

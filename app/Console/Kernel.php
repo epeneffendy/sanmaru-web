@@ -15,7 +15,6 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\ExpireProductOrder::class,
         Commands\SendOrderConfirmationReminder::class,
-        Commands\DevelopmentFeeInstallmentReminderCommand::class,
     ];
 
     /**
@@ -29,7 +28,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('tools:expire-product-order')->everyMinute();
         $schedule->command('tools:send-order-confirmation-reminder')->dailyAt('07:00');
         $schedule->command('tools:check-expired-order-uniform')->everyMinute();
-        $schedule->command('email:installment-reminder')->dailyAt('01:00');
+        $schedule->command('email:installment-reminder')->dailyAt('01:00')->appendOutputTo(storage_path('logs/cron-installment.log'));
     }
 
     /**

@@ -170,7 +170,7 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    download template dengan <a href="{{ route('admin.stage.export-users') }}" target="_blank" download>klik disini</a>
+                                   
                                 </div>
                                 <div class="form-group">
                                     <button type="submit" class="btn btn-success btn-sm btn-insert">import</button>

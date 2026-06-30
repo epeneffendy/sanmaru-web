@@ -214,7 +214,7 @@
                         <input type="hidden" name="development_fee_option" value="cicilan" />
                         <p class="text-body-title text-primary-green">Upload Surat Pernyataan</p>
                         <p class="text-body">Silahkan download form surat pernyataan terlebih dahulu <a
-                                href="{{ route('ppdb.download-biaya-pengembangan', ['type' => 'cicilan']) }}"
+                                href="{{ route('ppdb.download-biaya-pengembangan-old', ['type' => 'cicilan']) }}"
                                 target="_blank">disini</a></p>
                         {{--                        <p class="text-body">Silahkan lakukan upload form surat pernyataan sebelum tanggal <b>{{$deadline}}</b>, jika anda tidak melakukan upload form surat pernyataan sampai batas waktu yang ditentukan otomatis calon siswa dinyatakan <b>TIDAK LOLOS</b></p> --}}
 

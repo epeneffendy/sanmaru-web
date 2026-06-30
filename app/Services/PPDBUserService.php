@@ -592,7 +592,7 @@ class PPDBUserService
         $stageUser = PPDBUserStage::where('ppdb_user_id', $id)->where('stage_id', $stage_id)->first();
         if($stageUser){
             if($stageUser->passed == 1){
-                $stageUser->passed = 0;
+                $stageUser->passed = null;
                 $stageUser->save();
                 return true;
             }
@@ -1016,39 +1016,58 @@ class PPDBUserService
     public function getRecapitulationAdmission($params){
         $ppdbUsers = PPDBUser::orderBy('ppdb_users.created_at', 'ASC');
 
-        $query = PPDBUser::query()
-            ->join('units', 'ppdb_users.unit_id', '=', 'units.id')
-            ->select(
-                'ppdb_users.unit_id',
-                'units.name as unit_name',
-                DB::raw('COUNT(ppdb_users.id) as total_student'),
-                DB::raw("SUM(CASE WHEN ppdb_users.payment_date IS NOT NULL AND ppdb_users.payment_date != '' THEN 1 ELSE 0 END) as payment_registration"),
-                DB::raw("SUM(CASE WHEN ppdb_users.is_data_complete_whitout_bca = 1 THEN 1 ELSE 0 END) as administration"),
-                DB::raw("SUM(CASE WHEN ppdb_users.statement_letter IS NOT NULL AND ppdb_users.statement_letter != '' THEN 1 ELSE 0 END) as upload_statement_letter"),
-                DB::raw("SUM(CASE WHEN ppdb_users.is_statement_letter_confirmed = 1 THEN 1 ELSE 0 END) as verif_statement_letter"),
-                DB::raw("SUM(CASE WHEN ppdb_users.is_order_confirmed = 1 THEN 1 ELSE 0 END) as order_uniform"),
-                DB::raw("SUM(CASE WHEN ppdb_users.status = 'accepted' THEN 1 ELSE 0 END) as final_stage")
-            )
-            ->groupBy('ppdb_users.unit_id', 'units.name');
-
         if (isset($params['period']) && $params['period'] != 'all') {
-            $query->where('ppdb_users.periode', $params['period']);
+            $ppdbUsers->where('ppdb_users.periode', $params['period']);
         }
 
         if (isset($params['year']) && $params['year'] != 'all') {
-            $query->where('ppdb_users.school_year', $params['year']);
+            $ppdbUsers->where('ppdb_users.school_year', $params['year']);
         }
 
-        $results = $query->get();
+        $ppdbUsers = $ppdbUsers->get();
 
-        // Mengubah hasil query menjadi format array yang diinginkan (key berdasarkan unit_id)
-        return $results->keyBy('unit_id')->map(function ($item) {
-            // Mengonversi stdClass menjadi array
-            $itemArray = (array)$item;
-            // Mengonversi nilai numerik dari string ke integer/float
-            return array_map(function ($value) {
-                return is_numeric($value) ? (strpos($value, '.') === false ? (int)$value : (float)$value) : $value;
-            }, $itemArray);
-        })->all();
+        $collections = [];
+        foreach($ppdbUsers as $ppdbUser){
+            if (!isset($collections[$ppdbUser->unit_id])) {
+                $collections[$ppdbUser->unit_id] = [
+                    'unit_name' => $ppdbUser->unit->name,
+                    'total_student' => 0,
+                    'payment_registration' => 0,
+                    'administration' => 0,
+                    'upload_statement_letter' => 0,
+                    'verif_statement_letter' => 0,
+                    'order_uniform' => 0,
+                    'final_stage' => 0,
+                ];
+            }
+
+            $collections[$ppdbUser->unit_id]['total_student']++;
+
+            if (!empty($ppdbUser->payment_date)) {
+                $collections[$ppdbUser->unit_id]['payment_registration']++;
+            }
+
+            if ($ppdbUser->is_data_complete_whitout_bca) {
+                $collections[$ppdbUser->unit_id]['administration']++;
+            }
+
+            if ($ppdbUser->IsStatementLetterUploaded) {
+                $collections[$ppdbUser->unit_id]['upload_statement_letter']++;
+            }
+
+            if ($ppdbUser->IsStatementLetterConfirmed) {
+                $collections[$ppdbUser->unit_id]['verif_statement_letter']++;
+            }
+
+            if ($ppdbUser->isOrderConfirmed) {
+                $collections[$ppdbUser->unit_id]['order_uniform']++;
+            }
+
+            if ($ppdbUser->status == \App\Models\PPDBUser::STATUS_ACCEPTED) {
+                $collections[$ppdbUser->unit_id]['final_stage']++;
+            }
+        }
+        return $collections;
     }
+
 }

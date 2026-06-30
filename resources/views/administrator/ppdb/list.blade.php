@@ -437,7 +437,7 @@
 
                                             <td class="text-right">
                                                 <?php
-                                                $show = 'show';
+                                                $show = 'show-old';
                                                 if ($value->isPaymentStatusComplete) {
                                                     $show = 'show-payment';
                                                 }

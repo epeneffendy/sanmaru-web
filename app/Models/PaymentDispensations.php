@@ -20,6 +20,12 @@ class PaymentDispensations extends Model
         'value'
     ];
 
+    protected $casts = [
+        'total_final_fee'   => 'decimal:2',
+        'actual_cost'       => 'decimal:2',
+        'remaining_balance' => 'decimal:2',
+    ];
+
     const MODE_FULL_SETUP = 'full_setup';     // Untuk Total Biaya Baru, DP, dan Cicilan
     const MODE_ONLY_DISCOUNT = 'only_discount';  // Hanya potongan harga saja
     const MODE_REAL_PAYMENT = 'real_payment';  // Tanpa dispensasi pembayaran

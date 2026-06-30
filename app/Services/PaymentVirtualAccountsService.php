@@ -48,7 +48,7 @@ class PaymentVirtualAccountsService
             ->first();
     }
 
-    public function fillable($ppdb_user_id, $type, $virtual_account_number, $total_payment, $va_account)
+    public function fillable($ppdb_user_id, $type, $virtual_account_number, $total_payment, $va_account, $expired_at)
     {
         return [
             'ppdb_user_id' => $ppdb_user_id,
@@ -58,7 +58,7 @@ class PaymentVirtualAccountsService
             'status' => \App\Models\PaymentVirtualAccounts::STATUS_UNPAID,
             'virtual_account_type' => $va_account,
             'payment_option'=> 'BCA',
-            'expired_at' => now()->addDays(1),
+            'expired_at' => $expired_at,
         ];
     }
 
@@ -85,7 +85,7 @@ class PaymentVirtualAccountsService
             $confirmed = false;
             if ($paymentVirtualAccount->save()) {
                 $dispensation = $this->paymentDispensationsService->getByUserPpdb($paymentVirtualAccount->ppdb_user_id, $dispensation_type);
-                
+
                 if ($dispensation) {
                     $char_virtual_account = strlen($virtual_account_number);
                     $is_full_payment = true;

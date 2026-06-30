@@ -118,13 +118,17 @@
                                                     <label class="label label-primary">Dispensasi Telah Diterima Oleh Siswa</label>
                                                 @elseif($dispensation->status == 'rejected')
                                                     <label class="label label-danger">Dispensasi Ditolak</label>
+                                                @elseif($dispensation->status == 'canceled')
+                                                    <label class="label label-danger">Dispensasi Dibatalkan</label>
                                                 @else
                                                     <span class="badge badge-modern badge-soft-secondary">{{ ucfirst($dispensation->status) }}</span>
                                                 @endif
                                             </td>
                                             <td class="text-center">
                                                 <a href="{{ route('admin.dispensation-request.show', ['id' => $dispensation->id]) }}" class="btn btn-sm btn-info">Detail</a>
-                                                {{-- <a href="{{ route('admin.dispensation-request.update', ['id' => $dispensation->id]) }}" class="btn btn-sm btn-primary">Edit</a> --}}
+                                                @if(($dispensation->status != 'confirmed') && $dispensation->status != 'canceled')
+                                                    <a href="{{ route('admin.dispensation-request.delete', ['id' => $dispensation->id]) }}" class="btn btn-sm btn-danger" onclick="return confirm('Apakah Anda yakin ingin membatalkan dispensasi ini?')">Hapus</a>
+                                                @endif
                                             </td>
                                         </tr>
 

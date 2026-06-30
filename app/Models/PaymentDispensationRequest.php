@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\ImageHandler;
 
 class PaymentDispensationRequest extends Model
 {
     protected $table = 'payment_dispensation_request';
+
+    use ImageHandler;
 
     protected $fillable = [
         'ppdb_user_id',
@@ -26,9 +29,19 @@ class PaymentDispensationRequest extends Model
     const STATUS_CONFIRMED = 'confirmed'; //sudah di ajukan dispensasi oleh admin
     const STATUS_SUBMITTED = 'submitted'; // sudah di gunakan oleh siswa
     const STATUS_REJECTED = 'rejected'; //di tolak oleh admin
+    const STATUS_CANCELED = 'canceled'; //di batalkan oleh admin
 
     public function ppdb()
     {
     	return $this->belongsTo(PPDBUser::class, 'ppdb_user_id', 'id');
+    }
+
+    public function getAttachmentImageUrl()
+    {
+        if ($this->attachment == null) {
+            return null;
+        }
+
+        return $this->getImageUrl($this->attachment);
     }
 }

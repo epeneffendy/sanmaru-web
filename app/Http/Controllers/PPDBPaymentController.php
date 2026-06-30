@@ -201,9 +201,10 @@ class PPDBPaymentController extends Controller
             $dispensation = $paymentDispensationsService->getById($request->id);
         }
 
-        $virtual_account_type = $virtual_account_number = $remaining_balance = null;
+        $virtual_account_type = $virtual_account_number = $remaining_balance = $installment_number =$installment_type = null;
         $is_create =false;
         if($dispensation){
+
             if($request->type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT){
                 $virtual_account_type = PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT;
                 $virtual_account_number = json_decode($dispensation->value)->va_full_statement;
@@ -219,6 +220,8 @@ class PPDBPaymentController extends Controller
                 $virtual_account_type = PaymentVirtualAccounts::VIRTUAL_ACCOUNT_INSTALLMENT;
                 $virtual_account_number = $dispensation->virtual_account;
                 $remaining_balance = $dispensation->nominal - $dispensation->amount_paid;
+                $installment_number = $dispensation->installment_number;
+                $installment_type = ($installment_number == 0) ? 'down_payment' : 'installment';
             }
 
 
@@ -247,7 +250,12 @@ class PPDBPaymentController extends Controller
 
                 if($is_create || !$va_unpaid){
                     $type_payment = $dispensation_type;
-                    $fillable = $paymentVirtualAccountsService->fillable($dispensation->ppdb_user_id,$type_payment, $virtual_account_number, $remaining_balance, $virtual_account_type);
+
+                    $expired_at = now()->addDays(1);
+                    if($installment_type == 'down_payment'){
+                        $expired_at = now()->addDays(7);
+                    }
+                    $fillable = $paymentVirtualAccountsService->fillable($dispensation->ppdb_user_id,$type_payment, $virtual_account_number, $remaining_balance, $virtual_account_type, $expired_at);
                     $paymentVirtualAccountsService->create($fillable);
                 }
             }

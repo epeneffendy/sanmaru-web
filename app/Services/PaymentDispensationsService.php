@@ -55,7 +55,7 @@ class PaymentDispensationsService {
     }
 
     public function getDetailById($id){
-        $data = PaymentDispensations::select('payment_dispensations.*', 'payment_dispensation_details.virtual_account', 'payment_dispensation_details.nominal', 'payment_dispensation_details.id as detail_id','payment_dispensation_details.amount_paid')
+        $data = PaymentDispensations::select('payment_dispensations.*', 'payment_dispensation_details.virtual_account', 'payment_dispensation_details.nominal', 'payment_dispensation_details.id as detail_id','payment_dispensation_details.amount_paid','payment_dispensation_details.installment_number')
             ->join('payment_dispensation_details', 'payment_dispensations.id', '=', 'payment_dispensation_details.payment_dispensation_id')
             ->where('payment_dispensation_details.id', $id)
             ->where('payment_dispensations.status', PaymentDispensations::STATUS_ACTIVE)
@@ -68,12 +68,12 @@ class PaymentDispensationsService {
         return \Illuminate\Support\Facades\DB::transaction(function () use ($params, $ppdb, $type, $operator) {
 
             $paymentTerm = StudentBills::PAYMENT_TERM_FULL;
+
             if($params['dispensation_mode'] == PaymentDispensations::MODE_ONLY_DISCOUNT){
                 if($operator == 'admin'){
                     $paymentDispensation = PaymentDispensations::create($params);
                 }else{
                     $paymentDispensation = $this->getByUserPpdb($params['ppdb_user_id'], $type);
-
                 }
             }else{
                 $paymentDispensation = PaymentDispensations::create($params);
@@ -167,6 +167,7 @@ class PaymentDispensationsService {
                 'status' => PaymentDispensationDetails::STATUS_UNPAID,
             ];
         }
+
 
         PaymentDispensationDetails::insert($arr_dispensation);
     }

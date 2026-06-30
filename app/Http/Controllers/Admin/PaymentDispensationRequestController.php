@@ -131,4 +131,16 @@ class PaymentDispensationRequestController extends Controller
 
         return view('administrator/payment-dispensation-request/add', $params);
     }
+
+    public function delete(Request $request){
+        $id = $request->query('id');
+        try {
+            $dispensation = PaymentDispensationRequestModel::findOrFail($id);
+            $dispensation->status = PaymentDispensationRequestModel::STATUS_CANCELED;
+            $dispensation->save();
+            return redirect()->route('admin.dispensation-request.index')->with(['message' => 'Dispensasi berhasil dibatalkan', 'success' => true]);
+        } catch (\Exception $e) {
+            return redirect()->route('admin.dispensation-request.index')->with(['message' => 'Gagal membatalkan dispensasi', 'success' => false])->withErrors(collect([$e->getMessage()]));
+        }
+    }
 }

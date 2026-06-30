@@ -730,6 +730,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
            Route::get('/add', 'PaymentDispensationRequestController@add')->name('add');
            Route::post('/store', 'PaymentDispensationRequestController@store')->name('store');
            Route::get('/update', 'PaymentDispensationRequestController@update')->name('update');
+           Route::get('/delete', 'PaymentDispensationRequestController@delete')->name('delete');
            Route::get('/show/{id}', 'PaymentDispensationRequestController@show')->name('show');
         });
 

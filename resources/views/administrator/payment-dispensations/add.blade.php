@@ -47,8 +47,8 @@
                             <div class="form-group">
                                 <label class="col-sm-2 control-label">Jenis Dispensasi</label>
                                 <div class="col-sm-10">
-                                    <select class="form-control selectpicker" name="dispensation_type" id="dispensation_type"
-                                        data-style="btn-success" data-live-search="true" required>
+                                    <select class="form-control selectpicker" name="dispensation_type"
+                                        id="dispensation_type" data-style="btn-success" data-live-search="true" required>
                                         <option value="" selected>Pilih Jenis Dispensasi</option>
                                         @foreach ($dispensation_type as $type)
                                             <option value="{{ $type['value'] }}"
@@ -104,7 +104,7 @@
 
                             <div class="form-group">
                                 <label class="col-sm-2 control-label">Biaya Sebenarnya</label>
-                                <div class="col-sm-10">
+                                <div class="col-sm-7">
                                     <input type="hidden" name="actual_cost" id="actual_cost"
                                         value="{{ @$dispensation['actual_cost'] }}">
                                     <input type="text" class="form-control" id="actual_cost_display"
@@ -112,6 +112,10 @@
                                         required placeholder="0" readonly>
                                     <small id="actual_cost_info" class="help-block text-warning font-weight-bold"
                                         style="display: none;"></small>
+                                </div>
+                                <div class="col-md-3" id="attachment-container" style="display: none;">
+                                    <button type="button" class="btn btn-info" id="show-attachment-btn">Lihat
+                                        Lampiran</button>
                                 </div>
                             </div>
 
@@ -187,6 +191,23 @@
         </div>
         <!-- End Row -->
     </div>
+
+    <div id="show-image-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-md">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;
+                    </button>
+                    <h4 class="modal-title">Lampiran Dispensasi</h4>
+                </div>
+                <div class="modal-body">
+                    <img class="header-image" id="lightbox-img" src="" width="500" height="500"
+                        alt="Zoom">
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- END CONTAINER -->
 @endsection
 
@@ -230,6 +251,11 @@
             var ppdb_user_id = $('#ppdb_user_id').val();
             var type = $('#dispensation_type').val();
             fetchAnualCost(ppdb_user_id, type)
+        });
+
+        $(document).on('click', '#show-attachment-btn', function(e) {
+            let imageUrl = $(this).data('url');
+            showImage(imageUrl);
         });
 
         $(document).on('keyup', '#total_final_fee_display', function(e) {
@@ -348,6 +374,8 @@
                 $('#actual_cost').val('');
                 $('#actual_cost_display').val('');
                 $('#actual_cost_info').hide().text('');
+                $('#attachment-container').hide();
+                $('#show-attachment-btn').data('url', '');
                 return;
             }
 
@@ -355,8 +383,6 @@
                 ppdb_user_id: ppdb_user_id,
                 type: type
             }, function(data) {
-                console.log(data)
-                console.log(data.actual_cost)
                 if (data.status === 'success') {
                     let costValue = data.actual_cost.toString();
                     let parsedCost = parseFloat(costValue);
@@ -368,16 +394,28 @@
                     } else {
                         $('#actual_cost_info').hide().text('');
                     }
+
+                    if (data.attachment_url) {
+                        $('#show-attachment-btn').data('url', data.attachment_url);
+                        $('#attachment-container').show();
+                    } else {
+                        $('#attachment-container').hide();
+                        $('#show-attachment-btn').data('url', '');
+                    }
                 } else {
                     $('#actual_cost').val('');
                     $('#actual_cost_display').val('');
                     $('#actual_cost_info').hide().text('');
+                    $('#attachment-container').hide();
+                    $('#show-attachment-btn').data('url', '');
                     alert(data.message);
                 }
             }, 'json').fail(function() {
                 $('#actual_cost').val('');
                 $('#actual_cost_display').val('');
                 $('#actual_cost_info').hide().text('');
+                $('#attachment-container').hide();
+                $('#show-attachment-btn').data('url', '');
                 alert('Terjadi kesalahan pada server saat mengambil data biaya.');
             });
         }
@@ -388,6 +426,12 @@
          */
         function formatRupiah(number) {
             return new Intl.NumberFormat('id-ID').format(number);
+        }
+
+        function showImage(imageSrc) {
+            $('#lightbox-img').attr("src", '');
+            $('#show-image-modal').modal();
+            $('#lightbox-img').attr("src", imageSrc)
         }
     </script>
 @endpush

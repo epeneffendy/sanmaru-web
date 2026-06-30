@@ -260,7 +260,7 @@
                                 <input type="hidden" id="nominal_dp" name="nominal_dp" value="0">
                             </div>
                             <div class="summary-item">
-                                <span>Sisa Pokok Hutang</span>
+                                <span>Sisa Pokok Kewajiban</span>
                                 <span id="textSisaHutang">Rp 0</span>
                                 <input type="hidden" id="sisa_hutang" name="sisa_hutang" value="0">
                             </div>

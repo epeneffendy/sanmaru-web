@@ -69,7 +69,7 @@ class PaymentDispensationController extends Controller
                 'label' => 'Uang Kegiatan'
             ]
         ];
-
+        
         $params = [
             'nav' => $this->page,
             'units' => Unit::byUserRole()->get(),
@@ -117,9 +117,18 @@ class PaymentDispensationController extends Controller
         $price = 0;
         $status = 'error';
         $message = 'Tipe dispensasi tidak valid.';
+        $attachment_url = '';
         $ppdb = PPDBUser::where('id', $request->ppdb_user_id)->first();
         if ($ppdb) {
 
+            $dispensationRequest = \App\Models\PaymentDispensationRequest::where('ppdb_user_id', $request->ppdb_user_id)
+                ->where('dispensation_type', $request->type)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            if ($dispensationRequest && $dispensationRequest->attachment) {
+                $attachment_url = $dispensationRequest->getAttachmentImageUrl();
+            }
 
             $dispensation = $paymentDispensationService->getByUserPpdb($request->ppdb_user_id, $request->type);
             if($request->type == 'development'){
@@ -170,7 +179,8 @@ class PaymentDispensationController extends Controller
         return response()->json([
             'status' => $status,
             'message' => $message,
-            'actual_cost' => $price
+            'actual_cost' => $price,
+            'attachment_url' => $attachment_url
         ]);
     }
 

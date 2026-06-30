@@ -850,6 +850,19 @@ class PPDBUser extends Authenticatable
         $this->attributes['development_statement'] = null;
         $this->attributes['verification_development_statement'] = null;
 
+        if(!empty($this->period_verified)){
+            $dispensation = PaymentDispensations::where([
+                'ppdb_user_id' => $this->id,
+                'dispensation_type'=>PaymentDispensations::DISPENSATION_TYPE_DEVELOPMENT,
+                'status'=> PaymentDispensations::STATUS_ACTIVE
+            ])->first();
+
+            if($dispensation){
+                $dispensation->status = PaymentDispensations::STATUS_INACTIVE;
+                $dispensation->save();
+            }
+        }
+
         $stage = $this->stages()->filter(function ($stage) {
             return $stage->is_opening_development_feature;
         })->first();

@@ -1,14 +1,14 @@
 @extends('layouts.admin.main')
 @section('content')
-    @php($status="Show")
-    @php($status_header="Show")
+    @php($status = 'Show')
+    @php($status_header = 'Show')
 
     <div class="page-header">
         <h1 class="title">Detail Pengajuan Dispensasi</h1>
         <ol class="breadcrumb">
             <li>Keuangan</li>
-            <li><a href="{{route('admin.dispensation-request.index')}}">Pengajuan Dispensasi</a></li>
-            <li class="active">{{$status_header}}</li>
+            <li><a href="{{ route('admin.dispensation-request.index') }}">Pengajuan Dispensasi</a></li>
+            <li class="active">{{ $status_header }}</li>
         </ol>
     </div>
 
@@ -54,19 +54,19 @@
                                 </div>
                                 <div class="card-body">
                                     <h5 class="card-title text-primary">#Status :
-                                        @if($data->status == \App\Models\PaymentDispensationRequest::STATUS_WAITING)
+                                        @if ($data->status == \App\Models\PaymentDispensationRequest::STATUS_WAITING)
                                             <label class="label label-warning">Menunggu</label>
                                         @endif
-                                        @if($data->status == \App\Models\PaymentDispensationRequest::STATUS_APPROVED)
+                                        @if ($data->status == \App\Models\PaymentDispensationRequest::STATUS_APPROVED)
                                             <label class="label label-success">Disetujui Oleh Admin</label>
                                         @endif
-                                        @if($data->status == \App\Models\PaymentDispensationRequest::STATUS_CONFIRMED)
+                                        @if ($data->status == \App\Models\PaymentDispensationRequest::STATUS_CONFIRMED)
                                             <label class="label label-info">Sudah Diajukan Dispensasi</label>
                                         @endif
-                                        @if($data->status == \App\Models\PaymentDispensationRequest::STATUS_SUBMITTED)
+                                        @if ($data->status == \App\Models\PaymentDispensationRequest::STATUS_SUBMITTED)
                                             <label class="label label-primary">Dispensasi Telah Diterima Oleh Siswa</label>
                                         @endif
-                                        @if($data->status == \App\Models\PaymentDispensationRequest::STATUS_REJECTED)
+                                        @if ($data->status == \App\Models\PaymentDispensationRequest::STATUS_REJECTED)
                                             <label class="label label-danger">Dispensasi Ditolak</label>
                                         @endif
                                     </h5>
@@ -84,17 +84,16 @@
                                     </div>
 
                                     <div class="row">
-                                        <h5>Lampiran Pengajuan Dispensasi (Klik Gambar Untuk Zoom)</h5>
-                                        <div class="text-title-3 font-italic text-black mt-2"
-                                                style="font-weight: bold">
+                                        <h5>Lampiran Komplain (Klik Gambar Untuk Zoom)</h5>
+                                        <div class="text-title-3 font-italic text-black mt-2" style="font-weight: bold">
                                             <div class="row">
                                                 <div class="col-md-4">
-                                                    @if(@$data->attachment !== null)
+                                                    @if (@$data->attachment !== null)
                                                         <div
-                                                            class="preview-image {{ @$data->attachment !== null ? NULL : 'hide' }}">
-                                                            <img src="{{$data->attachment}}"
-                                                                    onclick="showImage('{{ $data->attachment }}')"
-                                                                    class="header-image" width="300" height="300"/>
+                                                            class="preview-image {{ @$data->attachment !== null ? null : 'hide' }}">
+                                                            <img src="{{ $data->getAttachmentImageUrl() }}"
+                                                                onclick="showImage('{{ $data->getAttachmentImageUrl() }}')"
+                                                                class="header-image" width="300" height="300" />
                                                         </div>
                                                     @endif
                                                 </div>
@@ -111,6 +110,30 @@
             </div>
         </div>
     </div>
-            
 
+    <div id="show-image-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-md">
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;
+                    </button>
+                    <h4 class="modal-title">Lampiran Komplain</h4>
+                </div>
+                <div class="modal-body">
+                    <img class="header-image" id="lightbox-img" src="" width="500" height="500" alt="Zoom">
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
+
+@push('scripts')
+    <script>
+        function showImage(imageSrc) {
+            $('#lightbox-img').attr("src", '');
+            $('#show-image-modal').modal();
+            $('#lightbox-img').attr("src", imageSrc)
+        }
+    </script>
+@endpush

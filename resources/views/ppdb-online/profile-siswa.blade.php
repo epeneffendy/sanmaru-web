@@ -45,7 +45,8 @@
                 </div>
             </div>
         </div>
-        <div class="row justify-content-end">
+        <div class="row justify-content-end" style="gap: 10px;">
+            <a href="#" class="btn btn-outline-danger" data-toggle="modal" data-target="#pengunduranDiriModal">Pengunduran Diri</a>
             <a href="{{ route('ppdb.change-password.form') }}" class="btn btn-outline-green">Ubah Password</a>
         </div>
     </div>
@@ -146,6 +147,12 @@
                 </div>
             </div>
             <div class="col my-3">
+                <div class="card-outline mb-3" data-toggle="modal" data-target="#pengunduranDiriModal" style="cursor: pointer;">
+                    <div class="row justify-content-center align-items-center">
+                        <span class="text-body-title text-danger">Pengunduran Diri</span>
+                        <img src="{{asset('frontend-ppdb-online/img/Icon/Icon-Arrow.png')}}" alt="" style="transform: rotate(-90deg); position: absolute;right:10%">
+                    </div>
+                </div>
                 <div class="card-outline">
                     <div class="row justify-content-center align-items-center">
                         <a href="{{ route('ppdb.change-password.form') }}"><span class="text-body-title text-primary-green">Ubah Password</span></a>
@@ -156,4 +163,37 @@
         </div>
     </div>
 </div>
+<!-- Modal Pengunduran Diri Dummy -->
+<div class="modal fade" id="pengunduranDiriModal" tabindex="-1" role="dialog" aria-labelledby="pengunduranDiriModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="pengunduranDiriModalLabel">Form Pengunduran Diri</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form action="#" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="form-group">
+                <label>Alasan Pengunduran Diri <span class="text-danger">*</span></label>
+                <textarea class="form-control" name="reason" rows="3" required placeholder="Tuliskan alasan pengunduran diri..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Upload Surat Pernyataan Pengunduran Diri <span class="text-danger">*</span></label>
+                <br>
+                <small class="text-muted">Format file: PDF, JPG, JPEG, PNG. Maksimal ukuran: 2MB.</small>
+                <input type="file" class="form-control-file mt-2" name="surat_pengunduran_diri" accept=".pdf, .jpg, .jpeg, .png" required>
+            </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-danger" onclick="alert('Ini adalah form dummy, fitur belum berfungsi.')">Submit Pengunduran Diri</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 @endsection

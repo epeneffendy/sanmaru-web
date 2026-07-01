@@ -211,9 +211,8 @@
 
             @if (!empty($virtual_account_unpaid))
                 <a href="{{ route('ppdb.bills.payment-cancel', ['virtual_account_number' => $virtual_account_number, 'dispensation_type' => $dispensation_type]) }}"
-                    class="btn btn-outline-danger btn-block mt-3 font-weight-bold py-2 shadow-sm"
-                    style="border-radius: 8px;"
-                    onclick="return confirm('Apakah Anda yakin ingin membatalkan pembayaran ini?');">
+                    id="btn-cancel-payment" class="btn btn-outline-danger btn-block mt-3 font-weight-bold py-2 shadow-sm"
+                    style="border-radius: 8px;">
                     Batalkan Pembayaran </a>
             @endif
 
@@ -243,6 +242,7 @@
 
 
     @push('scripts')
+        <script src="{{ asset('js/sweet-alert/sweet-alert.min.js') }}"></script>
         <script>
             function copyText(elementId, successMessage) {
                 // Mengambil teks dari elemen
@@ -297,6 +297,32 @@
                         seconds.toString().padStart(2, '0');
                 }, 1000);
             @endif
+
+            $(document).on('click', '#btn-cancel-payment', function(e) {
+                e.preventDefault();
+                var url = $(this).attr('href');
+
+                swal({
+                    title: "Batalkan Pembayaran?",
+                    text: "Apakah Anda yakin ingin membatalkan pembayaran ini? Anda perlu membuat ulang tagihan jika ingin melanjutkan.",
+                    icon: "warning",
+                    buttons: {
+                        cancel: {
+                            text: "Tidak",
+                            value: null,
+                            visible: true,
+                            className: "",
+                            closeModal: true,
+                        },
+                        confirm: "Ya, Batalkan"
+                    },
+                    dangerMode: true,
+                }).then((willDelete) => {
+                    if (willDelete) {
+                        window.location.href = url;
+                    }
+                });
+            });
         </script>
     @endpush
 @endsection

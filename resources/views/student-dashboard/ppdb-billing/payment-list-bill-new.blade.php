@@ -298,9 +298,11 @@
                             {{ number_format($dispensation['remaining_balance'] ?? 0) }}
                         </h5>
 
-                        <a href="{{ route('bills.payment-now', ['id' => $dispensation->id, 'type' => 'full_statement', 'dispensation_type' => $type]) }}"
-                            class="btn btn-dark-green btn-block py-2 text-white">Bayar
-                            Lunas Sekarang</a>
+                        @if (!empty($dispensation->ppdb->development_statement))
+                            <a href="{{ route('bills.payment-now', ['id' => $dispensation->id, 'type' => 'full_statement', 'dispensation_type' => $type]) }}"
+                                class="btn btn-dark-green btn-block py-2 text-white">Bayar
+                                Lunas Sekarang</a>
+                        @endif
                     </div>
                 </div>
 
@@ -319,11 +321,12 @@
                             <input type="hidden" id="input-nominal-remaining-balance" class="form-control"
                                 value="{{ $dispensation['remaining_balance'] ?? 0 }}">
                         </div>
-
-                        <a href="{{ route('bills.payment-now', ['id' => $dispensation->id, 'type' => 'partial', 'dispensation_type' => $type]) }}"
-                            id="btn-generate-partial"
-                            class="btn btn-outline-dark-green text-success btn-block py-2 mt-auto">Generate Virtual
-                            Account</a>
+                        @if (!empty($dispensation->ppdb->development_statement))
+                            <a href="{{ route('bills.payment-now', ['id' => $dispensation->id, 'type' => 'partial', 'dispensation_type' => $type]) }}"
+                                id="btn-generate-partial"
+                                class="btn btn-outline-dark-green text-success btn-block py-2 mt-auto">Generate Virtual
+                                Account</a>
+                        @endif
                     </div>
                 </div>
             </div>

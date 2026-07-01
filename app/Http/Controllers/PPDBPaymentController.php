@@ -290,10 +290,13 @@ class PPDBPaymentController extends Controller
                         'dispensation_type'=>$dispensation_type,
                         'status' => PaymentDispensations::STATUS_ACTIVE,
                     ])->first();
+
                     if($dispensation){
-                        if($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT){
-                            $dispensation->status = PaymentDispensations::STATUS_CANCELLED;
-                            $dispensation->save();
+                        if(count($dispensation->details) == 1){
+                            if($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT){
+                                $dispensation->status = PaymentDispensations::STATUS_CANCELLED;
+                                $dispensation->save();
+                            }
                         }
                     }
                 }

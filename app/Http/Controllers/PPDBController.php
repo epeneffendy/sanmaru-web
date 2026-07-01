@@ -1846,27 +1846,20 @@ class PPDBController extends Controller
             $arr_stage[$ind][$stage->id] = $feature;
         }
         $cekStage = PPDBUserStage::where('ppdb_user_id', $user['ppdb']['id'])->orderBy('id', 'desc')->first();
-        if($cekStage && $cekStage->passed == 1){
-            $currentIndex = -1;
-            foreach ($arr_stage as $ind => $stageArray) {
-                if (isset($stageArray[$cekStage->stage_id])) {
-                    $currentIndex = $ind;
-                    break;
+        if ($cekStage) {
+            // Cari semua tahapan 'development' yang sudah dilewati oleh siswa
+            $developmentStagesPassed = PPDBUserStage::where('ppdb_user_id', $user['ppdb']['id'])
+                ->where('passed', 1) // Lolos
+                ->whereHas('stage', function ($query) {
+                    $query->where('is_opening_development_feature', 1);
+                })
+                ->exists();
+
+            if ($developmentStagesPassed) {
+                $is_show = true;
                 }
-            }
-
-            // Cek apabila tahapan berikutnya ada, dan valuenya adalah 'development'
-            if ($currentIndex !== -1 && isset($arr_stage[$currentIndex + 1])) {
-                $nextStage = $arr_stage[$currentIndex + 1];
-                $nextFeature = reset($nextStage); // Mengambil value array pertama
-
-                // Cek jika tahapan saat ini adalah development dan sudah passed (lolos)
-				if ($stageArray[$cekStage->stage_id] === 'development') {
-					$is_show = true;
-				}
-            }
         }
-		
+
         $is_dispensation = false;
         $arr_dispensation = [];
         if($dispensation){
@@ -1878,7 +1871,7 @@ class PPDBController extends Controller
                 }
             }
         }
-		
+
 
         $data = array(
             'bills' => $bills['bills'],

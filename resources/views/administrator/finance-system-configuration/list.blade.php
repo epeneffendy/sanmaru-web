@@ -18,8 +18,13 @@
             <!-- Start Panel -->
             <div class="col-md-12">
                 <div class="panel panel-default table-responsive">
-                    <div class="panel-title">
+                    <div class="panel-title" style="margin-bottom: 1em">
                         Setup Tahun Ajaran & Aturan Sistem
+                        <div class="btn-group padding-t-10 pull-right">
+                            <button id="modal-periode" class="btn btn-sm btn-primary">
+                                <i class="fa fa-calendar"></i> Periode Pembayaran
+                            </button>
+                        </div>
                     </div>
 
                     <div class="panel-body">
@@ -74,6 +79,73 @@
             </div>
         </div>
     </div>
+
+    <div id="show-periode-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalPeriodeLabel" aria-hidden="true">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="modalPeriodeLabel" style="font-weight: 600;"><i class="fa fa-calendar"></i> Pengaturan Periode Pembayaran</h4>
+                </div>
+                <div class="modal-body" style="background-color: #f9f9f9;">
+                    <form class="form-horizontal">
+                        @foreach($periode as $item)
+                            <div class="panel panel-default" style="margin-bottom: 15px; border-radius: 5px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                                <div class="panel-heading" style="background-color: #fff; border-bottom: 1px solid #f0f0f0;">
+                                    <h3 class="panel-title" style="font-weight: 600; font-size: 14px;">
+                                        <i class="fa fa-money text-success" style="margin-right: 5px;"></i> Pembayaran {{ ($item->type == 'activity') ? 'Uang Kegiatan' : 'Uang Pengembangan' }}
+                                    </h3>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="form-group" style="margin-bottom: 10px;">
+                                        <label class="control-label col-sm-4" for="date_start_{{$item->type}}" style="font-weight: 500;">Periode Awal</label>
+                                        <div class="col-sm-8">
+                                            <div class="input-group">
+                                                <span class="input-group-addon"><i class="fa fa-calendar-o"></i></span>
+                                                <input type="date" class="form-control input-sm" id="date_start_{{$item->type}}"
+                                                       name="date_start_{{$item->type}}" value="{{$item->date_start}}" required {{ ($item->status == 'all') ? 'disabled' : '' }}>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom: 10px;">
+                                        <label class="control-label col-sm-4" for="date_end_{{$item->type}}" style="font-weight: 500;">Periode Akhir</label>
+                                        <div class="col-sm-8">
+                                            <div class="input-group">
+                                                <span class="input-group-addon"><i class="fa fa-calendar-o"></i></span>
+                                                <input type="date" class="form-control input-sm" id="date_end_{{$item->type}}"
+                                                       name="date_end_{{$item->type}}" value="{{$item->date_end}}" required {{ ($item->status == 'all') ? 'disabled' : '' }}>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <div class="col-sm-8 col-sm-offset-4">
+                                            <div class="checkbox checkbox-success">
+                                                <input type="checkbox" id="status_{{$item->type}}" {{ ($item->status == 'active') ? 'checked' : '' }}> 
+                                                <label for="status_{{$item->type}}" style="font-weight: 600; cursor: pointer;">
+                                                    Status Aktif
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </form>
+                </div>
+                <div class="modal-footer" style="margin-top: 0;">
+                    <button type="button" class="btn btn-default btn-sm" data-dismiss="modal"><i class="fa fa-times"></i> Tutup</button>
+                    <button id="setting_periode" type="button" class="btn btn-success btn-sm setting_periode">
+                        <i class="fa fa-save"></i> Simpan Perubahan
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/plugin/datatables/datatables.css') }}">
@@ -89,5 +161,33 @@
         $(document).ready(function() {
             $('#datatables-uniform-deadline').DataTable();
         });
+
+        $(document).on('click', '#modal-periode', function (e) {
+            // Inisialisasi state awal saat modal dibuka
+            $('input[id^="status_"]').each(function() {
+                let type = $(this).attr('id').replace('status_', '');
+                if ($(this).is(':checked')) {
+                    $('#date_start_' + type).prop('disabled', false);
+                    $('#date_end_' + type).prop('disabled', false);
+                } else {
+                    $('#date_start_' + type).prop('disabled', true);
+                    $('#date_end_' + type).prop('disabled', true);
+                }
+            });
+            $('#show-periode-modal').modal();
+        });
+
+        // Trigger saat checkbox di klik/ubah
+        $(document).on('change', 'input[id^="status_"]', function (e) {
+            let type = $(this).attr('id').replace('status_', '');
+            if ($(this).is(':checked')) {
+                $('#date_start_' + type).prop('disabled', false);
+                $('#date_end_' + type).prop('disabled', false);
+            } else {
+                $('#date_start_' + type).prop('disabled', true);
+                $('#date_end_' + type).prop('disabled', true);
+            }
+        });
+
     </script>
 @endpush

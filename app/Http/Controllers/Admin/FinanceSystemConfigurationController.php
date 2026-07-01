@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\FinanceSystemConfigurationRequest;
 use App\Models\Finance;
 use App\Services\FinanceSystemConfigurationService;
+use App\Services\FinancePeriodeService;
 
 class FinanceSystemConfigurationController extends Controller
 {
@@ -16,12 +17,14 @@ class FinanceSystemConfigurationController extends Controller
     ];
 
 
-    public function index(FinanceSystemConfigurationService $financeSystemConfigurationService)
+    public function index(FinanceSystemConfigurationService $financeSystemConfigurationService, FinancePeriodeService $financePeriodeService)
     {
+        $periode = $financePeriodeService->get();
         $configurations = $financeSystemConfigurationService->get();
         return view('administrator.finance-system-configuration.list', [
             'nav' => $this->page,
-            'configurations' => $configurations
+            'configurations' => $configurations,
+            'periode'=>$periode
         ]);
     }
 

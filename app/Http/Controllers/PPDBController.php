@@ -21,6 +21,7 @@ use App\Models\Notification;
 use App\Models\Parents;
 use App\Models\PaymentDispensations;
 use App\Models\PPDBUser;
+use App\Models\FinancePeriode;
 use App\Models\PPDBUserStage;
 use App\Models\Product;
 use App\Models\ProductFitting;
@@ -1823,6 +1824,8 @@ class PPDBController extends Controller
         $user = $request->session()->get('user');
         $ppdbUser = PPDBUser::where('id', $user['ppdb']['id'])->first();
 
+        $financePeriode = FinancePeriode::where('type','activity')->first();
+
         $is_show = false;
         // if($ppdbUser->development_fee_option == PPDBUser::DEVELOPMENT_FEE_ANGSURAN){
         //     $is_show = true;
@@ -1882,6 +1885,7 @@ class PPDBController extends Controller
             'arr_dispensation'=>$arr_dispensation,
             'is_show' => $is_show,
             'ppdbUser'=> $ppdbUser,
+            'financePeriode' => $financePeriode,
             'nav' => ['parent' => 'data', 'child' => 'Data Siswa']
         );
 

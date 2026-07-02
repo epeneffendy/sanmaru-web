@@ -713,6 +713,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
            Route::get('/add', 'FinanceSystemConfigurationController@add')->name('add');
            Route::post('/store', 'FinanceSystemConfigurationController@store')->name('store');
            Route::get('/update', 'FinanceSystemConfigurationController@update')->name('update');
+           Route::post('/finance-periode', 'FinanceSystemConfigurationController@financePeriode')->name('financePeriode');
         });
 
         Route::prefix('administrator/dispensation')->name('admin.dispensation.')->namespace('Admin')->group(function () {

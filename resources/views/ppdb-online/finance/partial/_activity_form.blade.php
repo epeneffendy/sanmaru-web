@@ -86,11 +86,24 @@
                     <i class="fa fa-file-text-o me-1"></i> Bukti Lunas
                 </a>
             @else
-                @if ($is_show)
+                @php
+                    $isActivePeriode = false;
+                    if (isset($financePeriode) && $financePeriode->status == 'active') {
+                        $today = date('Y-m-d');
+                        if ($today >= $financePeriode->start_date && $today <= $financePeriode->end_date) {
+                            $isActivePeriode = true;
+                        }
+                    }
+                @endphp
+                @if ($isActivePeriode)
                     <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'activity']) }}"
                         class="btn btn-sm btn-outline-green px-3" style="font-size: 0.75rem; font-weight: 600;">
                         Cara Bayar <i class="fa fa-chevron-right ms-1"></i>
                     </a>
+                @else
+                    <button class="btn btn-sm btn-secondary px-3" style="font-size: 0.75rem; font-weight: 600;" disabled>
+                        Belum Memasuki Periode Pembayaran
+                    </button>
                 @endif
             @endif
         </div>

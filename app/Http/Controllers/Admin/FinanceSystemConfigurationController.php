@@ -70,4 +70,27 @@ class FinanceSystemConfigurationController extends Controller
         $uniformDeadlineService->update($id, $input);
         return redirect()->route('admin.system-configuration.index')->with('message', 'Berhasil diedit');
     }
+
+    public function financePeriode(Request $request)
+    {
+        try {
+            $periodes = $request->input('periode', []);
+            foreach ($periodes as $item) {
+                $type = $item['type'] ?? '';
+                $startDate = $item['date_start'] ?? null;
+                $endDate = $item['date_end'] ?? null;
+                $status = $item['status'] ?? 'inactive';
+                if ($type) {
+                    \App\Models\FinancePeriode::where('type', $type)->update([
+                        'start_date' => $startDate,
+                        'end_date' => $endDate,
+                        'status' => $status
+                    ]);
+                }
+            }
+            return response()->json(['success' => true, 'message' => 'Berhasil diupdate']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Gagal diupdate']);
+        }
+    }
 }

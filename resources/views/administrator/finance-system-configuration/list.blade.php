@@ -105,7 +105,7 @@
                                             <div class="input-group">
                                                 <span class="input-group-addon"><i class="fa fa-calendar-o"></i></span>
                                                 <input type="date" class="form-control input-sm" id="date_start_{{$item->type}}"
-                                                       name="date_start_{{$item->type}}" value="{{$item->date_start}}" required {{ ($item->status == 'all') ? 'disabled' : '' }}>
+                                                       name="date_start_{{$item->type}}" value="{{$item->start_date}}" required {{ ($item->status == 'inactive') ? 'disabled' : '' }}>
                                             </div>
                                         </div>
                                     </div>
@@ -116,7 +116,7 @@
                                             <div class="input-group">
                                                 <span class="input-group-addon"><i class="fa fa-calendar-o"></i></span>
                                                 <input type="date" class="form-control input-sm" id="date_end_{{$item->type}}"
-                                                       name="date_end_{{$item->type}}" value="{{$item->date_end}}" required {{ ($item->status == 'all') ? 'disabled' : '' }}>
+                                                       name="date_end_{{$item->type}}" value="{{$item->end_date}}" required {{ ($item->status == 'inactive') ? 'disabled' : '' }}>
                                             </div>
                                         </div>
                                     </div>
@@ -187,6 +187,56 @@
                 $('#date_start_' + type).prop('disabled', true);
                 $('#date_end_' + type).prop('disabled', true);
             }
+        });
+
+        $(document).on('click', '#setting_periode', function(e) {
+            e.preventDefault();
+            let data = [];
+            let isValid = true;
+            
+            $('input[id^="status_"]').each(function() {
+                let type = $(this).attr('id').replace('status_', '');
+                let isChecked = $(this).is(':checked');
+                let date_start = $('#date_start_' + type).val();
+                let date_end = $('#date_end_' + type).val();
+                
+                if (isChecked && (!date_start || !date_end)) {
+                    isValid = false;
+                }
+                
+                data.push({
+                    "type": type,
+                    "date_start": date_start,
+                    "date_end": date_end,
+                    "status": isChecked ? 'active' : 'inactive'
+                });
+            });
+
+            if (!isValid) {
+                alert('Pastikan tanggal mulai dan tanggal akhir telah diisi untuk periode yang aktif.');
+                return;
+            }
+
+            $.ajax({
+                url: '{{ route('admin.system-configuration.financePeriode') }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    periode: data
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#show-periode-modal').modal('hide');
+                        alert(response.message);
+                        location.reload();
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('Terjadi kesalahan saat memproses data.');
+                }
+            });
         });
 
     </script>

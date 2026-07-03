@@ -15,6 +15,7 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\ExpireProductOrder::class,
         Commands\SendOrderConfirmationReminder::class,
+        Commands\SendPaymentPeriodReminderCommand::class,
     ];
 
     /**
@@ -29,6 +30,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('tools:send-order-confirmation-reminder')->dailyAt('07:00');
         $schedule->command('tools:check-expired-order-uniform')->everyMinute();
         $schedule->command('email:installment-reminder')->dailyAt('01:00')->appendOutputTo(storage_path('logs/cron-installment.log'));
+        $schedule->command('email:payment-period-reminder')->dailyAt('02:00')->appendOutputTo(storage_path('logs/cron-payment-period.log'));
     }
 
     /**

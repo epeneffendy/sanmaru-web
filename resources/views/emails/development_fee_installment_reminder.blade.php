@@ -1,6 +1,7 @@
 @component('mail::message', ['user' => $ppdbUser->user, 'unit_name' => $unit_name, 'header' => 'Pengingat Jatuh Tempo Uang Pengembangan'])
     <div class="email-verification-content">
-        <p>Dear Bapak/Ibu dari <b>{{ $ppdbUser->name }}</b>,</p>
+        <p>Yth. Orang Tua/Wali dari <b>{{ $ppdb->name }}</b><br />
+            Siswa {{ $unit->name }},</p>
         <br>
         <p>Kami ingin mengingatkan bahwa cicilan Uang Pengembangan untuk calon siswa atas nama <b>{{ $ppdbUser->name }}</b> akan segera jatuh tempo dalam waktu 7 hari ke depan.</p>
         

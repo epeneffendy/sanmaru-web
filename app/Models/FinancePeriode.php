@@ -8,5 +8,5 @@ class FinancePeriode extends Model
 {
     protected $table = 'finance_periode';
 
-    protected $fillable = ['type', 'start_date', 'end_date', 'status'];
+    protected $fillable = ['type', 'unit_id', 'start_date', 'end_date', 'status'];
 }

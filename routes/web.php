@@ -1101,3 +1101,17 @@ Route::get('/debug-email/installment-reminder', function () {
 
     return new \App\Mail\DevelopmentFeeInstallmentReminderMail($detail, $ppdb);
 });
+
+Route::get('/debug-email/payment-period-reminder', function () {
+    $student = \App\Models\PPDBUser::with(['user', 'unit'])->where('status', \App\Models\PPDBUser::STATUS_ACCEPTED)->first();
+    $periode = \App\Models\FinancePeriode::whereNotNull('start_date')->first();
+
+    if (!$student) {
+        return 'Tidak ada data PPDBUser dengan status diterima di database untuk di-preview.';
+    }
+    if (!$periode) {
+        return 'Tidak ada data FinancePeriode di database untuk di-preview.';
+    }
+
+    return new \App\Mail\PaymentPeriodReminderMail($student, $periode);
+});

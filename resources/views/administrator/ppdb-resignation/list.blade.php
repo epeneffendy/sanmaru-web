@@ -48,9 +48,9 @@
                                     <div class="form-group col-md-3">
                                         <select name="unit" class="form-control input-sm">
                                             <option value="0">== SEMUA ==</option>
-                                            @foreach (@$units as $unit)
+                                            {{-- @foreach (@$units as $unit)
                                                 <option value="{{ $unit->id }}" {{ $unit->id == @$params['unit'] ? 'selected' : NULL }}>{{ $unit->name }}</option>
-                                            @endforeach
+                                            @endforeach --}}
                                         </select>
                                     </div>
                                     <div class="form-group col-md-3">
@@ -73,23 +73,11 @@
                             <table id="datatables-master-ppdb" class="table table-striped table-responsive display" style="width: 100%; border-top-width: medium; border-top-style: solid;">
                                 <thead>
                                     <tr>
-                                        <th rowspan="2" class="text-center">No</th>
-                                        <th rowspan="2">Detail Calon Siswa</th>
-                                        <th colspan="5" class="text-center">Status Administrasi</th>
-                                        <th>&nbsp;</th>
-                                        <th colspan="3" class="text-center">Status Pengembalian Dana</th>
-                                        <th rowspan="2" class="text-center">Option</th>
-                                    </tr>
-                                    <tr>
-                                        <th class="text-center">Verified</th>
-                                        <th class="text-center">Payment</th>
-                                        <th class="text-center">Data</th>
-                                        <th class="text-center">Parent</th>
-                                        <th class="text-right">Accepted</th>
-                                        <th></th>
-                                        <th class="text-center">Kegiatan</th>
-                                        <th class="text-center">Seragam</th>
-                                        <th class="text-center">Gedung</th>
+                                        <th class="text-center">No</th>
+                                        <th class="text-center">Nama</th>
+                                        <th class="text-center">Unit</th>
+                                        <th class="text-center">Reason</th>
+                                        <th class="text-center">Aksi</th>
                                     </tr>
                                 </thead>
     
@@ -100,107 +88,36 @@
                                 @foreach($data as $key => $value)
                                     @php $number++ @endphp
                                     <tr>
-                                        <td>{{ $number }}</td>
-                                        <td>
-                                            <div class="wrapped">
-                                                <b style="text-transform: uppercase;">{{$value->ppdbUser->name}}</b><br/>
-                                                <u>{{$value->ppdbUser->user->username}}</u><br/>
-                                                <label class="label label-info label-sm">{{$value->ppdbUser->user->email}}</label><br/>
-                                                <label class="label label-warning label-sm">no registrasi: {{$value->register_number}}</label><br/>
-                                                <label class="label label-danger label-sm">{{@$value->unit->name}}</label><br/>
-                                                <label class="label label-success label-xs">{{ $value->created_at }}</label><br/>
-                                                <label class="label label-xs" style="background-color: gray">{{ $value->origin_school }}</label><br/>
-                                                <small>phone: {{$value->ppdbUser->user->mobile_phone}}</small><br/>
-                                                {{$value->ppdbUser->gender}}
-                                            </div>
-                                        </td>
+                                        <td class="text-center">{{ $number }}</td>
+                                        <td class="text-center"> {{ $value->ppdb->name }} </td>
+                                        <td class="text-center"> {{ $value->unit->name }} </td>
+                                        <td class="text-center"> {{ $value->reason }} </td>
                                         <td class="text-center">
-                                            <span class="btn btn-circle btn-sm {{ $value->isEmailVerified ? "btn-success" : "btn-danger" }}">
-                                                <icon class="icon-plus">
-                                                    @if ($value->isEmailVerified)
-                                                        <i class="fa fa-check" title="Email Verified"></i>
-                                                    @else
-                                                        <i class="fa fa-times" title="Email belum Verified"></i>
-                                                    @endif
-                                                </icon>
-                                            </span>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="btn btn-circle btn-sm {{ $value->isPaymentStatusComplete ? "btn-success" : ($value->isPaymentStatusVerified ? "btn-primary" : "btn-danger") }}">
-                                                <icon class="icon-plus">
-                                                    @if ($value->isPaymentStatusComplete)
-                                                        <i class="fa fa-check" title="Lengkap"></i>
-                                                    @elseif ($value->isPaymentStatusVerified)
-                                                        <i class="fa fa-check" title="Verified"></i>
-                                                    @else
-                                                        <i class="fa fa-times" title="Belum Lengkap"></i>
-                                                    @endif
-                                                </icon>
-                                            </span>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="btn btn-circle btn-sm {{ $value->isDataComplete ? "btn-success" : "btn-danger" }}">
-                                                <icon class="icon-plus">
-                                                    @if ($value->isDataComplete)
-                                                        <i class="fa fa-check" title="Lengkap"></i>
-                                                    @else
-                                                        <i class="fa fa-times" title="Belum Lengkap"></i>
-                                                    @endif
-                                                </icon>
-                                            </span>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="btn btn-circle btn-sm {{ $value->isParentsComplete ? "btn-success" : "btn-danger" }}">
-                                                <icon class="icon-plus">
-                                                    @if ($value->isParentsComplete)
-                                                        <i class="fa fa-check" title="Lengkap"></i>
-                                                    @else
-                                                        <i class="fa fa-times" title="Belum Lengkap"></i>
-                                                    @endif
-                                                </icon>
-                                            </span>
-                                        </td>
-                                        <td class="text-center">
-                                            <span class="btn btn-circle btn-sm {{ $value->isSubmitted ? "btn-warning" : "btn-danger" }}">
-                                                <icon class="icon-plus">
-                                                    @if ($value->isSubmitted)
-                                                        <i class="fa fa-question"></i>
-                                                    @else
-                                                        <i class="fa fa-times"></i>
-                                                    @endif
-                                                </icon>
-                                            </span>
-                                        </td>
-                                        <td></td>
-                                        <td class="text-center"></td>
-                                        <td class="text-center">
-                                            <div class="wrapped">
-                                                @if(!empty($value->ppdbUser->paymentRefundUniform) && !is_null($value->ppdbUser->paymentRefundUniform))
-                                                    <span>Nominal : {{ $value->ppdbUser->paymentRefundUniform->nominal_price }}</span>
-                                                    <span>Refund : {{ $value->ppdbUser->paymentRefundUniform->nominal_refund }}</span>
-                                                    <span>Status : {!! $value->ppdbUser->paymentRefundUniform->statusLabel !!}</span>
-                                                @else
-                                                    -
-                                                @endif
-                                            </div>
-                                            
-                                        </td>
-                                        <td class="text-center">
-                                            @if(!empty($value->ppdbUser->paymentRefundDevelopment) && !is_null($value->ppdbUser->paymentRefundDevelopment))
-                                                <span>Nominal : {{ $value->ppdbUser->paymentRefundDevelopment->nominal_price }}</span>
-                                                <span>Refund : {{ $value->ppdbUser->paymentRefundDevelopment->nominal_refund }}</span>
-                                                <span>Status : {!! $value->ppdbUser->paymentRefundDevelopment->statusLabel !!}</span>
+                                            @if($value->status == 'draft')
+                                                <span class="label label-warning">Pengajuan</span>
+                                            @elseif($value->status == 'approved')
+                                                <span class="label label-success">Disetujui</span>
                                             @else
-                                                -
+                                                <span class="label label-danger">Dibatalkan</span>
                                             @endif
                                         </td>
-                                        <td class="text-right">
-                                            <a href="{{ route('admin.ppdb-resignation.show',$value['id']) }}" class="btn btn-xs btn-info">
-                                                <icon class="icon-plus"><i class="fa fa-eye"></i></icon>
+                                        <td>
+                                            <a href="{{ route('admin.ppdb-resignation.edit', $value->id) }}" class="btn btn-primary btn-xs" title="Update">
+                                                <i class="fa fa-pencil"></i> Update
                                             </a>
-                                            <a href="{{ route('admin.ppdb-resignation.edit',$value['id']) }}" title="Edit" class="btn btn-xs btn-default">
-                                                <icon class="icon-plus"><i class="fa fa-pencil"></i></icon>
-                                            </a>
+                                            @if($value->attachment)
+                                                <a href="{{ $value->getAttachmentImageUrl() }}" target="_blank" class="btn btn-info btn-xs" title="Preview Lampiran">
+                                                    <i class="fa fa-eye"></i> Lampiran
+                                                </a>
+                                            @endif
+                                            @if($value->status == 'draft')
+                                                <form action="{{ route('admin.ppdb-resignation.approve', $value->id) }}" method="POST" style="display:inline-block;" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui pengajuan ini?');">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-success btn-xs" title="Approve">
+                                                        <i class="fa fa-check"></i> Approve
+                                                    </button>
+                                                </form>
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach

@@ -392,6 +392,37 @@ class PPDBController extends Controller
         return view('ppdb-online.profile-siswa', $data);
     }
 
+    public function submitResignation(Request $request)
+    {
+        $request->validate([
+            'reason' => 'required|string',
+            'surat_pengunduran_diri' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048'
+        ]);
+
+        $user = $request->session()->get('user');
+        $ppdb = PPDBUser::where('user_id', $user['id'])->firstOrFail();
+
+        $attachmentPath = null;
+        if ($request->hasFile('surat_pengunduran_diri')) {
+            $upload = $this->doUploadImage($request->file('surat_pengunduran_diri'), 'resignation');
+            if ($upload) {
+                $attachmentPath = $upload['path_upload'];
+            }
+        }
+
+        \App\Models\PPDBResignation::create([
+            'school_year' => $ppdb->school_year,
+            'unit_id' => $ppdb->unit_id,
+            'ppdb_user_id' => $ppdb->id,
+            'reason' => $request->input('reason'),
+            'attachment' => $attachmentPath,
+            'status' => 'draft',
+            'user_id' => $user['id'],
+        ]);
+
+        return redirect()->route('ppdb.profile-siswa')->with('message', 'Pengajuan pengunduran diri berhasil dikirim. Silahkan tunggu konfirmasi admin.');
+    }
+
     public function newPassword()
     {
         $data = array(
@@ -1824,8 +1855,8 @@ class PPDBController extends Controller
         $user = $request->session()->get('user');
         $ppdbUser = PPDBUser::where('id', $user['ppdb']['id'])->first();
 
-        $financePeriode = FinancePeriode::where('type','activity')->first();
-
+        $financePeriode = FinancePeriode::where('type','activity')->where('unit_id',$ppdbUser->unit_id)->first();
+        
         $is_show = false;
         // if($ppdbUser->development_fee_option == PPDBUser::DEVELOPMENT_FEE_ANGSURAN){
         //     $is_show = true;

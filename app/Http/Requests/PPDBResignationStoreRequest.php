@@ -24,8 +24,12 @@ class PPDBResignationStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'unit_id' => 'required|exists:units,id',
-            'register_number' => 'required|exists:ppdb_users,register_number'
+            'unit_id' => 'required|integer|exists:units,id',
+            'ppdb_user_id' => 'required|integer|exists:ppdb_users,id',
+            'school_year' => 'required|integer',
+            'status'=>'nullable|string',
+            'reason'=>'nullable|string',
+            'attachment'=>'nullable|file|mimes:jpg,jpeg,png,pdf,doc,docx'
         ];
     }
 

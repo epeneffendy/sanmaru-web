@@ -173,8 +173,8 @@
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
-      <div class="modal-body">
-        <form action="#" method="POST" enctype="multipart/form-data">
+      <form action="{{ route('ppdb.resignation.submit') }}" method="POST" enctype="multipart/form-data">
+          <div class="modal-body">
             @csrf
             <div class="form-group">
                 <label>Alasan Pengunduran Diri <span class="text-danger">*</span></label>
@@ -186,12 +186,12 @@
                 <small class="text-muted">Format file: PDF, JPG, JPEG, PNG. Maksimal ukuran: 2MB.</small>
                 <input type="file" class="form-control-file mt-2" name="surat_pengunduran_diri" accept=".pdf, .jpg, .jpeg, .png" required>
             </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-        <button type="button" class="btn btn-danger" onclick="alert('Ini adalah form dummy, fitur belum berfungsi.')">Submit Pengunduran Diri</button>
-      </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-danger">Submit Pengunduran Diri</button>
+          </div>
+      </form>
     </div>
   </div>
 </div>

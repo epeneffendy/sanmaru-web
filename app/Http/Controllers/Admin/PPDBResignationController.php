@@ -5,11 +5,13 @@ namespace App\Http\Controllers\Admin;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PPDBResignationStoreRequest;
-use App\Http\Requests\PPDBResignationUpdateRequest;
-use App\Http\Requests\PaymentRefundStoreRequest;
 use App\Models\PPDBResignation;
+use App\Models\PPDBUser;
+use App\Models\Unit;
+use App\Models\User;
+use App\Models\StudentBills;
 use App\Services\PPDBResignationService;
-use App\Services\PaymentRefundService;
+use DB;
 
 class PPDBResignationController extends Controller
 {
@@ -18,81 +20,127 @@ class PPDBResignationController extends Controller
         'child' => 'ppdb-resignation'
     ];
 
-    public function index(Request $request, PPDBResignationService $resignationService)
-    {
-        $data = $resignationService->generateIndexData($request, $this->page);
+    public function index(Request $request, PPDBResignationService $ppdbResignationService){
+        $data = $ppdbResignationService->generateIndexData($request, $this->page);
+
         return view('administrator.ppdb-resignation.list', $data);
     }
 
-    public function add(PPDBResignationService $resignationService)
-    {
-        $data = $resignationService->generateAddingData($this->page);
+    public function add(Request $request, PPDBResignationService $ppdbResignationService){
+        $start_year = date('Y') - 1;
+        $school_year = [];
+        for($start_year; $start_year <= date('Y'); $start_year++){
+            $school_year[] = $start_year;
+        }
+
+        $data = [
+            'nav' => $this->page,
+            'units' => Unit::byUserRole()->get(),
+            'school_year' => $school_year,
+        ];
+
         return view('administrator.ppdb-resignation.add', $data);
     }
 
-    public function insert(PPDBResignationStoreRequest $request, PPDBResignationService $resignationService)
-    {
-        $input = $request->validated();
-        $data = $resignationService->create($input);
-        return redirect(route('admin.ppdb-resignation.index'))->with('message', 'berhasil ditambahkan');
+    public function store(PPDBResignationStoreRequest $request, PPDBResignationService $ppdbResignationService){
+        DB::beginTransaction();
+        try {
+            $data = $request->validated();
+
+            if ($request->filled('id')) {
+                $store = $ppdbResignationService->updateResignation($request->id, $request->all(), $data);
+                if ($store['success'] == true) {
+                    DB::commit();
+                    return redirect()->route('admin.ppdb-resignation.index')->with(['message' => 'Pengajuan Pengunduran Diri Berhasil Diubah', 'success' => true]);
+                } else {
+                    DB::rollBack();
+                    return redirect()->route('admin.ppdb-resignation.index')->with(['message' => $store['message'], 'success' => false])->withErrors(new \Illuminate\Support\MessageBag());
+                }
+            } else {
+                $store = $ppdbResignationService->store($request->all(), $data);
+                if ($store['success'] == true) {
+                    DB::commit();
+                    return redirect()->route('admin.ppdb-resignation.index')->with(['message' => 'Pengajuan Pengunduran Diri Berhasil Disimpan', 'success' => true]);
+                } else {
+                    DB::rollBack();
+                    return redirect()->route('admin.ppdb-resignation.index')->with(['message' => $store['message'], 'success' => false])->withErrors(new \Illuminate\Support\MessageBag());
+                }
+            }
+
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return redirect()->back()->with('errors', collect([$th->getMessage()]))->withInput();
+        }
     }
 
-    public function show(Request $request, $id, PPDBResignationService $resignationService)
+    public function fetchStudent(Request $request)
     {
-        $data = $resignationService->generateEditableData($id, $this->page);
-        return view('administrator.ppdb-resignation.show', $data);
+        $users = PPDBUser::with('user')
+            ->where('school_year', $request->school_year)
+            ->where('unit_id', $request->unit_id)
+            ->whereHas('user', function($query) {
+                $query->where('type', 'ppdb');
+            })
+            ->get();
+        $collections = collect();
+        foreach ($users as $user) {
+            $collections->put($user->id, '[' . $user->register_number . '] ' . $user->name);
+        }
+
+        return $collections;
     }
 
-    public function edit(Request $request, $id, PPDBResignationService $resignationService)
-    {
-        $data = $resignationService->generateEditableData($id, $this->page);
-        return view('administrator.ppdb-resignation.edit', $data);
+    public function edit(Request $request, $id){
+        $start_year = date('Y') - 1;
+        $school_year = [];
+        for($start_year; $start_year <= date('Y'); $start_year++){
+            $school_year[] = $start_year;
+        }
+
+        $ppdb = PPDBResignation::findOrFail($id);
+
+        $data = [
+            'nav' => $this->page,
+            'units' => Unit::byUserRole()->get(),
+            'school_year' => $school_year,
+            'status' => 'edit',
+            'ppdb' => $ppdb,
+            'arr_student' => $ppdb->ppdb_user_id
+        ];
+
+        return view('administrator.ppdb-resignation.add', $data);
     }
 
-    public function update(PPDBResignationUpdateRequest $request, $id, PPDBResignationService $resignationService)
-    {
-        $input = $request->validated();
-        $data = $resignationService->update($id, $input);
-        return redirect(route('admin.ppdb-resignation.index'))->with('message', 'berhasil diedit');
+    public function approve(Request $request, $id){
+        DB::beginTransaction();
+        try {
+            $ppdb = PPDBResignation::findOrFail($id);
+            $ppdb->status = 'approved';
+            $ppdb->user_id = auth()->id();
+            $ppdb->save();
+
+            $ppdbUser = PPDBUser::findOrFail($ppdb->ppdb_user_id);
+            $ppdbUser->status = PPDBUser::STATUS_CANCELED;
+            $ppdbUser->save();
+
+            $user = User::findOrFail($ppdbUser->user_id);
+            $user->status = 'inactive';
+            $user->save();
+
+            $studentBills = StudentBills::where('ppdb_user_id', $ppdb->ppdb_user_id)->get();
+            if ($studentBills->isNotEmpty()) {
+                foreach ($studentBills as $bill) {
+                    $bill->payment_method = StudentBills::PAYMENT_METHOD_CLOSED;
+                    $bill->save();
+                }
+            }
+
+
+            DB::commit();
+            return redirect()->back()->with(['message' => 'Status berhasil diubah menjadi Approved', 'success' => true]);
+        } catch (\Throwable $th) {
+            DB::rollBack();
+            return redirect()->back()->with('errors', collect([$th->getMessage()]));
+        }
     }
-
-    public function ajax(Request $request, PPDBResignationService $resignationService)
-    {
-        return $resignationService->getStudent($request->input());
-    }
-
-    public function addRefund($id, PaymentRefundService $paymentRefundService)
-    {
-        $ppdbResignation = PPDBResignation::with('ppdbUser')
-                            ->where('id', $id)
-                            ->firstOrFail();
-
-        $data = $paymentRefundService->generateAddingData($ppdbResignation->ppdbUser->id, $this->page);
-        $data['ppdbResignation'] = $ppdbResignation;
-        return view('administrator.ppdb-resignation.add-refund', $data);
-    }
-
-    public function insertRefund($id, PaymentRefundStoreRequest $request, PaymentRefundService $paymentRefundService)
-    {
-        $ppdbResignation = PPDBResignation::with('ppdbUser')
-                            ->where('id', $id)
-                            ->firstOrFail();
-
-        $input = $request->validated();
-        $data = $paymentRefundService->create($input);
-        return redirect()->route('admin.ppdb-resignation.edit', $ppdbResignation->id)->withMessage('berhasil ditambahkan');
-    }
-
-    public function showRefund($id, $paymentRefundId, PaymentRefundService $paymentRefundService)
-    {
-        $ppdbResignation = PPDBResignation::with('ppdbUser', 'ppdbUser.paymentRefunds')
-                            ->whereHas('ppdbUser.paymentRefunds', function ($query) use ($paymentRefundId) {
-                                $query->where('id', $paymentRefundId);
-                            })
-                            ->where('id', $id)
-                            ->firstOrFail();
-        $data = $paymentRefundService->generateShowData($paymentRefundId, $this->page);
-        return view('administrator.ppdb-resignation.show-refund', $data);
-    }
-
 }

@@ -65,6 +65,7 @@ Route::group(['domain' => $routeService->getPpdbSubdomain()], function () use ($
         Route::get("/$prefix/data-siswa-ppdb", 'PPDBController@dataSiswaPpdb')->name('ppdb.data-siswa-ppdb');
         Route::get("/$prefix/finance-bills", 'PPDBController@financeBills')->name('ppdb.finance-bills');
         Route::get("/$prefix/profile-siswa-ppdb", 'PPDBController@profileSiswa')->name('ppdb.profile-siswa');
+        Route::post("/$prefix/resignation", 'PPDBController@submitResignation')->name('ppdb.resignation.submit');
         Route::get("/$prefix/change-password", 'PPDBController@newPassword')->name('ppdb.change-password.form');
         Route::post("/$prefix/change-password", 'PPDBController@updatePassword')->name('ppdb.change-password.update');
         Route::get("/$prefix/form-student", 'PPDBController@formStudent')->name('ppdb.form-student');
@@ -735,6 +736,11 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
            Route::get('/show/{id}', 'PaymentDispensationRequestController@show')->name('show');
         });
 
+        Route::prefix('administrator/finance-periode')->name('admin.finance-periode.')->namespace('Admin')->group(function () {
+           Route::get('/', 'FinancePeriodeController@index')->name('index');
+           Route::post('/update', 'FinancePeriodeController@update')->name('update');
+        });
+
         // CLASS SCHEDULE
         Route::prefix('administrator/class-schedule')->name('admin.class-schedule.')->namespace('Admin')->group(function () {
             Route::get('/', 'ClassScheduleController@index')->name('index');
@@ -900,13 +906,15 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::get('', 'PPDBResignationController@index')->name('index');
             Route::get('add', 'PPDBResignationController@add')->name('add');
             Route::get('ajax', 'PPDBResignationController@ajax')->name('ajax');
-            Route::post('insert', 'PPDBResignationController@insert')->name('insert');
-            Route::get('show/{id}', 'PPDBResignationController@show')->name('show');
+            Route::post('/store', 'PPDBResignationController@store')->name('store');
+            Route::get('fetch-student', 'PPDBResignationController@fetchStudent')->name('fetch-student');
+            // Route::get('show/{id}', 'PPDBResignationController@show')->name('show');
             Route::get('edit/{id}', 'PPDBResignationController@edit')->name('edit');
-            Route::post('update/{id}', 'PPDBResignationController@update')->name('update');
-            Route::get('{id}/add-refund', 'PPDBResignationController@addRefund')->name('add-refund');
-            Route::post('{id}/insert-refund', 'PPDBResignationController@insertRefund')->name('insert-refund');
-            Route::get('{id}/show-refund/{paymentRefundId}', 'PPDBResignationController@showRefund')->name('show-refund');
+            Route::post('approve/{id}', 'PPDBResignationController@approve')->name('approve');
+            // Route::post('update/{id}', 'PPDBResignationController@update')->name('update');
+            // Route::get('{id}/add-refund', 'PPDBResignationController@addRefund')->name('add-refund');
+            // Route::post('{id}/insert-refund', 'PPDBResignationController@insertRefund')->name('insert-refund');
+            // Route::get('{id}/show-refund/{paymentRefundId}', 'PPDBResignationController@showRefund')->name('show-refund');
         });
 
         //PAYMENT REFUND

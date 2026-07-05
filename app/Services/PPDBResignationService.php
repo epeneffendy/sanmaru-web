@@ -19,15 +19,7 @@ class PPDBResignationService
 
 	public function generateIndexData($request, $nav)
 	{
-		$data = PPDBResignation::with([
-						'unit', 
-						'ppdbUser',
-						'ppdbUser.user', 
-						'ppdbUser.paymentRefundDevelopment',
-						'ppdbUser.paymentRefundUniform',
-					])->whereHas('ppdbUser', function ($query) {
-						return $query->byUserRole();
-					});
+		$data = PPDBResignation::query();
 
         if ($request->input('name')) {
         	$name = $request->input('name');
@@ -38,43 +30,7 @@ class PPDBResignationService
         if ($request->input('unit')) {
             $data = $data->where('unit_id', $request->input('unit'));
         }
-        if ($request->input('start_date') || $request->input('end_date')) {
-
-        	$data = $data->whereHas('ppdbUser.paymentRefundDevelopment', function ($query) use ($request) {
-							if ($request->input('start_date')) {
-								$start_date = Carbon::createFromFormat('Y-m-d', $request->input('start_date'))
-				        					->startOfDay()
-				        					->toDateTimeString();
-
-        						$query = $query->where('updated_at', '>=' , $start_date);
-        					}
-        					if ($request->input('end_date')) {
-        						$end_date = Carbon::createFromFormat('Y-m-d', $request->input('end_date'))
-				        					->endOfDay()
-				        					->toDateTimeString();
-
-					        	$query = $query->where('updated_at', '<=' , $end_date);
-					        }
-					        return $query;
-						})
-        				->orWhereHas('ppdbUser.paymentRefundUniform', function ($query) use ($request) {
-							if ($request->input('start_date')) {
-								$start_date = Carbon::createFromFormat('Y-m-d', $request->input('start_date'))
-				        					->startOfDay()
-				        					->toDateTimeString();
-
-        						$query = $query->where('updated_at', '>=' , $start_date);
-        					}
-        					if ($request->input('end_date')) {
-        						$end_date = Carbon::createFromFormat('Y-m-d', $request->input('end_date'))
-				        					->endOfDay()
-				        					->toDateTimeString();
-
-					        	$query = $query->where('updated_at', '<=' , $end_date);
-					        }
-					        return $query;
-						});
-        }
+        
 
         $data = $data->orderBy('id', 'desc')
                     ->paginate();
@@ -243,12 +199,64 @@ class PPDBResignationService
 		return $params;
 	}
 
-	private function uploadImage($file) {
-		$type = 'refund_image';
-		if ($upload = $this->doUploadImage($file, $type)) {
-			return $upload['path_upload'];
-		}
+	private function uploadImage($request, $params)
+    {
+        if ($request->hasFile('attachment')) {
+            if ($upload = $this->doUploadImage($request->file('attachment'), 'attachment')) {
+                return $upload['path_upload'];
+            }
+        }
+        return false;
+    }
 
-		return false;
-	}
+
+	public function store($params, $data){
+        
+        $success = true;
+        $message = '';
+        $attachment ='';
+
+        if (isset($params['attachment']) && $params['attachment'] && $image = $this->uploadImage(request(), $params)) {
+            $attachment = $image;
+        }
+
+        $request = new PPDBResignation();
+        $request->ppdb_user_id = $params['ppdb_user_id'];
+        $request->unit_id = $params['unit_id'];
+        $request->school_year = $params['school_year'];
+        $request->attachment = $attachment;
+        $request->reason = $params['reason'];
+        $request->user_id = auth()->id();
+
+        if (!$request->save()) {
+            $success = false;
+            $message = 'Data gagal disimpan!';
+        }
+        
+        return ['success' => $success, 'message' => $message];
+    }
+
+    public function updateResignation($id, $params, $data) {
+        $success = true;
+        $message = '';
+
+        $request = PPDBResignation::findOrFail($id);
+
+        if (isset($params['attachment']) && $params['attachment'] && $image = $this->uploadImage(request(), $params)) {
+            $request->attachment = $image;
+        }
+
+        $request->ppdb_user_id = $params['ppdb_user_id'];
+        $request->unit_id = $params['unit_id'];
+        $request->school_year = $params['school_year'];
+        if(isset($params['reason'])) $request->reason = $params['reason'];
+        if(isset($params['status'])) $request->status = $params['status'];
+        
+        if (!$request->save()) {
+            $success = false;
+            $message = 'Data gagal diubah!';
+        }
+        
+        return ['success' => $success, 'message' => $message];
+    }
 }

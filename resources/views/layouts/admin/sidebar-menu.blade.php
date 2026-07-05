@@ -277,6 +277,10 @@
                     <span class="icon color12"><i class="fa fa fa-money"></i></span>Keuangan
                     <span class="pull-right-container"><i class="fa fa-angle-right"></i></span></a>
                 <ul class="treeview-menu">
+                    <li><a href="{{ route('admin.finance-periode.index') }}"
+                            class="{{ $nav['child'] == 'finance-periode' ? 'active' : '' }}"><span
+                                class="icon color12"><i class="fa fa-sliders"></i></span>Periode Pembayaran</a></li>
+
                     <li><a href="{{ route('admin.system-configuration.index') }}"
                             class="{{ $nav['child'] == 'system-configuration' ? 'active' : '' }}"><span
                                 class="icon color12"><i class="fa fa-sliders"></i></span>Konfigurasi

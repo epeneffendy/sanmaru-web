@@ -60,6 +60,7 @@ class SendPaymentPeriodReminderCommand extends Command
             // Get all PPDB students with emails and matching unit
             \App\Models\PPDBUser::where('unit_id', $periode->unit_id)
                 ->where('status', \App\Models\PPDBUser::STATUS_SUBMITTED)
+                ->where('period_verified', \App\Models\PPDBUser::PERIOD_VERIFIED)
                 ->with('user')
                 ->chunk(100, function($students) use ($periode) {
                     foreach ($students as $student) {

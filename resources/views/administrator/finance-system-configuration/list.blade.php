@@ -4,7 +4,7 @@
     <div class="page-header">
         <h1 class="title">Setup Tahun Ajaran & Aturan Sistem</h1>
         <ol class="breadcrumb">
-            <li>SHOP</li>
+            <li>Keuangan</li>
             <li class="active">Setup Tahun Ajaran & Aturan Sistem</li>
         </ol>
     </div>

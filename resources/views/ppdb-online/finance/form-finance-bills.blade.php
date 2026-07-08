@@ -236,7 +236,188 @@
     @endpush
 
     <div class="row-height bg-light" style="min-height: 100vh;">
-        @if ($ppdbUser->status == 'confirmed')
+        @if($ppdbUser->period_verified == 'verified')
+            @if ($ppdbUser->status == 'confirmed')
+                <div class="container py-4 px-2 px-md-4">
+                    <div class="row justify-content-center">
+                        <div class="form-group" style="padding:3em">
+                            <div class="alert border-0 shadow-sm" role="alert"
+                                style="background-color: #f8f9fa; border-left: 5px solid #17a2b8 !important; border-radius: 8px; padding: 20px;">
+                                <div class="d-flex align-items-center">
+                                    <div style="margin-right: 20px;">
+                                        <i class="fa fa-info-circle text-info" style="font-size: 2.5rem;"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-weight-bold text-dark mb-2" style="font-size: 16px; margin-top: 0;">
+                                            Informasi </h5>
+                                        <span class="text-muted" style="font-size: 14px;">
+                                            Halaman ini belum tersedia untuk akun Anda. <br>
+                                            Silahkan lengkapi terlebih dahulu data <strong>Administrasi Siswa</strong> untuk
+                                            mendapatkan informasi lebih lanjut.
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @else
+                <div class="container py-4 px-2 px-md-4">
+                    <div class="row justify-content-center">
+                        <div class="col-12 col-lg-9">
+
+                            @if (count($bills) > 0)
+                                <!-- Header Title -->
+                                <div class="text-center mb-4">
+                                    <h4 class="fw-bold px-3 mb-1" style="color: #1a4d2e; font-size: calc(1.2rem + 0.5vw);">
+                                        Rincian Biaya Pendidikan
+                                    </h4>
+                                    <p class="text-muted small mb-2">Tahun Ajaran
+                                        {{ $ppdb['school_year'] . ' - ' . ($ppdb['school_year'] + 1) }}</p>
+                                    <div class="header-accent mx-auto"></div>
+                                </div>
+
+                                @if (!$is_show)
+                                    <div class="alert mt-2 p-3"
+                                        style="background-color: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px;">
+                                        <h6 class="fw-bold mb-2" style="color: #075985; font-size: 13px;">
+                                            <i class="fa-solid fa-gift me-1"></i> Pembayaran Masih Belum Aktif, Silahkan
+                                            Selesaikan
+                                            Tahapan Penerimaan Terlebih Dahulu!
+                                        </h6>
+                                    </div>
+                                @endif
+
+                                <!-- Main Card -->
+                                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+
+                                    <!-- Card Header -->
+                                    <div class="card-header border-0 p-3 p-md-4 d-flex justify-content-between align-items-center"
+                                        style="background-color: #1a4d2e;">
+                                        <h5 class="mb-0 text-white fw-bold h6-mobile">
+                                            <i class="fa fa-list-alt me-2"></i> Daftar Tagihan Anda
+                                        </h5>
+                                    </div>
+
+                                    <div class="card-body p-0 bg-white">
+
+                                        <!-- Invoice Meta Info -->
+                                        <div
+                                            class="p-4 border-bottom bg-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                                            <div>
+                                                <span class="text-muted x-small text-uppercase d-block mb-1">No Register</span>
+                                                <span class="fw-bold text-dark">{{ $ppdb['register_number'] }}</span>
+                                            </div>
+                                            <div>
+                                                {{-- <span class="text-muted x-small text-uppercase d-block mb-1">Nama Siswa</span>
+                                                <span class="fw-bold text-dark">{{ $ppdb['name'] }}</span> --}}
+                                            </div>
+                                            <div class="text-md-end">
+                                                <span class="text-muted x-small text-uppercase d-block mb-1">Nama Siswa</span>
+                                                <span class="fw-bold text-dark">{{ $ppdb['name'] }}</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Loop Daftar Tagihan -->
+                                        <div class="px-3 px-md-4">
+                                            @php
+                                                $total = 0;
+                                            @endphp
+                                            @foreach ($bills as $item)
+                                                @if ($item['type'] == 'registrasi')
+                                                    @include('ppdb-online.finance.partial._registration_form')
+                                                @endif
+
+                                                @if ($item['type'] == 'development')
+                                                    @include('ppdb-online.finance.partial._development_form')
+                                                @endif
+
+
+                                                @if ($item['type'] == 'activity')
+                                                    @include('ppdb-online.finance.partial._activity_form')
+                                                @endif
+
+                                                @if ($item['type'] == 'tuition')
+                                                    @include('ppdb-online.finance.partial._tuition_form')
+                                                @endif
+
+                                                @php
+                                                    $total += $item['amount'];
+                                                @endphp
+                                            @endforeach
+                                        </div>
+
+                                        <!-- Summary / Rekapitulasi Pembayaran -->
+                                        {{-- <div class="p-3 p-md-4 mt-2">
+                                            <div class="summary-box p-4 rounded-4 shadow-sm">
+                                                <div class="row align-items-center">
+                                                    <div class="col-12 col-md-7 mb-3 mb-md-0 border-end-md">
+                                                        <div class="d-flex justify-content-between mb-2">
+                                                            <span class="text-muted x-small fw-bold text-uppercase">Total
+                                                                Seluruh
+                                                                Tagihan</span>
+                                                            <span class="fw-bold">Rp
+                                                                {{ number_format($bill_amount['total_bill'], 0, ',', '.') }}</span>
+                                                        </div>
+                                                        <div
+                                                            class="d-flex justify-content-between pt-2 border-top border-success border-opacity-25">
+                                                            <span class="text-danger x-small fw-bold text-uppercase">Sisa Belum
+                                                                Dibayar</span>
+                                                            <h3 class="fw-bolder mb-0 responsive-total"
+                                                                style="color: #1a4d2e;">Rp
+                                                                {{ number_format($bill_amount['total_bill'] - $bill_amount['billed_full'], 0, ',', '.') }}
+                                                            </h3>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12 col-md-5 ps-md-4">
+                                                        @if ($bill_amount['total_bill'] - $bill_amount['billed_full'] > 0)
+                                                            <p class="text-muted x-small mb-2"><i
+                                                                    class="fa fa-info-circle me-1"></i>
+                                                                Anda dapat membayar tagihan satu per satu sesuai Nomor Virtual
+                                                                Account
+                                                                masing-masing.</p>
+                                                        @else
+                                                            <div class="text-center text-success py-2">
+                                                                <i class="fa fa-check-circle fa-2x mb-2"></i>
+                                                                <p class="mb-0 fw-bold">Semua Tagihan Lunas!</p>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div> --}}
+
+                                    </div>
+                                </div>
+                            @else
+                                <div class="form-group" style="padding:3em">
+                                    <div class="alert border-0 shadow-sm" role="alert"
+                                        style="background-color: #f8f9fa; border-left: 5px solid #17a2b8 !important; border-radius: 8px; padding: 20px;">
+                                        <div class="d-flex align-items-center">
+                                            <div style="margin-right: 20px;">
+                                                <i class="fa fa-info-circle text-info" style="font-size: 2.5rem;"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="font-weight-bold text-dark mb-2"
+                                                    style="font-size: 16px; margin-top: 0;">
+                                                    Informasi Billing</h5>
+                                                <span class="text-muted" style="font-size: 14px;">
+                                                    Rincian biaya pendidikan saat ini belum tersedia untuk akun
+                                                    Anda. <br>
+                                                    Silakan hubungi <strong>Admin</strong> atau <strong>Tata Usaha</strong>
+                                                    sekolah untuk
+                                                    mendapatkan informasi lebih lanjut.
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @else
             <div class="container py-4 px-2 px-md-4">
                 <div class="row justify-content-center">
                     <div class="form-group" style="padding:3em">
@@ -248,11 +429,12 @@
                                 </div>
                                 <div>
                                     <h5 class="font-weight-bold text-dark mb-2" style="font-size: 16px; margin-top: 0;">
-                                        Informasi </h5>
+                                        Akses Terkunci </h5>
                                     <span class="text-muted" style="font-size: 14px;">
-                                        Halaman ini belum tersedia untuk akun Anda. <br>
-                                        Silahkan lengkapi terlebih dahulu data <strong>Administrasi Siswa</strong> untuk
-                                        mendapatkan informasi lebih lanjut.
+                                        Halo! Halaman ini belum tersedia di akun anda.
+                                        Untuk bisa melanjutkan, silakan selesaikan dulu tahapan di menu Keuangan. Anda
+                                        hanya perlu memilih metode pembayaran (Cicilan atau Lunas) dan mengunggah Surat
+                                        Pernyataan!
                                     </span>
                                 </div>
                             </div>
@@ -260,163 +442,7 @@
                     </div>
                 </div>
             </div>
-        @else
-            <div class="container py-4 px-2 px-md-4">
-                <div class="row justify-content-center">
-                    <div class="col-12 col-lg-9">
-
-                        @if (count($bills) > 0)
-                            <!-- Header Title -->
-                            <div class="text-center mb-4">
-                                <h4 class="fw-bold px-3 mb-1" style="color: #1a4d2e; font-size: calc(1.2rem + 0.5vw);">
-                                    Rincian Biaya Pendidikan
-                                </h4>
-                                <p class="text-muted small mb-2">Tahun Ajaran
-                                    {{ $ppdb['school_year'] . ' - ' . ($ppdb['school_year'] + 1) }}</p>
-                                <div class="header-accent mx-auto"></div>
-                            </div>
-
-                            @if (!$is_show)
-                                <div class="alert mt-2 p-3"
-                                    style="background-color: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px;">
-                                    <h6 class="fw-bold mb-2" style="color: #075985; font-size: 13px;">
-                                        <i class="fa-solid fa-gift me-1"></i> Pembayaran Masih Belum Aktif, Silahkan
-                                        Selesaikan
-                                        Tahapan Penerimaan Terlebih Dahulu!
-                                    </h6>
-                                </div>
-                            @endif
-
-                            <!-- Main Card -->
-                            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-
-                                <!-- Card Header -->
-                                <div class="card-header border-0 p-3 p-md-4 d-flex justify-content-between align-items-center"
-                                    style="background-color: #1a4d2e;">
-                                    <h5 class="mb-0 text-white fw-bold h6-mobile">
-                                        <i class="fa fa-list-alt me-2"></i> Daftar Tagihan Anda
-                                    </h5>
-                                </div>
-
-                                <div class="card-body p-0 bg-white">
-
-                                    <!-- Invoice Meta Info -->
-                                    <div
-                                        class="p-4 border-bottom bg-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-                                        <div>
-                                            <span class="text-muted x-small text-uppercase d-block mb-1">No Register</span>
-                                            <span class="fw-bold text-dark">{{ $ppdb['register_number'] }}</span>
-                                        </div>
-                                        <div>
-                                            {{-- <span class="text-muted x-small text-uppercase d-block mb-1">Nama Siswa</span>
-                                            <span class="fw-bold text-dark">{{ $ppdb['name'] }}</span> --}}
-                                        </div>
-                                        <div class="text-md-end">
-                                            <span class="text-muted x-small text-uppercase d-block mb-1">Nama Siswa</span>
-                                            <span class="fw-bold text-dark">{{ $ppdb['name'] }}</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Loop Daftar Tagihan -->
-                                    <div class="px-3 px-md-4">
-                                        @php
-                                            $total = 0;
-                                        @endphp
-                                        @foreach ($bills as $item)
-                                            @if ($item['type'] == 'registrasi')
-                                                @include('ppdb-online.finance.partial._registration_form')
-                                            @endif
-
-                                            @if ($item['type'] == 'development')
-                                                @include('ppdb-online.finance.partial._development_form')
-                                            @endif
-
-
-                                            @if ($item['type'] == 'activity')
-                                                @include('ppdb-online.finance.partial._activity_form')
-                                            @endif
-
-                                            @if ($item['type'] == 'tuition')
-                                                @include('ppdb-online.finance.partial._tuition_form')
-                                            @endif
-
-                                            @php
-                                                $total += $item['amount'];
-                                            @endphp
-                                        @endforeach
-                                    </div>
-
-                                    <!-- Summary / Rekapitulasi Pembayaran -->
-                                    {{-- <div class="p-3 p-md-4 mt-2">
-                                        <div class="summary-box p-4 rounded-4 shadow-sm">
-                                            <div class="row align-items-center">
-                                                <div class="col-12 col-md-7 mb-3 mb-md-0 border-end-md">
-                                                    <div class="d-flex justify-content-between mb-2">
-                                                        <span class="text-muted x-small fw-bold text-uppercase">Total
-                                                            Seluruh
-                                                            Tagihan</span>
-                                                        <span class="fw-bold">Rp
-                                                            {{ number_format($bill_amount['total_bill'], 0, ',', '.') }}</span>
-                                                    </div>
-                                                    <div
-                                                        class="d-flex justify-content-between pt-2 border-top border-success border-opacity-25">
-                                                        <span class="text-danger x-small fw-bold text-uppercase">Sisa Belum
-                                                            Dibayar</span>
-                                                        <h3 class="fw-bolder mb-0 responsive-total"
-                                                            style="color: #1a4d2e;">Rp
-                                                            {{ number_format($bill_amount['total_bill'] - $bill_amount['billed_full'], 0, ',', '.') }}
-                                                        </h3>
-                                                    </div>
-                                                </div>
-                                                <div class="col-12 col-md-5 ps-md-4">
-                                                    @if ($bill_amount['total_bill'] - $bill_amount['billed_full'] > 0)
-                                                        <p class="text-muted x-small mb-2"><i
-                                                                class="fa fa-info-circle me-1"></i>
-                                                            Anda dapat membayar tagihan satu per satu sesuai Nomor Virtual
-                                                            Account
-                                                            masing-masing.</p>
-                                                    @else
-                                                        <div class="text-center text-success py-2">
-                                                            <i class="fa fa-check-circle fa-2x mb-2"></i>
-                                                            <p class="mb-0 fw-bold">Semua Tagihan Lunas!</p>
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div> --}}
-
-                                </div>
-                            </div>
-                        @else
-                            <div class="form-group" style="padding:3em">
-                                <div class="alert border-0 shadow-sm" role="alert"
-                                    style="background-color: #f8f9fa; border-left: 5px solid #17a2b8 !important; border-radius: 8px; padding: 20px;">
-                                    <div class="d-flex align-items-center">
-                                        <div style="margin-right: 20px;">
-                                            <i class="fa fa-info-circle text-info" style="font-size: 2.5rem;"></i>
-                                        </div>
-                                        <div>
-                                            <h5 class="font-weight-bold text-dark mb-2"
-                                                style="font-size: 16px; margin-top: 0;">
-                                                Informasi Billing</h5>
-                                            <span class="text-muted" style="font-size: 14px;">
-                                                Rincian biaya pendidikan saat ini belum tersedia untuk akun
-                                                Anda. <br>
-                                                Silakan hubungi <strong>Admin</strong> atau <strong>Tata Usaha</strong>
-                                                sekolah untuk
-                                                mendapatkan informasi lebih lanjut.
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
         @endif
-
     </div>
 
     <div class="modal fade" id="receiptModal" tabindex="-1" role="dialog" aria-labelledby="receiptModalLabel"

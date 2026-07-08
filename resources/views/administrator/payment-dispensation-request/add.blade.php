@@ -160,7 +160,8 @@
             $('.selectpicker').selectpicker({
                 liveSearch: true,
                 dropupAuto: false,
-                title: "No Value"
+                title: "No Value",
+                container: 'body'
             });
 
             // Toggle reason field visibility based on status selection
@@ -168,7 +169,7 @@
                 if ($('#status').val() !== '') {
                     $('#reason_container').show();
                 } else {
-                    $('#reason_container').hide();
+                    $('#reason_container').show();
                     $('#reason').val(''); // Clear reason if status is empty
                 }
             }

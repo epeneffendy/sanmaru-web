@@ -150,7 +150,7 @@ class UserService
                         $ppdbUser->expired_at = Carbon::parse($this->expiredRemining())->format('Y-m-d H:i:s');
                         $ppdbUser->payment_option = $bank_account;
                         $ppdbUser->virtual_account_number = $va_account;
-                        $ppdbUser->period_verified = PPDBUser::PERIOD_WAITING;
+                        // $ppdbUser->period_verified = PPDBUser::PERIOD_WAITING;
                         $ppdbUser->save();
                     }
                 }

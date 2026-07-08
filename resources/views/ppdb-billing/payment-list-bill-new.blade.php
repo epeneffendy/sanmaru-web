@@ -242,7 +242,7 @@
 
                     @if (isset($dispensation['actual_cost']) && $dispensation['actual_cost'] > ($dispensation['total_final_fee'] ?? 0))
                         <div class="mt-3 mt-md-0 text-start text-md-end">
-                            <p class="mb-1" style="font-size: 0.70rem; color: white;">Nominal Uang Pengembangan</p>
+                            <p class="mb-1" style="font-size: 0.70rem; color: white;">Nominal Uang Pengembangan Awal</p>
                             <h4 class="mb-0 text-decoration-line-through"
                                 style="color: rgba(255,255,255,0.7);font-size: 1rem">
                                 Rp {{ number_format($dispensation['actual_cost'], 0, ',', '.') }}

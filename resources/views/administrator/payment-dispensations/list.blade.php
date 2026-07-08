@@ -52,10 +52,10 @@
     @endpush
     <!-- Start Page Header -->
     <div class="page-header">
-        <h1 class="title">Setup Tahun Ajaran & Aturan Sistem</h1>
+        <h1 class="title">Kelola Dispensasi Pembayaran Siswa</h1>
         <ol class="breadcrumb">
-            <li>SHOP</li>
-            <li class="active">Setup Tahun Ajaran & Aturan Sistem</li>
+            <li>Keuangan</li>
+            <li class="active">Kelola Dispensasi Pembayaran Siswa</li>
         </ol>
     </div>
     <!-- End Page Header -->

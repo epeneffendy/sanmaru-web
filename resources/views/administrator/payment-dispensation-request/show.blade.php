@@ -84,7 +84,7 @@
                                     </div>
 
                                     <div class="row">
-                                        <h5>Lampiran Komplain (Klik Gambar Untuk Zoom)</h5>
+                                        <h5>Lampiran Pengajuan (Klik Gambar Untuk Zoom)</h5>
                                         <div class="text-title-3 font-italic text-black mt-2" style="font-weight: bold">
                                             <div class="row">
                                                 <div class="col-md-4">
@@ -118,7 +118,7 @@
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal">&times;
                     </button>
-                    <h4 class="modal-title">Lampiran Komplain</h4>
+                    <h4 class="modal-title">Lampiran Pengajuan</h4>
                 </div>
                 <div class="modal-body">
                     <img class="header-image" id="lightbox-img" src="" width="500" height="500" alt="Zoom">

@@ -268,13 +268,14 @@
         @if ($type == 'development')
             <div class="alert mt-2 p-3" style="background-color: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px;">
                 <h6 class="fw-bold mb-2" style="color: #075985; font-size: 13px;">
-                    <i class="fa-solid fa-gift me-1"></i> Informasi Penting:
+                    <i class="fa-solid fa-gift me-1"></i> INFORMASI PENTING!!!:
                 </h6>
                 <ul class="mb-0 ps-3" style="color: #075985; font-size: 13px;">
-                    <li>1. Silahkan tentukan rencana bayar pada <b>Cicilan ke-1 dst</b>.</li>
+                    <li>1. Silahkan tentukan rencana bayar pada <b>Cicilan ke-2 dst</b>.</li>
                     <li>2. Tanggal rencana bayar harus beda bulan dari tanggal sebelumnya</li>
                     <li>3. Periode bulan pada rencana bayar harus berurutan dari bulan sebelumnya</li>
                     <li>4. Setelah simpan tanggal cicilan lakukan donwload dan upload <b>Surat Pernyataan</b></li>
+                    <li>5. Setelah Upload Dokumen akan muncul <b>Virtual Account</b> untuk pembayaran DP. Segera lakukan <b>Pembayaran DP 7x24 Jam</b> agar bisa melanjutkan ke tahap selanjutnya.</li>
                 </ul>
             </div>
         @endif
@@ -392,17 +393,19 @@
                                         {{ !empty($detail->date) ? \Carbon\Carbon::parse($detail->date)->format('d M Y') : '-' }}
                                     </td>
                                     <td class="text-muted">
-                                        @if (empty($detail->plan_date))
-                                            @php $hasEmptyDate = true; @endphp
-                                            <input type="date" name="dates[{{ $detail->id }}]" class="form-control"
-                                                onchange="handler(this.value, {{ $installmentIndex }})"
-                                                id="installment_date_{{ $installmentIndex }}"
-                                                value="{{ $detail->installment_number == 0 ? \App\Helpers\Helper::tanggalCicilan($startDateAngsuran) : '' }}"
-                                                {{ $detail->installment_number == 0 ? 'readonly' : '' }} required>
-                                        @else
-                                            {{ \Carbon\Carbon::parse($detail->plan_date)->format('d M Y') }}
-                                            <input type="hidden" id="installment_date_{{ $installmentIndex }}"
-                                                value="{{ \Carbon\Carbon::parse($detail->plan_date)->format('Y-m-d') }}">
+                                        @if($detail->installment_number > 0)
+                                            @if (empty($detail->plan_date))
+                                                @php $hasEmptyDate = true; @endphp
+                                                <input type="date" name="dates[{{ $detail->id }}]" class="form-control"
+                                                    onchange="handler(this.value, {{ $installmentIndex }})"
+                                                    id="installment_date_{{ $installmentIndex }}"
+                                                    value="{{ $detail->installment_number == 1 ? \App\Helpers\Helper::tanggalCicilan($startDateAngsuran) : '' }}"
+                                                    {{ ($detail->installment_number == 1) ? 'readonly' : '' }} required>
+                                            @else
+                                                {{ \Carbon\Carbon::parse($detail->plan_date)->format('d M Y') }}
+                                                <input type="hidden" id="installment_date_{{ $installmentIndex }}"
+                                                    value="{{ \Carbon\Carbon::parse($detail->plan_date)->format('Y-m-d') }}">
+                                            @endif
                                         @endif
                                     </td>
                                     <td>
@@ -611,29 +614,54 @@
                     success: function(data) {
                         $('#upload-instruction').hide();
                         $('#upload-box').hide();
-                        var html =
-                            '<div class="alert alert-success d-flex align-items-center border-0 shadow-sm w-100 mb-3" role="alert" style="background-color: #ebfcf1; color: #155736;">' +
-                            '<i class="fas fa-check-circle fa-2x mr-3"></i>' +
-                            '<div>' +
-                            '<h6 class="fw-bold mb-1">Dokumen Berhasil Diunggah!</h6>' +
-                            '<p class="mb-0">Surat pernyataan Anda telah berhasil disimpan di sistem.</p>' +
-                            '</div>' +
-                            '</div>' +
-                            '<div>' +
-                            '<a target="_blank" class="btn btn-outline-dark-green font-weight-bold" href="' +
-                            data.preview + '">' +
-                            '<i class="fas fa-file-pdf mr-2"></i>Lihat Surat Pernyataan' +
-                            '</a>' +
-                            '</div>';
-                        $('#message_development_statement_container').html(html);
-                        swal({
-                            icon: 'success',
-                            title: "Sukses!",
-                            text: 'Upload Dokumen Berhasil!',
-                        });
-                        setTimeout(function() {
-                            location.reload()
-                        }, 2000);
+                        
+                        if (data.redirect_url) {
+                            var html =
+                                '<div class="alert alert-success d-flex align-items-center border-0 shadow-sm w-100 mb-3" role="alert" style="background-color: #ebfcf1; color: #155736;">' +
+                                '<i class="fas fa-spinner fa-spin fa-2x mr-3"></i>' +
+                                '<div>' +
+                                '<h6 class="fw-bold mb-1">Mengarahkan ke Halaman Virtual Account DP...</h6>' +
+                                '<p class="mb-0">Mohon tunggu sebentar.</p>' +
+                                '</div>' +
+                                '</div>';
+                            $('#message_development_statement_container').html(html);
+                            
+                            swal({
+                                icon: 'success',
+                                title: "Sukses!",
+                                text: 'Upload Dokumen Berhasil, mengarahkan ke halaman pembayaran DP...',
+                                timer: 2000,
+                                buttons: false
+                            });
+                            
+                            setTimeout(function() {
+                                window.location.href = data.redirect_url;
+                            }, 2000);
+                        } else {
+                            var html =
+                                '<div class="alert alert-success d-flex align-items-center border-0 shadow-sm w-100 mb-3" role="alert" style="background-color: #ebfcf1; color: #155736;">' +
+                                '<i class="fas fa-check-circle fa-2x mr-3"></i>' +
+                                '<div>' +
+                                '<h6 class="fw-bold mb-1">Dokumen Berhasil Diunggah!</h6>' +
+                                '<p class="mb-0">Surat pernyataan Anda telah berhasil disimpan di sistem.</p>' +
+                                '</div>' +
+                                '</div>' +
+                                '<div>' +
+                                '<a target="_blank" class="btn btn-outline-dark-green font-weight-bold" href="' +
+                                data.preview + '">' +
+                                '<i class="fas fa-file-pdf mr-2"></i>Lihat Surat Pernyataan' +
+                                '</a>' +
+                                '</div>';
+                            $('#message_development_statement_container').html(html);
+                            swal({
+                                icon: 'success',
+                                title: "Sukses!",
+                                text: 'Upload Dokumen Berhasil!',
+                            });
+                            setTimeout(function() {
+                                location.reload()
+                            }, 2000);
+                        }
                     }
                 });
                 return false;

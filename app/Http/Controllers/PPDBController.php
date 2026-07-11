@@ -20,6 +20,7 @@ use App\Models\GeneralSettings;
 use App\Models\Notification;
 use App\Models\Parents;
 use App\Models\PaymentDispensations;
+use App\Models\PaymentVirtualAccounts;
 use App\Models\PPDBUser;
 use App\Models\FinancePeriode;
 use App\Models\PPDBUserStage;
@@ -41,6 +42,7 @@ use App\Services\ComplaintOrderService;
 use App\Services\GeneralSettingService;
 use App\Services\NotificationService;
 use App\Services\PaymentDispensationsService;
+use App\Services\PaymentVirtualAccountsService;
 use App\Services\PPDBUserService;
 use App\Services\ProductOrderComplaintService;
 use App\Services\ProductOrderService;
@@ -116,6 +118,32 @@ class PPDBController extends Controller
 
         $stageResults = $user_ppdb->stages();
 
+        $dp_va = null;
+        $dp_detail = null;
+        $is_dp_expired = false;
+        $dp_dispensation = \App\Models\PaymentDispensations::where('ppdb_user_id', $user_ppdb->id)
+            ->where('status', \App\Models\PaymentDispensations::STATUS_ACTIVE)
+            ->where('dispensation_type', 'development')
+            ->first();
+        
+        if ($dp_dispensation) {
+            $dp_detail = \App\Models\PaymentDispensationDetails::where('payment_dispensation_id', $dp_dispensation->id)
+                ->where('installment_number', 0)
+                ->first();
+                
+            if ($dp_detail && $dp_detail->status != 'paid') {
+                $dp_va = \App\Models\PaymentVirtualAccounts::where('virtual_account_number', $dp_detail->virtual_account)
+                    ->orderBy('id', 'desc')
+                    ->first();
+                
+                if ($dp_va) {
+                    if (\Carbon\Carbon::now()->greaterThan(\Carbon\Carbon::parse($dp_va->expired_at)) || $dp_va->status == \App\Models\PaymentVirtualAccounts::STATUS_EXPIRED) {
+                        $is_dp_expired = true;
+                    }
+                }
+            }
+        }
+
         $data = array(
             'user' => $user_ppdb,
             'ppdbUser' => $user_ppdb,
@@ -125,6 +153,9 @@ class PPDBController extends Controller
             'is_stage' => $is_stage,
             'is_stage_show' => $is_stage_show,
             'nav' => ['parent' => 'home', 'child' => 'Home'],
+            'dp_va' => $dp_va,
+            'dp_detail' => $dp_detail,
+            'is_dp_expired' => $is_dp_expired,
         );
         $view = 'new-welcome';
 
@@ -937,7 +968,7 @@ class PPDBController extends Controller
         return response()->json($data, 200);
     }
 
-    public function uploadDevelopmentFee(Request $request)
+    public function uploadDevelopmentFee(Request $request, PaymentDispensationsService $paymentDispensationsService, PaymentVirtualAccountsService $paymentVirtualAccountsService)
     {
         $data = [];
         try {
@@ -949,6 +980,50 @@ class PPDBController extends Controller
                 $ppdb->development_fee_option = $request->input('development_fee_option');
                 $ppdb->is_upload_development_statement = 1;
                 $ppdb->save();
+
+                // VA Generation for DP
+                $dispensation = $paymentDispensationsService->getByUserPpdb($ppdb->id, PaymentDispensations::DISPENSATION_TYPE_DEVELOPMENT);
+                if ($dispensation) {
+                    $dp_detail = null;
+                    foreach ($dispensation->details as $d) {
+                        if ($d->installment_number == 0) {
+                            $dp_detail = $d;
+                            break;
+                        }
+                    }
+
+                    if ($dp_detail) {
+                        $virtual_account_number = $dp_detail->virtual_account;
+                        $remaining_balance = $dp_detail->nominal - $dp_detail->amount_paid;
+                        $virtual_account_type = PaymentVirtualAccounts::VIRTUAL_ACCOUNT_INSTALLMENT;
+
+                        $va_unpaid = $paymentVirtualAccountsService->findByVirtualAccountUnpaid($virtual_account_number);
+
+                        if ($va_unpaid) {
+                            if (\Carbon\Carbon::now()->greaterThan(\Carbon\Carbon::parse($va_unpaid->expired_at))) {
+                                $va_unpaid->status = PaymentVirtualAccounts::STATUS_EXPIRED;
+                                $va_unpaid->save();
+                                $va_unpaid = null;
+                            } elseif ($va_unpaid->total_payment != $remaining_balance) {
+                                $va_unpaid->status = PaymentVirtualAccounts::STATUS_CANCELED;
+                                $va_unpaid->save();
+                                $va_unpaid = null;
+                            }
+                        }
+
+                        if (!$va_unpaid) {
+                            $expired_at = now()->addDays(7); // 7x24 jam
+                            $fillable = $paymentVirtualAccountsService->fillable($ppdb->id, PaymentDispensations::DISPENSATION_TYPE_DEVELOPMENT, $virtual_account_number, $remaining_balance, $virtual_account_type, $expired_at);
+                            $paymentVirtualAccountsService->create($fillable);
+                        }
+
+                        $data['redirect_url'] = route('ppdb.bills.payment-now', [
+                            'id' => $dp_detail->id,
+                            'type' => 'installment',
+                            'dispensation_type' => 'development'
+                        ]);
+                    }
+                }
             }
         } catch (\Exception $e) {
             return response()->json($e->getMessage(), 400);

@@ -210,10 +210,25 @@
                 Saya Sudah Bayar </a>
 
             @if (!empty($virtual_account_unpaid))
-                <a href="{{ route('ppdb.bills.payment-cancel', ['virtual_account_number' => $virtual_account_number, 'dispensation_type' => $dispensation_type]) }}"
-                    id="btn-cancel-payment" class="btn btn-outline-danger btn-block mt-3 font-weight-bold py-2 shadow-sm"
-                    style="border-radius: 8px;">
-                    Batalkan Pembayaran </a>
+                @php
+                    $isDp = false;
+                    if (isset($dispensation->installment_number) && $dispensation->installment_number == 0) {
+                        $isDp = true;
+                    } elseif (isset($dispensation->details)) {
+                        foreach ($dispensation->details as $d) {
+                            if ($d->virtual_account == $virtual_account_number && $d->installment_number == 0) {
+                                $isDp = true;
+                                break;
+                            }
+                        }
+                    }
+                @endphp
+                @if (!$isDp)
+                    <a href="{{ route('ppdb.bills.payment-cancel', ['virtual_account_number' => $virtual_account_number, 'dispensation_type' => $dispensation_type]) }}"
+                        id="btn-cancel-payment" class="btn btn-outline-danger btn-block mt-3 font-weight-bold py-2 shadow-sm"
+                        style="border-radius: 8px;">
+                        Batalkan Pembayaran </a>
+                @endif
             @endif
 
             <a href={{ route('ppdb.finance-bills') }} class="btn btn-block text-secondary mt-3"

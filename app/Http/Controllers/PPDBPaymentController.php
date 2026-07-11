@@ -18,7 +18,10 @@ class PPDBPaymentController extends Controller
 {
     public function choisePayment($type, Request $request, PaymentDispensationsService $paymentDispensationsService, FinanceSystemConfigurationService $financeSystemConfigurationService, PaymentVirtualAccountsService $paymentVirtualAccountsService, GeneralSettingService $generalSettingService)
     {
-
+        $arr_dispensation_type = [
+            'activity' => 'Uang Kegiatan',
+            'development' => 'Uang Pengembangan'
+        ];
         $discount = 0;
         $user = $request->session()->get('user');
         $dispensation = $paymentDispensationsService->getByUserPpdb($user['ppdb']['id'], $type);
@@ -62,6 +65,18 @@ class PPDBPaymentController extends Controller
             }
         }
 
+        $url_payment_unpaid = '';
+        if ($virtual_account_unpaid) {
+            if ($virtual_account_unpaid->virtual_account_type == 'full_statement' || $virtual_account_unpaid->virtual_account_type == 'partial') {
+                $url_payment_unpaid = route('ppdb.bills.payment-now', ['id' => $dispensation->id, 'type' => $virtual_account_unpaid->virtual_account_type, 'dispensation_type' => $type]);
+            } else if ($virtual_account_unpaid->virtual_account_type == 'installment') {
+                $detail = PaymentDispensationDetails::where('virtual_account', $virtual_account_unpaid->virtual_account_number)->orderBy('id','desc')->first();
+                if ($detail) {
+                    $url_payment_unpaid = route('ppdb.bills.payment-now', ['id' => $detail->id, 'type' => 'installment', 'dispensation_type' => $type]);
+                }
+            }
+        }
+
         if(!empty($dispensation)){
             $arr_value = json_decode($dispensation->value);
             $data =[
@@ -73,10 +88,12 @@ class PPDBPaymentController extends Controller
                 'va_full' => $arr_value->va_full_statement,
                 'va_partial' =>$arr_value->va_partial,
                 'virtual_account_unpaid' => $virtual_account_unpaid,
+                'url_payment_unpaid' => $url_payment_unpaid,
                 'discount'=>$discount,
                 'virtual_account_number' => isset($virtual_account_unpaid) ? $virtual_account_unpaid->virtual_account_number : '',
                 'dispensation_type'=> $type,
-                'type'=>$type
+                'type'=>$type,
+                'dispensation_type_label' => $arr_dispensation_type[$type] ?? ''
             ];
 
             if(($dispensation->dispensation_mode == PaymentDispensations::MODE_FULL_SETUP) || ($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT)){
@@ -201,6 +218,14 @@ class PPDBPaymentController extends Controller
             $dispensation = $paymentDispensationsService->getById($request->id);
         }
 
+        if (empty($dispensation_type) && $dispensation) {
+            if (($request->type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT) || $request->type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_PARTIAL) {
+                $dispensation_type = $dispensation->dispensation_type;
+            } else {
+                $dispensation_type = $dispensation->dispensation->dispensation_type ?? null;
+            }
+        }
+
         $virtual_account_type = $virtual_account_number = $remaining_balance = $installment_number =$installment_type = null;
         $is_create =false;
         if($dispensation){
@@ -253,7 +278,11 @@ class PPDBPaymentController extends Controller
 
                     $expired_at = now()->addDays(1);
                     if($installment_type == 'down_payment'){
-                        $expired_at = now()->addDays(7);
+                        if ($dispensation_type == 'activity') {
+                            $expired_at = now()->addDays(3);
+                        } else {
+                            $expired_at = now()->addDays(7);
+                        }
                     }
                     $fillable = $paymentVirtualAccountsService->fillable($dispensation->ppdb_user_id,$type_payment, $virtual_account_number, $remaining_balance, $virtual_account_type, $expired_at);
                     $paymentVirtualAccountsService->create($fillable);

@@ -14,6 +14,7 @@ class PaymentVirtualAccounts extends Model
     const STATUS_EXPIRED = 'expired';
 
     const PAYMENT_TYPE_DEVELOPMENT = 'development';
+    const PAYMENT_TYPE_ACTIVITY = 'activity';
 
     const PAYMENT_PAID_OFF = 'lunas';
 

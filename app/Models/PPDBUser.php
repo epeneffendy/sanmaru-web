@@ -862,6 +862,16 @@ class PPDBUser extends Authenticatable
                 $dispensation->status = PaymentDispensations::STATUS_INACTIVE;
                 $dispensation->save();
             }
+
+            $virtualAccounts = PaymentVirtualAccounts::where('ppdb_user_id', $this->id)
+                ->where('status', PaymentVirtualAccounts::STATUS_UNPAID)
+                ->where('type', PaymentVirtualAccounts::PAYMENT_TYPE_DEVELOPMENT)
+                ->get();
+            
+            foreach($virtualAccounts as $va) {
+                $va->status = PaymentVirtualAccounts::STATUS_CANCELED;
+                $va->save();
+            }
         }
 
         $stage = $this->stages()->filter(function ($stage) {

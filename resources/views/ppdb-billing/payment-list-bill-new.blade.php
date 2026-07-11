@@ -190,7 +190,7 @@
     @endpush
 
     <div class="container py-5">
-
+        
         @if ($dispensation->dispensation_mode != 'real_payment')
             <div class="p-3 rounded-3 mb-4 shadow-sm" style="background-color: #f0fdf4; border: 1px solid #bbf7d0;">
                 <div class="d-flex align-items-start">
@@ -200,7 +200,7 @@
                     <div>
                         <h6 class="fw-bold mb-1" style="color: #166534;">Keringanan Biaya Diterapkan</h6>
                         <span style="color: #15803d; font-size: 13px;">Anda telah mendapatkan dispensasi atau
-                            potongan harga khusus untuk tagihan Uang Pengembangan ini.</span>
+                            potongan harga khusus untuk tagihan {{ $dispensation_type_label }} ini.</span>
                     </div>
                 </div>
             </div>
@@ -221,7 +221,7 @@
                     <div class="fw-bold text-danger mt-1" id="countdown-timer"></div>
                 </div>
                 <div class="ml-auto pl-3 flex-shrink-0">
-                    <a href="{{ route('ppdb.bills.payment-now', ['id' => $dispensation->id, 'type' => 'full_statement']) }}"
+                    <a href="{{ $url_payment_unpaid }}"
                         class="btn btn-warning font-weight-bold text-dark shadow-sm">Cek Pembayaran</a>
                 </div>
             </div>
@@ -242,7 +242,7 @@
 
                     @if (isset($dispensation['actual_cost']) && $dispensation['actual_cost'] > ($dispensation['total_final_fee'] ?? 0))
                         <div class="mt-3 mt-md-0 text-start text-md-end">
-                            <p class="mb-1" style="font-size: 0.70rem; color: white;">Nominal Uang Pengembangan Awal</p>
+                            <p class="mb-1" style="font-size: 0.70rem; color: white;">Nominal {{ $dispensation_type_label }} Awal</p>
                             <h4 class="mb-0 text-decoration-line-through"
                                 style="color: rgba(255,255,255,0.7);font-size: 1rem">
                                 Rp {{ number_format($dispensation['actual_cost'], 0, ',', '.') }}
@@ -256,7 +256,7 @@
                 style="background-color: #ebfcf1; border: 1px solid #bbf7d0;">
                 <i class="fas fa-check-circle mb-3" style="font-size: 3rem; color: #166534;"></i>
                 <h4 class="fw-bold mb-1" style="color: #166534;">Pembayaran Anda Telah Lunas</h4>
-                <p class="mb-0" style="color: #15803d;">Terima kasih, seluruh tagihan Uang Pengembangan Anda sudah
+                <p class="mb-0" style="color: #15803d;">Terima kasih, seluruh tagihan {{ $dispensation_type_label }} Anda sudah
                     diselesaikan.</p>
                 <div class="mt-4">
                     {{-- <a href="{{ route('ppdb.bills.development-receipt', ['id' => $dispensation->id]) }}"
@@ -278,7 +278,20 @@
                     <li>5. Setelah Upload Dokumen akan muncul <b>Virtual Account</b> untuk pembayaran DP. Segera lakukan <b>Pembayaran DP 7x24 Jam</b> agar bisa melanjutkan ke tahap selanjutnya.</li>
                 </ul>
             </div>
+
         @endif
+
+        @php
+            $isDpPaid = true;
+            if(isset($dispensation) && !empty($dispensation->details)) {
+                foreach($dispensation->details as $d) {
+                    if($d->installment_number == 0 && $d->status != 'paid') {
+                        $isDpPaid = false;
+                        break;
+                    }
+                }
+            }
+        @endphp
 
         @if ($dispensation->status_payment != 'paid' && $ppdb['is_upload_development_statement'] == 1)
             <h5 class="font-weight-bold text-secondary mb-3">Alternatif Pembayaran</h5>
@@ -291,7 +304,7 @@
                         </div>
 
                         <p class="text-muted mb-3" style="font-size: 0.85rem; line-height: 1.4;">
-                            Anda dapat melunasi sisa pembayaran uang pengembangan secara langsung
+                            Anda dapat melunasi sisa pembayaran {{ $dispensation_type_label }} secara langsung
                         </p>
 
                         <p class="text-muted mb-1" style="font-size: 0.85rem;">Total Nominal</p>
@@ -318,15 +331,21 @@
                         <div class="form-group mb-4">
                             <label class="text-muted" style="font-size: 0.85rem;">Nominal yang akan dibayarkan</label>
                             <input type="text" id="input-nominal-partial" class="form-control"
-                                placeholder="Contoh: 1.000.000" min="100000">
+                                placeholder="Contoh: 1.000.000" min="100000" {{ !$isDpPaid ? 'disabled' : '' }}>
                             <input type="hidden" id="input-nominal-remaining-balance" class="form-control"
                                 value="{{ $dispensation['remaining_balance'] ?? 0 }}">
                         </div>
                         @if (!empty($dispensation->ppdb->development_statement))
-                            <a href="{{ route('ppdb.bills.payment-now', ['id' => $dispensation->id, 'type' => 'partial', 'dispensation_type' => $type]) }}"
-                                id="btn-generate-partial"
-                                class="btn btn-outline-dark-green text-success btn-block py-2 mt-auto">Generate Virtual
-                                Account</a>
+                            @if ($isDpPaid)
+                                <a href="{{ route('ppdb.bills.payment-now', ['id' => $dispensation->id, 'type' => 'partial', 'dispensation_type' => $type]) }}"
+                                    id="btn-generate-partial"
+                                    class="btn btn-outline-dark-green text-success btn-block py-2 mt-auto">Generate Virtual
+                                    Account</a>
+                            @else
+                                <button type="button" class="btn btn-outline-secondary text-secondary btn-block py-2 mt-auto" disabled>
+                                    <i class="fas fa-lock mr-2"></i>Lunasi DP Terlebih Dahulu
+                                </button>
+                            @endif
                         @endif
                     </div>
                 </div>
@@ -393,14 +412,17 @@
                                         {{ !empty($detail->date) ? \Carbon\Carbon::parse($detail->date)->format('d M Y') : '-' }}
                                     </td>
                                     <td class="text-muted">
-                                        @if($detail->installment_number > 0)
+                                        @if($type == 'activity' || $detail->installment_number > 0)
                                             @if (empty($detail->plan_date))
                                                 @php $hasEmptyDate = true; @endphp
                                                 <input type="date" name="dates[{{ $detail->id }}]" class="form-control"
-                                                    onchange="handler(this.value, {{ $installmentIndex }})"
+                                                    onchange="handler(this.value, {{ $installmentIndex }}, '{{ $type }}')"
                                                     id="installment_date_{{ $installmentIndex }}"
-                                                    value="{{ $detail->installment_number == 1 ? \App\Helpers\Helper::tanggalCicilan($startDateAngsuran) : '' }}"
-                                                    {{ ($detail->installment_number == 1) ? 'readonly' : '' }} required>
+                                                    @if($type == 'development')
+                                                        value="{{ $detail->installment_number == 1 ? \App\Helpers\Helper::tanggalCicilan($startDateAngsuran) : '' }}"
+                                                        {{ ($detail->installment_number == 1) ? 'readonly' : '' }}
+                                                    @endif
+                                                    required>
                                             @else
                                                 {{ \Carbon\Carbon::parse($detail->plan_date)->format('d M Y') }}
                                                 <input type="hidden" id="installment_date_{{ $installmentIndex }}"
@@ -431,8 +453,10 @@
                                                         class="btn btn-sm btn-dark-green btn-block py-2 text-white">Bayar</a>
                                                 @endif
                                             @else
-                                                <a href="{{ route('ppdb.bills.payment-now', ['id' => $detail->id, 'type' => 'installment', 'dispensation_type' => $type]) }}"
-                                                    class="btn btn-sm btn-dark-green btn-block py-2 text-white">Bayar</a>
+                                                @if (!isset($virtual_account_unpaid))
+                                                    <a href="{{ route('ppdb.bills.payment-now', ['id' => $detail->id, 'type' => 'installment', 'dispensation_type' => $type]) }}"
+                                                        class="btn btn-sm btn-dark-green btn-block py-2 text-white">Bayar</a>
+                                                @endif
                                             @endif
                                         @endif
                                     </td>
@@ -534,11 +558,25 @@
         var isNotSequential =
             '<div class="alert alert-danger mb-3 p-2 rounded border-0" style="background-color: #f8d7da; color: #842029;">Periode bulan harus berurutan dari bulan sebelumnya</div>';
 
-        function handler(value, month) {
+        function handler(value, month, type = 'development') {
             var date = new Date(value);
 
             var today = new Date();
             today.setHours(0, 0, 0, 0);
+
+            if (month == 0 && type == 'activity') {
+                var maxDate = new Date();
+                maxDate.setMonth(today.getMonth() + 2);
+                maxDate.setHours(0, 0, 0, 0);
+
+                if (date.getTime() > maxDate.getTime()) {
+                    document.getElementById("alert-dates").innerHTML =
+                        '<div class="alert alert-danger mb-3 p-2 rounded border-0" style="background-color: #f8d7da; color: #842029;">Tanggal rencana bayar Uang DP tidak boleh lebih dari 2 bulan dari bulan sekarang</div>';
+                    document.getElementById("installment_date_" + month).value = "";
+                    return;
+                }
+            }
+
             if (date.getTime() < today.getTime() && month == 0) {
                 document.getElementById("alert-dates").innerHTML =
                     '<div class="alert alert-danger mb-3 p-2 rounded border-0" style="background-color: #f8d7da; color: #842029;">Tanggal pembayaran tidak boleh kurang dari hari ini</div>';

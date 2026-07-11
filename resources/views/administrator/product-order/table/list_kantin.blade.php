@@ -125,8 +125,9 @@
 {{ $product_orders->appends(request()->except('page'))->links() }}
 
 <div class="btn-group padding-t-10 pull-right">
-    <a href="{{ route('admin.product-order.kantin.create') }}" class="btn btn-success">
+    {{-- Button "Tambah Data" di-hidden karena pembuatan order seharusnya dilakukan oleh siswa --}}
+    {{-- <a href="{{ route('admin.product-order.kantin.create') }}" class="btn btn-success">
         <icon class="icon-plus"> Tambah Data</icon>
-    </a>
+    </a> --}}
     {{--<a href="{{route('user.export')}}" class="btn btn-primary"><icon class="icon-save"> Export</icon></a>--}}
 </div>

@@ -194,10 +194,11 @@
 {{ $product_orders->appends(request()->except('page'))->links() }}
 
 <div class="btn-group padding-t-10 pull-right">
-    @if($user->type != 'admin_ppdb')
+    {{-- Button "Tambah Data" di-hidden karena pembuatan order seragam seharusnya dilakukan oleh siswa --}}
+    {{-- @if($user->type != 'admin_ppdb')
         <a href="{{ route('admin.product-order.add') }}" class="btn btn-success">
             <icon class="icon-plus"> Tambah Data</icon>
         </a>
-    @endif
+    @endif --}}
     {{--<a href="{{route('user.export')}}" class="btn btn-primary"><icon class="icon-save"> Export</icon></a>--}}
 </div>

@@ -259,7 +259,7 @@ class ProductOrderService
                 $params['payment_type'] = '12';
             }
 
-            $price = $this->totalPrice($params['price']);
+            $price = $this->totalPrice($params['price'], $params['qty'] ?? []);
             if (isset($price)) {
                 $params['order_amount'] = $price['order_amount'];
                 $params['total_payment'] = $price['total_payment'];
@@ -918,17 +918,18 @@ class ProductOrderService
         ];
     }
 
-    public function totalPrice($prices)
+    public function totalPrice(array $prices, array $quantities = []): array
     {
         $total = 0;
-        foreach ($prices as $price) {
-            $total += $price;
+        foreach ($prices as $key => $price) {
+            $qty = $quantities[$key] ?? 1;
+            $total += $price * $qty;
         }
 
-        $params['order_amount'] = $total;
-        $params['total_payment'] = $total;
-
-        return $params;
+        return [
+            'order_amount' => $total,
+            'total_payment' => $total,
+        ];
     }
 
     public function getSummaryPurchaseOrderByUnit(array $params = [])

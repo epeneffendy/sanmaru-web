@@ -66,9 +66,11 @@
                         Rp
                         {{ number_format($arr_dispensation['activity']['total_final_fee'], 0, ',', '.') }}
                     </div>
-                    <div class="fw-bold text-muted mb-md-2" style="font-size: 0.95rem; text-decoration: line-through;">
-                        Rp {{ number_format($item['amount'], 0, ',', '.') }}
-                    </div>
+                    @if($arr_dispensation['activity']['total_final_fee'] != $arr_dispensation['activity']['actual_cost'])
+                        <div class="fw-bold text-muted mb-md-2" style="font-size: 0.95rem; text-decoration: line-through;">
+                            Rp {{ number_format($item['amount'], 0, ',', '.') }}
+                        </div>
+                    @endif
                 @else
                     <div class="fw-bold text-dark mb-md-2" style="font-size: 1.15rem;">
                         Rp {{ number_format($item['amount'], 0, ',', '.') }}
@@ -96,10 +98,30 @@
                     }
                 @endphp
                 @if ($isActivePeriode)
-                    <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'activity']) }}"
-                        class="btn btn-sm btn-outline-green px-3" style="font-size: 0.75rem; font-weight: 600;">
-                        Cara Bayar <i class="fa fa-chevron-right ms-1"></i>
-                    </a>
+                    @if (isset($arr_dispensation['activity']))
+                        @if ($arr_dispensation['activity']['is_dispensation'] == true)
+                            <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'activity']) }}"
+                                class="btn btn-sm btn-outline-green px-3" style="font-size: 0.75rem; font-weight: 600;">
+                                Cara Bayar <i class="fa fa-chevron-right ms-1"></i>
+                            </a>
+                        @endif
+                    @else
+                        <form action="{{ route('ppdb.bills.store') }}" method="POST" id="form-lunas-{{ $item['id'] }}" style="display: none;">
+                            @csrf
+                            <input type="hidden" name="paymentType" value="lunas">
+                            <input type="hidden" name="type" value="activity">
+                            <input type="hidden" name="ppdb_user_id" value="{{ $item['ppdb_user_id'] ?? ($ppdb['id'] ?? '') }}">
+                            <input type="hidden" name="total_bill" value="{{ $item['amount'] }}">
+                            <input type="hidden" name="nominal_diskon_lunas" value="0">
+                            <input type="hidden" name="nominal_dp" value="0">
+                            <input type="hidden" name="tenor" value="0">
+                            <input type="hidden" name="cicilan_per_bulan" value="0">
+                        </form>
+                        <a href="#" onclick="event.preventDefault(); document.getElementById('form-lunas-{{ $item['id'] }}').submit();"
+                            class="btn btn-sm btn-outline-green px-3" style="font-size: 0.75rem; font-weight: 600;">
+                            Bayar Sekarang <i class="fa fa-chevron-right ms-1"></i>
+                        </a>
+                    @endif
                 @else
                     <button class="btn btn-sm btn-secondary px-3" style="font-size: 0.75rem; font-weight: 600;" disabled>
                         Belum Memasuki Periode Pembayaran

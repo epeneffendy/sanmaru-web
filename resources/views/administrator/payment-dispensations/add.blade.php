@@ -121,14 +121,20 @@
 
                             <div class="form-group">
                                 <label class="col-sm-2 control-label">Total Akhir</label>
-                                <div class="col-sm-10">
+                                <div class="col-sm-7">
                                     <input type="hidden" name="total_final_fee" id="total_final_fee"
                                         value="{{ @$dispensation['total_final_fee'] }}">
                                     <input type="text" class="form-control" id="total_final_fee_display"
                                         value="{{ @$dispensation['total_final_fee'] ? number_format(@$dispensation['total_final_fee'], 0, ',', '.') : '' }}"
                                         required placeholder="0">
                                 </div>
+                                <div class="col-sm-3" id="is_discount_accepted_container" style="display: none; padding-top: 7px;">
+                                    <label>
+                                        <input type="checkbox" name="is_discount_accepted" id="is_discount_accepted" value="1" {{ @$dispensation['is_discount_accepted'] ? 'checked' : '' }}> Terima Potongan
+                                    </label>
+                                </div>
                             </div>
+
 
                             <div class="form-group">
                                 <label class="col-sm-2 control-label">Mode Dispensasi</label>
@@ -226,6 +232,60 @@
                 title: "No Value"
             });
             calculateSimulation();
+            initDispensationTypeLogic();
+        });
+
+        function isUangKegiatan() {
+            let text = $('#dispensation_type option:selected').text().trim().toUpperCase();
+            return text === 'UANG KEGIATAN';
+        }
+
+        function initDispensationTypeLogic() {
+            if (isUangKegiatan()) {
+                $('#is_discount_accepted_container').show();
+                let isChecked = $('#is_discount_accepted').is(':checked');
+                if (!isChecked) {
+                    $('#total_final_fee_display').prop('readonly', true);
+                } else {
+                    $('#total_final_fee_display').prop('readonly', false);
+                }
+            } else {
+                $('#is_discount_accepted_container').hide();
+                $('#is_discount_accepted').prop('checked', false);
+                $('#total_final_fee_display').prop('readonly', false);
+            }
+        }
+
+        $(document).on('change', '#dispensation_type', function(e) {
+            initDispensationTypeLogic();
+            if (isUangKegiatan()) {
+                if (!$('#is_discount_accepted').is(':checked')) {
+                    let actualCost = parseInt($('#actual_cost').val() || 0, 10);
+                    if (actualCost > 0) {
+                        $('#total_final_fee').val(actualCost);
+                        $('#total_final_fee_display').val(formatRupiah(actualCost));
+                    }
+                }
+            }
+        });
+
+        $(document).on('change', '#is_discount_accepted', function(e) {
+            if ($(this).is(':checked')) {
+                $('#total_final_fee_display').prop('readonly', false);
+            } else {
+                $('#total_final_fee_display').prop('readonly', true);
+                let actualCost = parseInt($('#actual_cost').val() || 0, 10);
+                $('#total_final_fee').val(actualCost);
+                $('#total_final_fee_display').val(actualCost ? formatRupiah(actualCost) : '');
+                
+                // Validate down payment with new total final fee
+                let downPayment = parseInt($('#down_payment').val() || 0, 10);
+                if (downPayment > actualCost) {
+                    $('#down_payment').val(actualCost);
+                    $('#down_payment_display').val(actualCost ? formatRupiah(actualCost) : '');
+                }
+                calculateSimulation();
+            }
         });
 
         $(document).on('change', '#dispensation_mode', function(e) {
@@ -394,6 +454,19 @@
                     } else {
                         $('#actual_cost_info').hide().text('');
                     }
+
+                    if (isUangKegiatan() && !$('#is_discount_accepted').is(':checked')) {
+                        $('#total_final_fee').val(parsedCost);
+                        $('#total_final_fee_display').val(formatRupiah(parsedCost));
+                        
+                        let downPayment = parseInt($('#down_payment').val() || 0, 10);
+                        if (downPayment > parsedCost) {
+                            $('#down_payment').val(parsedCost);
+                            $('#down_payment_display').val(formatRupiah(parsedCost));
+                        }
+                        calculateSimulation();
+                    }
+
 
                     if (data.attachment_url) {
                         $('#show-attachment-btn').data('url', data.attachment_url);

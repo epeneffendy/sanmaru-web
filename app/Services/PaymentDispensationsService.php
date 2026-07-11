@@ -21,7 +21,7 @@ class PaymentDispensationsService {
     }
 
     public function getAllBilling($ppdb_user_id){
-        $data = PaymentDispensations::where('ppdb_user_id',$ppdb_user_id)->where('status', PaymentDispensations::STATUS_ACTIVE)->orderBy('id', 'desc')->get();
+        $data = PaymentDispensations::where('ppdb_user_id',$ppdb_user_id)->where('status', PaymentDispensations::STATUS_ACTIVE)->orderBy('id', 'asc')->get();
         return $data;
     }
 

@@ -305,8 +305,14 @@ class PPDBPaymentController extends Controller
                     $va_unpaid->status = PaymentVirtualAccounts::STATUS_CANCELED;
                     $va_unpaid->save();
                 }
+                if ($dispensation_type == 'activity' && $va_unpaid->virtual_account_type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT) {
+                    return redirect()->route('ppdb.finance-bills')->with('message', 'Pembayaran berhasil dibatalkan!');
+                }
                 return redirect()->route('ppdb.bills.choise-payment', ['type'=>$dispensation_type])->with('message', 'Pembayaran berhasil dibatalkan!');
             }else{
+                if ($dispensation_type == 'activity' && $va_unpaid->virtual_account_type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT) {
+                    return redirect()->route('ppdb.finance-bills')->with('message', 'Pembayaran sudah lunas!');
+                }
                 return redirect()->route('ppdb.bills.choise-payment', ['type'=>$dispensation_type])->with('message', 'Pembayaran sudah lunas!');
             }
 

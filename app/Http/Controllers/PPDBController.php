@@ -1901,11 +1901,11 @@ class PPDBController extends Controller
                 if($d->dispensation_mode != PaymentDispensations::MODE_REAL_PAYMENT){
                     $arr_dispensation[$d->dispensation_type]['type'] = $d->dispensation_type;
                     $arr_dispensation[$d->dispensation_type]['total_final_fee'] = $d->total_final_fee;
+                    $arr_dispensation[$d->dispensation_type]['actual_cost'] = $d->actual_cost;
                     $arr_dispensation[$d->dispensation_type]['is_dispensation'] = true;
                 }
             }
         }
-
 
         $data = array(
             'bills' => $bills['bills'],

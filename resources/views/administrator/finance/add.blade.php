@@ -136,7 +136,10 @@
                                     <label class="control-label col-sm-2" for="periode_start">Periode Pembayaran:</label>
                                     <div class="col-sm-10">
                                         <input type="date" name="periode_start" id="periode_start" value="{{ (old('type', @$finance->type) == 'development') || (old('type', @$finance->type) == 'activity') ? old('start_date', @$finance->periode_start) : NULL}}" placeholder="Periode Awal Pembayaran">
-                                        <input type="date" name="periode_end" id="periode_end" value="{{ (old('type', @$finance->type) == 'development') || (old('type', @$finance->type) == 'activity') ? old('start_date', @$finance->periode_end) : NULL}}" placeholder="Periode Awal Pembayaran">
+                                        <input type="date" name="periode_end" id="periode_end" value="{{ (old('type', @$finance->type) == 'development') || (old('type', @$finance->type) == 'activity') ? old('start_date', @$finance->periode_end) : NULL}}" placeholder="Periode Akhir Pembayaran">
+                                        <p class="help-block text-muted" style="margin-top: 5px; font-size: 12px;">
+                                            <i class="fa fa-info-circle"></i> Periode untuk pembayaran LUNAS atau PEMBAYARAN DP
+                                        </p>
                                     </div>
                                 </div>
                             
@@ -144,6 +147,12 @@
                                     <label class="control-label col-sm-2" for="start_date">Tanggal Mulai Angsur:</label>
                                     <div class="col-sm-10">
                                         <input type="date" name="start_date" id="start_date" value="{{ (old('type', @$finance->type) == 'development') ? old('start_date', @$finance->start_date) : NULL}}" placeholder="Tanggal mulai angsur">
+                                        <p class="help-block text-muted" style="margin-top: 5px; font-size: 12px;">
+                                            <i class="fa fa-info-circle"></i> Pastikan untuk tanggal mulai angsur di luar periode pembayaran
+                                        </p>
+                                        <p class="help-block text-muted" style="margin-top: 5px; font-size: 12px;">
+                                            <i class="fa fa-info-circle"></i> Tanggal ini untuk menentukan awal cicilan jika pilih cara pembayaran cicilan
+                                        </p>
                                     </div>
                                 </div>
                                 <hr />
@@ -169,12 +178,20 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="form-group">
-                                <label class="control-label col-sm-2" for="description">Keterangan:</label>
-                                <div class="col-sm-10">
-                                    <textarea class="form-control" name="description" id="description" value="{{old('description', @$finance['description'])}}">{{ old('description', @$finance->description) }}</textarea>
+                            {{-- <div id="block-keterangan" {{ ((old('type', @$finance->type) == 'development') || (old('type', @$finance->type) == 'activity')) ? NULL : 'style=display:none;' }}> --}}
+                                <div class="form-group">
+                                    <label class="control-label col-sm-2" for="description">Keterangan:</label>
+                                    <div class="col-sm-10">
+                                        <textarea class="form-control" name="description" id="description" value="{{old('description', @$finance['description'])}}">{{ old('description', @$finance->description) }}</textarea>
+                                        <div id="block-keterangan" {{ ((old('type', @$finance->type) == 'development') || (old('type', @$finance->type) == 'activity')) ? NULL : 'style=display:none;' }}>
+                                            <p class="help-block text-muted" style="margin-top: 5px; font-size: 12px;">
+                                                <i class="fa fa-info-circle"></i> Keterangan ini untuk catatan admin, tidak tampil di user
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            
+
                             <div class="form-group">
                                 <div class="col-sm-offset-2 col-sm-10">
                                     <button type="submit" class="btn btn-default">{{$status}}</button>
@@ -204,9 +221,11 @@
             $('select[name=type]').change(function () {
                 if (($(this).val() == "development") || ($(this).val() == "activity")) {
                     $('#block-angsuran').show();
+                    $('#block-keterangan').show();
                 } else {
                     $('#start_date').val(null);
                     $('#block-angsuran').hide();
+                    $('#block-keterangan').hide();
                 }
                 toggleBlockInsider();
             });

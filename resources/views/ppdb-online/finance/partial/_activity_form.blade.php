@@ -90,11 +90,9 @@
             @else
                 @php
                     $isActivePeriode = false;
-                    if (isset($financePeriode) && $financePeriode->status == 'active') {
-                        $today = date('Y-m-d');
-                        if ($today >= $financePeriode->start_date && $today <= $financePeriode->end_date) {
-                            $isActivePeriode = true;
-                        }
+                    $today = date('Y-m-d');
+                    if ($today >= $financePeriodeActivity['start'] && $today <= $financePeriodeActivity['end']) {
+                        $isActivePeriode = true;
                     }
                 @endphp
                 @if ($isActivePeriode)
@@ -117,7 +115,7 @@
                             <input type="hidden" name="tenor" value="0">
                             <input type="hidden" name="cicilan_per_bulan" value="0">
                         </form>
-                        <a href="#" onclick="event.preventDefault(); document.getElementById('form-lunas-{{ $item['id'] }}').submit();"
+                        <a href="#" onclick="event.preventDefault(); swal({title: 'Konfirmasi', text: 'Apakah anda yakin bayar sekarang?, sistem akan generate virtual account dan segera anda bayarkan sebelum melebihi batas waktu periode pembayaran', icon: 'warning', buttons: ['Batal', 'Ya, Bayar']}).then((willPay) => { if (willPay) { document.getElementById('form-lunas-{{ $item['id'] }}').submit(); } });"
                             class="btn btn-sm btn-outline-green px-3" style="font-size: 0.75rem; font-weight: 600;">
                             Bayar Sekarang <i class="fa fa-chevron-right ms-1"></i>
                         </a>

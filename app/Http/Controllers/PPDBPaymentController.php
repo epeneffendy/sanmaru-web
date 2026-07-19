@@ -12,6 +12,7 @@ use App\Services\PaymentVirtualAccountsService;
 use App\Models\PaymentVirtualAccounts;
 use App\Models\StudentBills;
 use App\Services\GeneralSettingService;
+use Auth;
 use Illuminate\Http\Request;
 
 class PPDBPaymentController extends Controller
@@ -230,8 +231,13 @@ class PPDBPaymentController extends Controller
     public function paymentNow(Request $request, PaymentDispensationsService $paymentDispensationsService, PaymentVirtualAccountsService $paymentVirtualAccountsService){
 
         $dispensation_type = $request->dispensation_type;
-
         $dispensation = $paymentDispensationsService->getDetailById($request->id);
+
+        $userSession = $request->session()->get('user');
+
+        $ppdbId = $userSession['ppdb']['id'];
+        $ppdb = PPDBUser::where('id', $ppdbId)->with('unit', 'user', 'parents')->firstOrFail();
+        
         if(($request->type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT) || $request->type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_PARTIAL){
             $dispensation = $paymentDispensationsService->getById($request->id);
         }
@@ -295,14 +301,20 @@ class PPDBPaymentController extends Controller
                     $type_payment = $dispensation_type;
 
                     $expired_at = now()->addDays(1);
-                    if(isset($installment_type) && $installment_type == 'down_payment'){
+                    
+                    $is_dp = isset($installment_type) && $installment_type == 'down_payment';
+                    $is_lunas = isset($virtual_account_type) && $virtual_account_type == \App\Models\PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT;
+                    
+                    if ($is_dp || $is_lunas) {
                         if ($dispensation_type == 'activity') {
-                            $expired_at = now()->addDays(30);
-                        } else {
-                            $expired_at = now()->addDays(7);
+                            $periode_end = PriceHelper::getPeriodFinance($ppdb, 'activity');
+                            $default_days = $is_dp ? 7 : 1;
+                            $expired_at = $periode_end ? $periode_end : now()->addDays($default_days);
+                        } elseif ($dispensation_type == 'development') {
+                            $periode_end = PriceHelper::getPeriodFinance($ppdb, 'development');
+                            $default_days = $is_dp ? 7 : 1;
+                            $expired_at = $periode_end ? $periode_end : now()->addDays($default_days);
                         }
-                    } elseif ($virtual_account_type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT && $dispensation_type == 'activity') {
-                        $expired_at = now()->addDays(30);
                     }
                     $fillable = $paymentVirtualAccountsService->fillable($dispensation->ppdb_user_id,$type_payment, $virtual_account_number, $remaining_balance, $virtual_account_type, $expired_at);
                     $paymentVirtualAccountsService->create($fillable);

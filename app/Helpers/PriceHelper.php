@@ -9,6 +9,7 @@ use App\Models\Period;
 use App\Models\User;
 use App\Models\Unit;
 use Cache;
+use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Arr;
 
@@ -52,7 +53,7 @@ class PriceHelper
             if (in_array($ppdb->user_id, $data['user_ids'])) {
                 $discountStatus = false;
             }
-            if (isset($data['is_insider']) && $data['is_insider']) {
+            if (isset($data['is_discount']) && $data['is_discount']) {
                 $discountStatus = true;
             }
         }
@@ -61,25 +62,19 @@ class PriceHelper
 
     public static function checkDevelopmentLunasDiscount(PPDBUser $ppdb)
     {
-        $hasDiscount = true; // Default dapat diskon untuk yang tidak ada di finance_user
+        $hasDiscount = false;
+        $hasVoucher = false;
         $discountPercentage = 0;
 
         $financeData = self::development($ppdb, false, null, true);
 
-        if ($financeData && isset($financeData['user_ids']) && count($financeData['user_ids']) > 0) {
-            
-            if (in_array($ppdb->user_id, $financeData['user_ids'])) {
-                
-                if (isset($financeData['is_insider']) && $financeData['is_insider'] == 1) {
-                    $hasDiscount = false;
-                } else {
-                    $hasDiscount = true;
-                }
-            }
+        if ($financeData) {
+            $hasDiscount = isset($financeData['is_discount']) ? (bool) $financeData['is_discount'] : false;
+            $hasVoucher = isset($financeData['is_voucher']) ? (bool) $financeData['is_voucher'] : false;
         }
 
         if ($hasDiscount) {
-            $setting = GeneralSettings::where('slug', 'development-fee-discount')->first();
+            $setting = \App\Models\GeneralSettings::where('slug', 'development-fee-discount')->first();
             if ($setting) {
                 $discountPercentage = (float) $setting->value;
             }
@@ -88,7 +83,7 @@ class PriceHelper
         return [
             'is_eligible_discount' => $hasDiscount,
             'discount_percentage' => $discountPercentage,
-            'is_eligible_free_voucher' => true
+            'is_eligible_free_voucher' => $hasVoucher
         ];
     }
 
@@ -99,7 +94,8 @@ class PriceHelper
         }
 
         if ($developmentFeeOption === 'lunas') {
-            return true;
+            $lunasBenefit = self::checkDevelopmentLunasDiscount($ppdb);
+            return $lunasBenefit['is_eligible_free_voucher'] ?? false;
         }
 
         return false;
@@ -137,7 +133,7 @@ class PriceHelper
 
     private static function collect($model, $pattern, $default, $withFormat = false, $year = null, $returnModel = false)
     {
-        $finances = Finance::with(['financeUser'])->select(['id','nominal_default', 'name', 'description', 'code', 'start_date', 'is_insider'])
+        $finances = Finance::with(['financeUser'])->select(['id','nominal_default', 'name', 'description', 'code', 'start_date', 'is_insider', 'is_voucher', 'is_discount','periode_start','periode_end'])
         ->get()->makeHidden(['id','financeUser'])->keyBy('code')->toArray();
 
         $keys = collect();
@@ -408,4 +404,41 @@ class PriceHelper
 
         return $max_date;
     }
+
+    public static function getPeriodPayment($model, string $type = '')
+    {
+        $diskonStatus = '';
+        $data = self::$type($model, 0, 0, 1);
+        if ($data) {
+            if (isset($data['periode_start']) && $data['periode_start']) {
+                $diskonStatus = 'Wajib dibayarkan mulai tanggal '. Carbon::parse($data['periode_start'])->format('d-m-Y');
+            }
+
+            if (isset($data['periode_end']) && $data['periode_end']) {
+                $diskonStatus .= ' sampai tanggal '. Carbon::parse($data['periode_end'])->format('d-m-Y');
+            }
+        }
+
+        return $diskonStatus;
+    }
+
+    public static function getPeriodFinance($model, string $type = ''){
+        $data = self::$type($model, 0, 0, 1);
+        if (isset($data['periode_end']) && $data['periode_end']) {
+            return Carbon::parse($data['periode_end'])->endOfDay();
+        }
+        return null;
+    }
+
+    public static function getDatePeriodePayment($model, string $type = '')
+    {
+        $date_start = $date_end = null;
+        $data = self::$type($model, 0, 0, 1);
+        if ($data) {
+            $date_start = $data['periode_start'];
+            $date_end = $data['periode_end'];
+        }
+        return ['start' => $date_start, 'end' => $date_end];
+    }
+
 }

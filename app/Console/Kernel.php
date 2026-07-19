@@ -32,7 +32,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('tools:check-expired-order-uniform')->everyMinute();
         $schedule->command('email:installment-reminder')->dailyAt('01:00')->appendOutputTo(storage_path('logs/cron-installment.log'));
         $schedule->command('email:payment-period-reminder')->dailyAt('02:00')->appendOutputTo(storage_path('logs/cron-payment-period.log'));
-        $schedule->command('payment:expire-virtual-accounts')->everyMinute()->appendOutputTo(storage_path('logs/cron-expire-virtual-accounts.log'));
+        $schedule->command('payment:expire-virtual-accounts')->dailyAt('02:00')->appendOutputTo(storage_path('logs/cron-expire-virtual-accounts.log'));
     }
 
     /**

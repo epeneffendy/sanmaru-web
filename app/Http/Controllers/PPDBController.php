@@ -134,7 +134,7 @@ class PPDBController extends Controller
                 $dp_va = \App\Models\PaymentVirtualAccounts::where('virtual_account_number', $dp_detail->virtual_account)
                     ->orderBy('id', 'desc')
                     ->first();
-                
+
                 if ($dp_va) {
                     $item_is_dp_expired = false;
                     if ($dp_va->status == \App\Models\PaymentVirtualAccounts::STATUS_EXPIRED) {
@@ -1161,9 +1161,11 @@ class PPDBController extends Controller
             'nama_ayah' => $ppdb->father() ? $ppdb->father()->name : NULL,
             'nama_ibu' => $ppdb->mother() ? $ppdb->mother()->name : NULL,
             'total_bayar' => PriceHelper::development($ppdb, true),
-            'keterangan' => PriceHelper::getDescriptionFinance($ppdb, 'development'),
+            // 'keterangan' => PriceHelper::getDescriptionFinance($ppdb, 'development'),
+            'keterangan' => PriceHelper::getPeriodPayment($ppdb, 'development'),
             'total_bayar_kegiatan' => PriceHelper::activity($ppdb, true),
-            'keterangan_kegiatan' => PriceHelper::getDescriptionFinance($ppdb, 'activity'),
+            // 'keterangan_kegiatan' => PriceHelper::getDescriptionFinance($ppdb, 'activity'),
+            'keterangan_kegiatan' => PriceHelper::getPeriodPayment($ppdb, 'activity'),
             'total_bayar_spp' => PriceHelper::tuition($ppdb, true),
             'keterangan_spp' => PriceHelper::getDescriptionFinance($ppdb, 'tuition'),
             'total_bayar_diskon' => $totalBayarDiskon,
@@ -1187,7 +1189,8 @@ class PPDBController extends Controller
             // 'cicilan_4' => @PriceHelper::rupiah($ppdb->cicilan_4),
             // 'cicilan_5' => @PriceHelper::rupiah($ppdb->cicilan_5),
             'jurusan' => $jurusan,
-            'pembayaran' => $ppdb->unit->payment_option,
+            // 'pembayaran' => $ppdb->unit->payment_option,
+            'pembayaran' => 'Bank BCA',
             'kota' => $ppdb->unit->city,
             // Hardcode for uniform deadline
             'uniform_payment_deadline' => $uniformPaymentDeadline,
@@ -1944,7 +1947,7 @@ class PPDBController extends Controller
         $user = $request->session()->get('user');
         $ppdbUser = PPDBUser::where('id', $user['ppdb']['id'])->first();
 
-        $financePeriode = FinancePeriode::where('type','activity')->where('unit_id',$ppdbUser->unit_id)->first();
+        $financePeriodeActivity = PriceHelper::getDatePeriodePayment($ppdbUser,'activity');
         
         $is_show = false;
         // if($ppdbUser->development_fee_option == PPDBUser::DEVELOPMENT_FEE_ANGSURAN){
@@ -2006,7 +2009,7 @@ class PPDBController extends Controller
             'arr_dispensation'=>$arr_dispensation,
             'is_show' => $is_show,
             'ppdbUser'=> $ppdbUser,
-            'financePeriode' => $financePeriode,
+            'financePeriodeActivity' => $financePeriodeActivity,
             'nav' => ['parent' => 'data', 'child' => 'Data Siswa']
         );
 

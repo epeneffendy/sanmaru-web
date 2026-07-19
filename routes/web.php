@@ -702,6 +702,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::delete('delete/{finance}', 'FinanceController@delete')->name('delete');
 
             Route::get('unit-periode/{unitId}', 'FinanceController@unitPeriode')->name('unit-periode');
+            Route::get('fetch-students', 'FinanceController@fetchStudents')->name('fetch-students');
 
             Route::get('export', 'FinanceController@export')->name('export');
             Route::post('import', 'FinanceController@import')->name('import');

@@ -67,6 +67,11 @@ class PaymentDispensationsService {
     public function create($params, $ppdb, $type, $operator = 'user'){
         return \Illuminate\Support\Facades\DB::transaction(function () use ($params, $ppdb, $type, $operator) {
 
+            \App\Models\PaymentVirtualAccounts::where('ppdb_user_id', $params['ppdb_user_id'])
+                ->where('type', $type)
+                ->where('status', \App\Models\PaymentVirtualAccounts::STATUS_UNPAID)
+                ->update(['status' => \App\Models\PaymentVirtualAccounts::STATUS_CANCELED]);
+
             $paymentTerm = StudentBills::PAYMENT_TERM_FULL;
 
             if($params['dispensation_mode'] == PaymentDispensations::MODE_ONLY_DISCOUNT){
@@ -551,18 +556,52 @@ class PaymentDispensationsService {
     }
 
     public function confirmPlanDate($params, $ppdb_id){
-        $dispensation = $this->getByUserPpdb($ppdb_id);
+        $type = $params['dispensation_type'] ?? 'development';
+        $dispensation = $this->getByUserPpdb($ppdb_id, $type);
+
+        $dp_detail_id = null;
 
         if($dispensation){
-            foreach($params['dates'] as $key => $value){
-                $detail = PaymentDispensationDetails::where('id', $key)->first();
-                if($detail){
-                    $detail->plan_date = $value;
-                    $detail->save();
+            if(isset($params['dates'])) {
+                foreach($params['dates'] as $key => $value){
+                    $detail = PaymentDispensationDetails::where('id', $key)->first();
+                    if($detail){
+                        $detail->plan_date = $value;
+                        $detail->save();
+                    }
+                }
+            }
+
+            // Create VA for DP automatically
+            $dp_detail = PaymentDispensationDetails::where('payment_dispensation_id', $dispensation->id)
+                ->where('installment_number', 0)
+                ->first();
+
+            if ($dp_detail) {
+                $dp_detail_id = $dp_detail->id;
+                if ($dp_detail->status == 'unpaid') {
+                $paymentVirtualAccountsService = app(\App\Services\PaymentVirtualAccountsService::class);
+                $va_unpaid = $paymentVirtualAccountsService->findByVirtualAccountUnpaid($dp_detail->virtual_account);
+                
+                if (!$va_unpaid) {
+                    $virtual_account_type = \App\Models\PaymentVirtualAccounts::VIRTUAL_ACCOUNT_INSTALLMENT;
+                    $virtual_account_number = $dp_detail->virtual_account;
+                    $remaining_balance = $dp_detail->nominal - $dp_detail->amount_paid;
+                    
+                    $expired_at = now()->addDays(1);
+                    if ($type == 'activity') {
+                        $expired_at = now()->addDays(30);
+                    } else {
+                        $expired_at = now()->addDays(7);
+                    }
+                    
+                    $fillable = $paymentVirtualAccountsService->fillable($dispensation->ppdb_user_id, $type, $virtual_account_number, $remaining_balance, $virtual_account_type, $expired_at);
+                    $paymentVirtualAccountsService->create($fillable);
                 }
             }
         }
-
-        return true;
+        }
+        
+        return ['status' => true, 'dp_detail_id' => $dp_detail_id ?? null, 'type' => $type];
     }
 }

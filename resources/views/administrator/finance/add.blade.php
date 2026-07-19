@@ -82,28 +82,6 @@
                                     </select>
                                 </div>
                             </div> --}}
-                            <div class="form-group">
-                                <label class="control-label col-sm-2" for="user_ids">Siswa:</label>
-                                <div class="col-sm-10">
-                                    <select name="user_ids[]" id="user_ids" class="form-control select-autocomplete selectpicker" data-style="btn-success" data-selected-text-format="count > 3" multiple data-dropup-auto="false">
-                                        @foreach ($students as $student)
-                                            <option value="{{ $student->id }}" {{ @in_array($student->id, old('user_ids', @$finance->user_ids)) ? 'selected' : NULL }}>{{ $student->ppdb ? $student->ppdb->register_number . ' - ' . $student->ppdb->name : ($student->student ? $student->student->name : $student->email ) }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div id="block-insider" {{ old('user_ids', @$finance->user_ids) ? NULL : 'style=display:none;' }}>
-                                <div class="form-group">
-                                    <label class="control-label col-sm-2">Status siswa</label>
-                                    <div class="col-sm-10">
-                                        <div class="checkbox checkbox-success">
-                                            <input id="is_insider" name="is_insider" type="checkbox" value="1" {{ (old('is_insider', @$finance->is_insider) == 1) ? 'checked' : NULL }} />
-                                            <label for="is_insider">Anak Pegawai</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
 
                             <div class="form-group">
                                 <label class="control-label col-sm-2" for="year">Tahun:</label>
@@ -116,9 +94,52 @@
                                     </select>
                                 </div>
                             </div>
+                            
+                            <div class="form-group">
+                                <label class="control-label col-sm-2" for="user_ids">Siswa:</label>
+                                <div class="col-sm-10">
+                                    <select name="user_ids[]" id="user_ids" class="form-control select-autocomplete selectpicker" data-style="btn-success" data-selected-text-format="count > 3" multiple data-dropup-auto="false">
+                                        @foreach ($students as $student)
+                                            <option value="{{ $student->id }}" {{ @in_array($student->id, old('user_ids', @$finance->user_ids)) ? 'selected' : NULL }}>{{ $student->ppdb ? $student->ppdb->register_number . ' - ' . $student->ppdb->name : ($student->student ? $student->student->name : $student->email ) }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+
+                            
+
+                            <div id="block-insider" {{ old('type', @$finance->type) == 'development' ? NULL : 'style=display:none;' }}>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-2">Status Potongan</label>
+                                    <div class="col-sm-10">
+                                        @if(isset($discount))
+                                            <div class="checkbox checkbox-success">
+                                                <input type="hidden" name="is_discount" value="0">
+                                                <input id="is_discount" name="is_discount" type="checkbox" value="1" {{ (old('is_discount', @$finance->id ? $finance->is_discount : (old('type', @$finance->type) == 'development' ? 1 : 0)) == 1) ? 'checked' : NULL }} />
+                                                <label for="is_discount">Potongan dengan discount ({{ $discount->value }}%)</label>
+                                            </div>
+                                        @endif
+                                        <div class="checkbox checkbox-success">
+                                            <input type="hidden" name="is_voucher" value="0">
+                                            <input id="is_voucher" name="is_voucher" type="checkbox" value="1" {{ (old('is_voucher', @$finance->id ? $finance->is_voucher : (old('type', @$finance->type) == 'development' ? 1 : 0)) == 1) ? 'checked' : NULL }} />
+                                            <label for="is_voucher">Mendapatkan Free Voucher Seragam Olah Raga</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            
                             <hr />
 
-                            <div id="block-angsuran" {{ (old('type', @$finance->type) == 'development') ? NULL : 'style=display:none;' }}>
+                            <div id="block-angsuran" {{ ((old('type', @$finance->type) == 'development') || (old('type', @$finance->type) == 'activity')) ? NULL : 'style=display:none;' }}>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-2" for="periode_start">Periode Pembayaran:</label>
+                                    <div class="col-sm-10">
+                                        <input type="date" name="periode_start" id="periode_start" value="{{ (old('type', @$finance->type) == 'development') || (old('type', @$finance->type) == 'activity') ? old('start_date', @$finance->periode_start) : NULL}}" placeholder="Periode Awal Pembayaran">
+                                        <input type="date" name="periode_end" id="periode_end" value="{{ (old('type', @$finance->type) == 'development') || (old('type', @$finance->type) == 'activity') ? old('start_date', @$finance->periode_end) : NULL}}" placeholder="Periode Awal Pembayaran">
+                                    </div>
+                                </div>
+                            
                                 <div class="form-group">
                                     <label class="control-label col-sm-2" for="start_date">Tanggal Mulai Angsur:</label>
                                     <div class="col-sm-10">
@@ -181,39 +202,85 @@
         $(document).ready(function(){
             $('select.select-autocomplete').selectpicker({liveSearch: true});
             $('select[name=type]').change(function () {
-                if ($(this).val() == "development") {
+                if (($(this).val() == "development") || ($(this).val() == "activity")) {
                     $('#block-angsuran').show();
                 } else {
                     $('#start_date').val(null);
                     $('#block-angsuran').hide();
                 }
+                toggleBlockInsider();
             });
 
             $("select[name='user_ids[]']").change(function () {
-                if ($(this).find('option:selected').length <= 0) {
-                    $('#is_insider').removeAttr('checked');
-                    $('#block-insider').hide();
+                toggleBlockInsider();
+            });
+
+            function toggleBlockInsider() {
+                var type = $('select[name=type]').val();
+
+                if (type == 'development') {
+                    if (!$('#block-insider').is(':visible')) {
+                        $('#is_discount').prop('checked', true);
+                        $('#is_voucher').prop('checked', true);
+                        $('#block-insider').show();
+                    }
                 } else {
-                    $('#block-insider').show();
+                    $('#is_discount').prop('checked', false);
+                    $('#is_voucher').prop('checked', false);
+                    $('#block-insider').hide();
                 }
-            })
+            }
         });
 
         $(document).ready(function() {
             var unitId = $("#unit_id").find(":selected").val()
             var year = $("#year").find(":selected").val()
             fetchPeriodOption(unitId, year)
+            fetchStudentOption(unitId, year)
         });
         $("#unit_id").change(function() {
             var unitId = $(this).find(":selected").val()
             var year = $("#year").find(":selected").val()
             fetchPeriodOption(unitId, year)
+            fetchStudentOption(unitId, year)
         })
         $("#year").change(function() {
             var unitId = $("#unit_id").find(":selected").val()
             var year = $(this).find(":selected").val()
             fetchPeriodOption(unitId, year)
+            fetchStudentOption(unitId, year)
         })
+
+        function fetchStudentOption(unitId, year) {
+            var selectedIds = $("#user_ids").val() || [];
+            var selectedOptions = [];
+            
+            $("#user_ids option:selected").each(function() {
+                selectedOptions.push({
+                    id: $(this).val(),
+                    name: $(this).text()
+                });
+            });
+
+            $("#user_ids").empty();
+
+            $.each(selectedOptions, function(index, option) {
+                $("#user_ids").append('<option value="' + option.id + '" selected>' + option.name + '</option>');
+            });
+
+            if (unitId || year) {
+                $.get("{{ route('admin.finance.fetch-students') }}", { unit: unitId, year: year }, function(students) {
+                    $.each(students, function(index, student) {
+                        if ($.inArray(student.id.toString(), selectedIds) === -1 && $.inArray(student.id, selectedIds) === -1) {
+                            $("#user_ids").append('<option value="' + student.id + '">' + student.name + '</option>');
+                        }
+                    });
+                    $("#user_ids").selectpicker("refresh");
+                }, 'json');
+            } else {
+                $("#user_ids").selectpicker("refresh");
+            }
+        }
 
         function fetchPeriodOption(unitId, year) {
             $("#period_id").empty()

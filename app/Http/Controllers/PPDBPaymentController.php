@@ -97,28 +97,30 @@ class PPDBPaymentController extends Controller
             ];
 
             if(($dispensation->dispensation_mode == PaymentDispensations::MODE_FULL_SETUP) || ($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT)){
-                if(($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT)){
-
-                    if(count($dispensation->details) > 1){
-                        if($virtual_account_unpaid){
-                            if($virtual_account_unpaid->status == PaymentVirtualAccounts::STATUS_UNPAID){
-                                return view('ppdb-billing.payment-bill-full', $data);
-                            }
-                        }else{
-                            return view('ppdb-billing.payment-list-bill-new', $data);
-                        }
-                    } else{
-                        if($virtual_account_unpaid){
-                            if($virtual_account_unpaid->status == PaymentVirtualAccounts::STATUS_UNPAID){
-                                // if($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT){
-                                    return view('ppdb-billing.payment-bill-full', $data);
-                                    // return redirect()->route('ppdb.bills.check-payment-status', ['virtual_account_number' => $virtual_account_unpaid->virtual_account_number, 'dispensation_type' => $type])->with('message', 'Data berhasil disimpan!');
-                                // }
-                            }
-                        }else{
-                            return view('ppdb-billing.payment-list-bill-new', $data);
+                if($virtual_account_unpaid && $virtual_account_unpaid->status == PaymentVirtualAccounts::STATUS_UNPAID){
+                    $va_type = $virtual_account_unpaid->virtual_account_type;
+                    if ($va_type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT || $va_type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_PARTIAL) {
+                        return redirect()->route('ppdb.bills.payment-now', [
+                            'id' => $dispensation->id, 
+                            'type' => $va_type, 
+                            'dispensation_type' => $type
+                        ]);
+                    } else {
+                        $detail = \App\Models\PaymentDispensationDetails::where('virtual_account', $virtual_account_unpaid->virtual_account_number)
+                                  ->where('payment_dispensation_id', $dispensation->id)
+                                  ->first();
+                        if ($detail) {
+                            return redirect()->route('ppdb.bills.payment-now', [
+                                'id' => $detail->id, 
+                                'type' => $va_type, 
+                                'dispensation_type' => $type
+                            ]);
                         }
                     }
+                }
+
+                if(($dispensation->dispensation_mode == PaymentDispensations::MODE_REAL_PAYMENT)){
+                    return view('ppdb-billing.payment-list-bill-new', $data);
                 }else{
                     return view('ppdb-billing.payment-list-bill-new', $data);
                 }
@@ -145,6 +147,11 @@ class PPDBPaymentController extends Controller
                 'discount'=>$discount,
                 'type'=>$type
             ];
+            
+            if($type == PaymentDispensations::DISPENSATION_TYPE_DEVELOPMENT){
+                $data['lunasBenefit'] = PriceHelper::checkDevelopmentLunasDiscount($ppdb);
+            }
+            
             return view('ppdb-billing.payment-options', $data);
         }
     }
@@ -184,12 +191,23 @@ class PPDBPaymentController extends Controller
                 'total_fee'=>$request->total_bill,
                 'actual_cost'=>$request->total_bill
             ];
+            
+            $nominal_diskon_lunas = $request->nominal_diskon_lunas ?? 0;
+            if($type == 'development' && $request->paymentType == 'lunas'){
+                $lunasBenefit = PriceHelper::checkDevelopmentLunasDiscount($ppdb);
+                if ($lunasBenefit['is_eligible_discount']) {
+                    $nominal_diskon_lunas = ($lunasBenefit['discount_percentage'] / 100) * $request->total_bill;
+                } else {
+                    $nominal_diskon_lunas = 0;
+                }
+            }
+            
             $payment_type = $request->paymentType;
-            $input = $paymentDispensationService->fillable($ppdb, ($request->total_bill - $request->nominal_diskon_lunas), $request->total_bill, $type, $dispensation_mode);
+            $input = $paymentDispensationService->fillable($ppdb, ($request->total_bill - $nominal_diskon_lunas), $request->total_bill, $type, $dispensation_mode);
 
             $json_value['va_full_statement'] = $va_full_statement;
             $json_value['va_partial'] = $va_partial;
-            $input['remaining_balance'] =($request->total_bill - $request->nominal_diskon_lunas);
+            $input['remaining_balance'] =($request->total_bill - $nominal_diskon_lunas);
             $input['payment_type'] = $payment_type;
 
             $input['value'] = json_encode($json_value);
@@ -277,12 +295,14 @@ class PPDBPaymentController extends Controller
                     $type_payment = $dispensation_type;
 
                     $expired_at = now()->addDays(1);
-                    if($installment_type == 'down_payment'){
+                    if(isset($installment_type) && $installment_type == 'down_payment'){
                         if ($dispensation_type == 'activity') {
-                            $expired_at = now()->addDays(3);
+                            $expired_at = now()->addDays(30);
                         } else {
                             $expired_at = now()->addDays(7);
                         }
+                    } elseif ($virtual_account_type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT && $dispensation_type == 'activity') {
+                        $expired_at = now()->addDays(30);
                     }
                     $fillable = $paymentVirtualAccountsService->fillable($dispensation->ppdb_user_id,$type_payment, $virtual_account_number, $remaining_balance, $virtual_account_type, $expired_at);
                     $paymentVirtualAccountsService->create($fillable);
@@ -389,7 +409,14 @@ class PPDBPaymentController extends Controller
     public function paymentPlanDate(Request $request, PaymentDispensationsService $paymentDispensationsService){
         $user = $request->session()->get('user');
         $confirm = $paymentDispensationsService->confirmPlanDate($request->all(), $user['ppdb']['id']);
-        if($confirm){
+        if($confirm['status']){
+            if ($confirm['type'] == 'activity' && $confirm['dp_detail_id']) {
+                return redirect()->route('ppdb.bills.payment-now', [
+                    'id' => $confirm['dp_detail_id'], 
+                    'type' => 'installment', 
+                    'dispensation_type' => 'activity'
+                ])->with('message', 'Tanggal rencana pembayaran berhasil disimpan!');
+            }
             return redirect()->back()->with('message', 'Tanggal rencana pembayaran berhasil disimpan!');
         }
 

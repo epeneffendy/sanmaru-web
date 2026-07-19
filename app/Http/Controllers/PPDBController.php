@@ -118,15 +118,14 @@ class PPDBController extends Controller
 
         $stageResults = $user_ppdb->stages();
 
-        $dp_va = null;
-        $dp_detail = null;
+        $dp_notifications = [];
         $is_dp_expired = false;
-        $dp_dispensation = \App\Models\PaymentDispensations::where('ppdb_user_id', $user_ppdb->id)
+        $dp_dispensations = \App\Models\PaymentDispensations::where('ppdb_user_id', $user_ppdb->id)
             ->where('status', \App\Models\PaymentDispensations::STATUS_ACTIVE)
-            ->where('dispensation_type', 'development')
-            ->first();
+            ->whereIn('dispensation_type', ['development', 'activity'])
+            ->get();
         
-        if ($dp_dispensation) {
+        foreach ($dp_dispensations as $dp_dispensation) {
             $dp_detail = \App\Models\PaymentDispensationDetails::where('payment_dispensation_id', $dp_dispensation->id)
                 ->where('installment_number', 0)
                 ->first();
@@ -137,8 +136,24 @@ class PPDBController extends Controller
                     ->first();
                 
                 if ($dp_va) {
-                    if (\Carbon\Carbon::now()->greaterThan(\Carbon\Carbon::parse($dp_va->expired_at)) || $dp_va->status == \App\Models\PaymentVirtualAccounts::STATUS_EXPIRED) {
+                    $item_is_dp_expired = false;
+                    if ($dp_va->status == \App\Models\PaymentVirtualAccounts::STATUS_EXPIRED) {
+                        $item_is_dp_expired = true;
                         $is_dp_expired = true;
+                    }
+
+                    if($dp_va->status == \App\Models\PaymentVirtualAccounts::STATUS_CANCELED){
+                        $item_is_dp_expired = false;
+                    }
+                    
+                    if ($item_is_dp_expired || $dp_va->status == \App\Models\PaymentVirtualAccounts::STATUS_UNPAID) {
+                        $dp_notifications[] = [
+                            'dp_va' => $dp_va,
+                            'dp_detail' => $dp_detail,
+                            'is_dp_expired' => $item_is_dp_expired,
+                            'dispensation_type' => $dp_dispensation->dispensation_type,
+                            'title' => $dp_dispensation->dispensation_type == 'activity' ? 'Uang Kegiatan' : 'Uang Pengembangan'
+                        ];
                     }
                 }
             }
@@ -153,8 +168,7 @@ class PPDBController extends Controller
             'is_stage' => $is_stage,
             'is_stage_show' => $is_stage_show,
             'nav' => ['parent' => 'home', 'child' => 'Home'],
-            'dp_va' => $dp_va,
-            'dp_detail' => $dp_detail,
+            'dp_notifications' => $dp_notifications,
             'is_dp_expired' => $is_dp_expired,
         );
         $view = 'new-welcome';
@@ -1972,6 +1986,7 @@ class PPDBController extends Controller
         $is_dispensation = false;
         $arr_dispensation = [];
         if($dispensation){
+
             foreach($dispensation as $ind => $d){
                 if($d->dispensation_mode != PaymentDispensations::MODE_REAL_PAYMENT){
                     $arr_dispensation[$d->dispensation_type]['type'] = $d->dispensation_type;

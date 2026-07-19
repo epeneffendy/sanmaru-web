@@ -3,6 +3,7 @@ namespace App\Helpers;
 
 use App\Models\PPDBUser;
 use App\Models\Finance;
+use App\Models\GeneralSettings;
 use App\Models\Student;
 use App\Models\Period;
 use App\Models\User;
@@ -56,6 +57,39 @@ class PriceHelper
             }
         }
         return $discountStatus;
+    }
+
+    public static function checkDevelopmentLunasDiscount(PPDBUser $ppdb)
+    {
+        $hasDiscount = true; // Default dapat diskon untuk yang tidak ada di finance_user
+        $discountPercentage = 0;
+
+        $financeData = self::development($ppdb, false, null, true);
+
+        if ($financeData && isset($financeData['user_ids']) && count($financeData['user_ids']) > 0) {
+            
+            if (in_array($ppdb->user_id, $financeData['user_ids'])) {
+                
+                if (isset($financeData['is_insider']) && $financeData['is_insider'] == 1) {
+                    $hasDiscount = false;
+                } else {
+                    $hasDiscount = true;
+                }
+            }
+        }
+
+        if ($hasDiscount) {
+            $setting = GeneralSettings::where('slug', 'development-fee-discount')->first();
+            if ($setting) {
+                $discountPercentage = (float) $setting->value;
+            }
+        }
+
+        return [
+            'is_eligible_discount' => $hasDiscount,
+            'discount_percentage' => $discountPercentage,
+            'is_eligible_free_voucher' => true
+        ];
     }
 
     public static function getFreeVouchersOlahRagaProductStatus(PPDBUser $ppdb, $developmentFeeOption=null)

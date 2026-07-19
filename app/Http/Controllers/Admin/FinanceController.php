@@ -17,6 +17,7 @@ use App\Http\Requests\FinanceUpdateRequest;
 use Illuminate\Support\Facades\DB;
 use App\Events\PPDB\FinanceActivityUpdated;
 use App\Services\FinanceService;
+use App\Services\GeneralSettingService;
 use App\Services\PeriodService;
 
 class FinanceController extends Controller
@@ -60,14 +61,15 @@ class FinanceController extends Controller
         return view('administrator.finance.list', $data);
     }
 
-    public function add(FinanceService $financeService)
+    public function add(FinanceService $financeService, GeneralSettingService $generalSettingService)
     {
         $data = [
             'finance' => '',
             'units' => Unit::all()->keyBy('name'),
-            'students' => User::whereIn('type', ['siswa', 'ppdb'])->with('student', 'ppdb')->get(),
+            'students' => request()->old('user_ids') ? User::whereIn('id', request()->old('user_ids'))->with('student', 'ppdb')->get() : collect(),
             'periods' => Period::with('unit')->orderBy('unit_id', 'asc')->orderBy('id', 'asc')->get(),
             'years' => $financeService->getCollectedYears(),
+            'discount' => $generalSettingService->getBySlug('development-fee-discount'),
             'nav' => $this->page,
         ];
 
@@ -98,15 +100,16 @@ class FinanceController extends Controller
         return redirect(route('admin.finance.index'))->with('message', 'Berhasil ditambahkan');
     }
 
-    public function edit(Finance $finance, FinanceService $financeService)
+    public function edit(Finance $finance, FinanceService $financeService, GeneralSettingService $generalSettingService)
     {
         $data = [
             'status' => 'edit',
             'finance' => $finance,
             'units' => Unit::all()->keyBy('name'),
             'periods' => Period::with('unit')->orderBy('unit_id', 'asc')->orderBy('id', 'asc')->get(),
-            'students' => User::whereIn('type', ['siswa', 'ppdb'])->with('student', 'ppdb')->get(),
+            'students' => request()->old('user_ids', $finance->user_ids) ? User::whereIn('id', request()->old('user_ids', $finance->user_ids))->with('student', 'ppdb')->get() : collect(),
             'years' => $financeService->getCollectedYears(),
+            'discount' => $generalSettingService->getBySlug('development-fee-discount'),
             'nav' => $this->page
         ];
 
@@ -229,5 +232,46 @@ class FinanceController extends Controller
         }
 
         return redirect()->route('admin.finance.index')->with("Sukses");
+    }
+
+    public function fetchStudents(Request $request)
+    {
+        $unitId = $request->unit;
+        $year = $request->year;
+
+        if (!$unitId && !$year) {
+            return response()->json([]);
+        }
+
+        $query = User::whereIn('type', ['siswa', 'ppdb'])->with('student', 'ppdb', 'student.class.unit');
+
+        if ($unitId) {
+            $query->where(function($q) use ($unitId) {
+                $q->whereHas('ppdb', function($q2) use ($unitId) {
+                    $q2->where('unit_id', $unitId);
+                })->orWhereHas('student.class', function($q2) use ($unitId) {
+                    $q2->where('unit_id', $unitId);
+                });
+            });
+        }
+
+        if ($year) {
+            $query->where(function($q) use ($year) {
+                $q->whereHas('ppdb', function($q2) use ($year) {
+                    $q2->where('school_year', $year);
+                })->orWhereHas('student', function($q2) use ($year) {
+                    $q2->where('school_year', $year);
+                });
+            });
+        }
+
+        $students = $query->get()->map(function($student) {
+            return [
+                'id' => $student->id,
+                'name' => $student->ppdb ? $student->ppdb->register_number . ' - ' . $student->ppdb->name : ($student->student ? $student->student->name : $student->email)
+            ];
+        });
+
+        return response()->json($students);
     }
 }

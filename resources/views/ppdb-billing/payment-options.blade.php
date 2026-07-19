@@ -256,29 +256,61 @@
                         </div>
 
                         <!-- Only visible when Lunas is selected -->
-                        @if (isset($discount) && $discount > 0)
-                            <div id="lunasSummary" style="display: none;">
-                                <div class="alert mt-2 p-3"
-                                    style="background-color: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px;">
-                                    <h6 class="fw-bold mb-2" style="color: #075985; font-size: 13px;">
-                                        <i class="fa-solid fa-gift me-1"></i> Keuntungan Bayar Lunas 100%:
-                                    </h6>
-                                    <ul class="mb-0 ps-3" style="color: #075985; font-size: 13px;">
-                                        <li>Voucher {{ $discount }}% dari nominal uang pengembangan yang sudah
-                                            ditentukan.
-                                        </li>
-                                        <li>Mendapat voucher free seragam olahraga siswa.</li>
-                                    </ul>
+                        @if (isset($lunasBenefit) && $type == 'development')
+                            @if($lunasBenefit['is_eligible_discount'] || $lunasBenefit['is_eligible_free_voucher'])
+                                <div id="lunasSummary" style="display: none;">
+                                    <div class="alert mt-2 p-3"
+                                        style="background-color: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px;">
+                                        <h6 class="fw-bold mb-2" style="color: #075985; font-size: 13px;">
+                                            <i class="fa-solid fa-gift me-1"></i> Keuntungan Bayar Lunas 100%:
+                                        </h6>
+                                        <ul class="mb-0 ps-3" style="color: #075985; font-size: 13px;">
+                                            @if($lunasBenefit['is_eligible_discount'] && $lunasBenefit['discount_percentage'] > 0)
+                                                <li>Voucher {{ $lunasBenefit['discount_percentage'] }}% dari nominal uang pengembangan yang sudah ditentukan.</li>
+                                            @endif
+                                            @if($lunasBenefit['is_eligible_free_voucher'])
+                                                <li>Mendapat voucher free seragam olahraga siswa.</li>
+                                            @endif
+                                        </ul>
+                                    </div>
+                                    <div class="summary-item text-success fw-medium mt-3" id="diskonLunasRow" style="{{ ($lunasBenefit['is_eligible_discount'] && $lunasBenefit['discount_percentage'] > 0) ? '' : 'display: none;' }}">
+                                        <span>Diskon Pelunasan ({{ $lunasBenefit['discount_percentage'] }}%)</span>
+                                        <span id="textDiskonLunas">- Rp 0</span>
+                                        <input type="hidden" id="nominal_diskon_lunas" name="nominal_diskon_lunas" value="0">
+                                    </div>
                                 </div>
-                                <div class="summary-item text-success fw-medium mt-3">
-                                    <span>Diskon Pelunasan ({{ $discount }}%)</span>
-                                    <span id="textDiskonLunas">- Rp 0</span>
-                                    <input type="hidden" id="nominal_diskon_lunas" name="nominal_diskon_lunas"
-                                        value="0">
+                            @else
+                                <div id="lunasSummary" style="display: none;">
+                                    <input type="hidden" id="nominal_diskon_lunas" name="nominal_diskon_lunas" value="0">
                                 </div>
-                            </div>
+                            @endif
                         @else
-                            <input type="hidden" id="nominal_diskon_lunas" name="nominal_diskon_lunas" value="0">
+                            @if (isset($discount) && $discount > 0)
+                                <div id="lunasSummary" style="display: none;">
+                                    <div class="alert mt-2 p-3"
+                                        style="background-color: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px;">
+                                        <h6 class="fw-bold mb-2" style="color: #075985; font-size: 13px;">
+                                            <i class="fa-solid fa-gift me-1"></i> Keuntungan Bayar Lunas 100%:
+                                        </h6>
+                                        <ul class="mb-0 ps-3" style="color: #075985; font-size: 13px;">
+                                            <li>Voucher {{ $discount }}% dari nominal uang pengembangan yang sudah
+                                                ditentukan.
+                                            </li>
+                                            <li>Mendapat voucher free seragam olahraga siswa.</li>
+                                        </ul>
+                                    </div>
+                                    <div class="summary-item text-success fw-medium mt-3" id="diskonLunasRow">
+                                        <span>Diskon Pelunasan ({{ $discount }}%)</span>
+                                        <span id="textDiskonLunas">- Rp 0</span>
+                                        <input type="hidden" id="nominal_diskon_lunas" name="nominal_diskon_lunas"
+                                            value="0">
+                                    </div>
+                                </div>
+                            @else
+                                <div id="lunasSummary" style="display: none;">
+                                    <input type="hidden" id="nominal_diskon_lunas" name="nominal_diskon_lunas" value="0">
+                                </div>
+                            @endif
                         @endif
 
                         <!-- Only visible when Cicilan is selected -->
@@ -323,7 +355,13 @@
 
                 // --- 1. Constants & Variables ---
                 const TOTAL_BILL = {{ $total_bill ?? 0 }};
-                const DISCOUNT_PERCENTAGE = {{ $discount ?? 0 }};
+                @if (isset($lunasBenefit) && $type == 'development')
+                    const DISCOUNT_PERCENTAGE = {{ $lunasBenefit['discount_percentage'] ?? 0 }};
+                    const HAS_FREE_VOUCHER = {{ $lunasBenefit['is_eligible_free_voucher'] ? 'true' : 'false' }};
+                @else
+                    const DISCOUNT_PERCENTAGE = {{ $discount ?? 0 }};
+                    const HAS_FREE_VOUCHER = {{ (isset($discount) && $discount > 0) ? 'true' : 'false' }};
+                @endif
 
                 // --- 2. DOM Elements Caching ---
                 const $paymentOptions = $('.payment-option');
@@ -369,10 +407,20 @@
                         const diskonLunas = TOTAL_BILL * (DISCOUNT_PERCENTAGE / 100);
                         const totalBayarSekarang = TOTAL_BILL - diskonLunas;
 
-                        if (DISCOUNT_PERCENTAGE > 0) {
-                            $textDiskonLunas.text('- ' + formatRupiah(diskonLunas));
-                            $('#nominal_diskon_lunas').val(diskonLunas);
+                        if (DISCOUNT_PERCENTAGE > 0 || HAS_FREE_VOUCHER) {
+                            if (DISCOUNT_PERCENTAGE > 0) {
+                                $textDiskonLunas.text('- ' + formatRupiah(diskonLunas));
+                                $('#nominal_diskon_lunas').val(diskonLunas);
+                                $('#diskonLunasRow').show();
+                            } else {
+                                $textDiskonLunas.text('- Rp 0');
+                                $('#nominal_diskon_lunas').val(0);
+                                $('#diskonLunasRow').hide();
+                            }
                             $lunasSummary.slideDown(300);
+                        } else {
+                            $lunasSummary.hide();
+                            $('#nominal_diskon_lunas').val(0);
                         }
 
                         $summaryTotal.slideDown(300);

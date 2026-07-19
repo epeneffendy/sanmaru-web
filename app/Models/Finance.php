@@ -17,7 +17,7 @@ class Finance extends Model
     const STATUS_INACTIVE = 'inactive';
 
 
-    protected $fillable = ['code', 'name', 'nominal_default', 'unit_id', 'user_id', 'period_id', 'type', 'year', 'description', 'start_date', 'is_insider','status'];
+    protected $fillable = ['code', 'name', 'nominal_default', 'unit_id', 'user_id', 'period_id', 'type', 'year', 'description', 'start_date', 'is_insider','status' ,'periode_start', 'periode_end', 'is_discount','is_voucher'];
 
     protected $appends = ['user_ids'];
 

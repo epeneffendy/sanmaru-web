@@ -27,6 +27,8 @@ class FinanceStoreRequest extends FormRequest
             'code' => $this->pattern(),
             'user_ids' => $this->user_ids ?? [],
             'is_insider' => $this->is_insider == '1' ? true : false,
+            'is_discount' => ($this->type === 'development' && $this->is_discount == '1') ? true : false,
+            'is_voucher' => ($this->type === 'development' && $this->is_voucher == '1') ? true : false,
         ]);
     }
 
@@ -55,6 +57,10 @@ class FinanceStoreRequest extends FormRequest
                 }
             }],
             'is_insider' => 'nullable|boolean',
+            'is_discount' => 'nullable|boolean',
+            'is_voucher' => 'nullable|boolean',
+            'periode_start' => 'nullable|date',
+            'periode_end' => 'nullable|date',
             'start_date' => 'nullable|date'
         ];
     }

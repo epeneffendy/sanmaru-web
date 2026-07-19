@@ -118,6 +118,7 @@ class PaymentDispensationController extends Controller
         $status = 'error';
         $message = 'Tipe dispensasi tidak valid.';
         $attachment_url = '';
+        
         $ppdb = PPDBUser::where('id', $request->ppdb_user_id)->first();
         if ($ppdb) {
 

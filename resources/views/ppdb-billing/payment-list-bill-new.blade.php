@@ -368,6 +368,7 @@
             <div class="table-responsive">
                 <form action="{{ route('ppdb.bills.payment-plan-date') }}" method="POST" id="form-installment-dates">
                     @csrf
+                    <input type="hidden" name="dispensation_type" value="{{ $type }}">
                     <div id="alert-dates" class="px-3 pt-3"></div>
                     <table class="table table-custom mb-0">
                         <thead class="bg-light-green">
@@ -412,7 +413,7 @@
                                         {{ !empty($detail->date) ? \Carbon\Carbon::parse($detail->date)->format('d M Y') : '-' }}
                                     </td>
                                     <td class="text-muted">
-                                        @if($type == 'activity' || $detail->installment_number > 0)
+                                        @if($detail->installment_number > 0)
                                             @if (empty($detail->plan_date))
                                                 @php $hasEmptyDate = true; @endphp
                                                 <input type="date" name="dates[{{ $detail->id }}]" class="form-control"
@@ -420,6 +421,9 @@
                                                     id="installment_date_{{ $installmentIndex }}"
                                                     @if($type == 'development')
                                                         value="{{ $detail->installment_number == 1 ? \App\Helpers\Helper::tanggalCicilan($startDateAngsuran) : '' }}"
+                                                        {{ ($detail->installment_number == 1) ? 'readonly' : '' }}
+                                                    @elseif($type == 'activity')
+                                                        value="{{ $detail->installment_number == 1 ? \Carbon\Carbon::now()->addMonth()->format('Y-m-d') : '' }}"
                                                         {{ ($detail->installment_number == 1) ? 'readonly' : '' }}
                                                     @endif
                                                     required>

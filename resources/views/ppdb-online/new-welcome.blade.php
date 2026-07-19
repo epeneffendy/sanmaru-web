@@ -160,34 +160,34 @@
 
 
 
-                    @if($dp_va && $dp_detail)
-                        @if($is_dp_expired)
+                    @foreach($dp_notifications ?? [] as $dp_notif)
+                        @if($dp_notif['is_dp_expired'])
                             <div class="alert mt-2 p-3" style="background-color: #f8d7da; border: 1px solid #f5c2c7; border-radius: 8px;">
                                 <h6 class="fw-bold mb-2" style="color: #842029; font-size: 13px;">
-                                    <i class="fa-solid fa-circle-exclamation me-1"></i>Tagihan Kedaluwarsa (DP Uang Pengembangan)
+                                    <i class="fa-solid fa-circle-exclamation me-1"></i>Tagihan Kedaluwarsa (DP {{ $dp_notif['title'] }})
                                 </h6>
                                 <ul class="mb-0 ps-3" style="color: #842029; font-size: 13px;">
-                                    <li>Anda belum menyelesaikan pembayaran DP Uang Pengembangan dan <b>telah melewati batas waktu</b> yang ditentukan.</li>
+                                    <li>Anda belum menyelesaikan pembayaran DP {{ $dp_notif['title'] }} dan <b>telah melewati batas waktu</b> yang ditentukan.</li>
                                     <li>Untuk saat ini Anda belum bisa melanjutkan ke tahap berikutnya. Jika Anda ingin melanjutkan, silakan hubungi <b>Admin Sekolah</b> untuk proses lebih lanjut.</li>
                                 </ul>
                             </div>
-                        @elseif($dp_va->status == \App\Models\PaymentVirtualAccounts::STATUS_UNPAID)
+                        @elseif($dp_notif['dp_va']->status == \App\Models\PaymentVirtualAccounts::STATUS_UNPAID)
                             <div class="alert mt-2 p-3" style="background-color: #fff3cd; border: 1px solid #ffe69c; border-radius: 8px;">
                                 <h6 class="fw-bold mb-2" style="color: #664d03; font-size: 13px;">
-                                    <i class="fa-solid fa-clock me-1"></i>Informasi Pembayaran DP (Uang Pengembangan)
+                                    <i class="fa-solid fa-clock me-1"></i>Informasi Pembayaran DP ({{ $dp_notif['title'] }})
                                 </h6>
                                 <ul class="mb-0 ps-3" style="color: #664d03; font-size: 13px;">
-                                    <li>Anda memiliki tagihan Uang Muka (DP) yang <b>belum dibayar</b> sebesar <strong>Rp {{ number_format($dp_va->total_payment, 0, ',', '.') }}</strong>.</li>
-                                    <li>Batas waktu pembayaran DP Anda sampai dengan <strong>{{ \Carbon\Carbon::parse($dp_va->expired_at)->translatedFormat('d F Y H:i') }}</strong>. Segera lakukan pembayaran sebelum batas waktu berakhir.</li>
+                                    <li>Anda memiliki tagihan Uang Muka (DP) yang <b>belum dibayar</b> sebesar <strong>Rp {{ number_format($dp_notif['dp_va']->total_payment, 0, ',', '.') }}</strong>.</li>
+                                    <li>Batas waktu pembayaran DP Anda sampai dengan <strong>{{ \Carbon\Carbon::parse($dp_notif['dp_va']->expired_at)->translatedFormat('d F Y H:i') }}</strong>. Segera lakukan pembayaran sebelum batas waktu berakhir.</li>
                                     <li>
-                                        <a href="{{ route('ppdb.bills.payment-now', ['id' => $dp_detail->id, 'type' => 'installment', 'dispensation_type' => 'development']) }}" style="color: #664d03; font-weight: bold; text-decoration: underline;">
+                                        <a href="{{ route('ppdb.bills.payment-now', ['id' => $dp_notif['dp_detail']->id, 'type' => 'installment', 'dispensation_type' => $dp_notif['dispensation_type']]) }}" style="color: #664d03; font-weight: bold; text-decoration: underline;">
                                             Klik di sini untuk melihat detail pembayaran
                                         </a>
                                     </li>
                                 </ul>
                             </div>
                         @endif
-                    @endif
+                    @endforeach
 
                     @if(!$is_dp_expired)
                         <div class="status-ppdb">
@@ -590,34 +590,34 @@
             @endif
         </div>
 
-        @if($dp_va && $dp_detail)
-            @if($is_dp_expired)
+        @foreach($dp_notifications ?? [] as $dp_notif)
+            @if($dp_notif['is_dp_expired'])
                 <div class="alert mt-2 p-3" style="background-color: #f8d7da; border: 1px solid #f5c2c7; border-radius: 8px;">
                     <h6 class="fw-bold mb-2" style="color: #842029; font-size: 13px;">
-                        <i class="fa-solid fa-circle-exclamation me-1"></i>Tagihan Kedaluwarsa (DP Uang Pengembangan)
+                        <i class="fa-solid fa-circle-exclamation me-1"></i>Tagihan Kedaluwarsa (DP {{ $dp_notif['title'] }})
                     </h6>
                     <ul class="mb-0 ps-3" style="color: #842029; font-size: 13px;">
-                        <li>Anda belum menyelesaikan pembayaran DP Uang Pengembangan dan <b>telah melewati batas waktu</b> yang ditentukan.</li>
+                        <li>Anda belum menyelesaikan pembayaran DP {{ $dp_notif['title'] }} dan <b>telah melewati batas waktu</b> yang ditentukan.</li>
                         <li>Untuk saat ini Anda belum bisa melanjutkan ke tahap berikutnya. Jika Anda ingin melanjutkan, silakan hubungi <b>Admin Sekolah</b> untuk proses lebih lanjut.</li>
                     </ul>
                 </div>
-            @elseif($dp_va->status == \App\Models\PaymentVirtualAccounts::STATUS_UNPAID)
+            @elseif($dp_notif['dp_va']->status == \App\Models\PaymentVirtualAccounts::STATUS_UNPAID)
                 <div class="alert mt-2 p-3" style="background-color: #fff3cd; border: 1px solid #ffe69c; border-radius: 8px;">
                     <h6 class="fw-bold mb-2" style="color: #664d03; font-size: 13px;">
-                        <i class="fa-solid fa-clock me-1"></i>Informasi Pembayaran DP (Uang Pengembangan)
+                        <i class="fa-solid fa-clock me-1"></i>Informasi Pembayaran DP ({{ $dp_notif['title'] }})
                     </h6>
                     <ul class="mb-0 ps-3" style="color: #664d03; font-size: 13px;">
-                        <li>Anda memiliki tagihan Uang Muka (DP) yang <b>belum dibayar</b> sebesar <strong>Rp {{ number_format($dp_va->total_payment, 0, ',', '.') }}</strong>.</li>
-                        <li>Batas waktu pembayaran DP Anda sampai dengan <strong>{{ \Carbon\Carbon::parse($dp_va->expired_at)->translatedFormat('d F Y H:i') }}</strong>. Segera lakukan pembayaran sebelum batas waktu berakhir.</li>
+                        <li>Anda memiliki tagihan Uang Muka (DP) yang <b>belum dibayar</b> sebesar <strong>Rp {{ number_format($dp_notif['dp_va']->total_payment, 0, ',', '.') }}</strong>.</li>
+                        <li>Batas waktu pembayaran DP Anda sampai dengan <strong>{{ \Carbon\Carbon::parse($dp_notif['dp_va']->expired_at)->translatedFormat('d F Y H:i') }}</strong>. Segera lakukan pembayaran sebelum batas waktu berakhir.</li>
                         <li>
-                            <a href="{{ route('ppdb.bills.payment-now', ['id' => $dp_detail->id, 'type' => 'installment', 'dispensation_type' => 'development']) }}" style="color: #664d03; font-weight: bold; text-decoration: underline;">
+                            <a href="{{ route('ppdb.bills.payment-now', ['id' => $dp_notif['dp_detail']->id, 'type' => 'installment', 'dispensation_type' => $dp_notif['dispensation_type']]) }}" style="color: #664d03; font-weight: bold; text-decoration: underline;">
                                 Klik di sini untuk melihat detail pembayaran
                             </a>
                         </li>
                     </ul>
                 </div>
             @endif
-        @endif
+        @endforeach
 
         @if(!$is_dp_expired)
             @if ($user->status != \App\Models\PPDBUser::STATUS_COMPLETE && $user->status != \App\Models\PPDBUser::STATUS_INCOMPLETE)

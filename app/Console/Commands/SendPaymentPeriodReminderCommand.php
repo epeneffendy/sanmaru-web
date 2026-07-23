@@ -2,10 +2,13 @@
 
 namespace App\Console\Commands;
 
+use App\Helpers\PriceHelper;
 use Illuminate\Console\Command;
 use App\Models\FinancePeriode;
 use App\Models\Student;
 use App\Mail\PaymentPeriodReminderMail;
+use App\Models\PPDBUser;
+use App\Models\Unit;
 use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -44,31 +47,33 @@ class SendPaymentPeriodReminderCommand extends Command
     public function handle()
     {
         // Target date is exactly 3 days from now
-        $targetDate = Carbon::now()->addDays(3)->toDateString();
+        $targetDate = Carbon::now()->addDays(1)->toDateString();
         
-        // Find periods starting on target date specifically for 'activity' (Uang Kegiatan)
-        $periods = FinancePeriode::where('type', 'activity')->whereDate('start_date', $targetDate)->get();
+        $units = Unit::get();
 
-        if ($periods->isEmpty()) {
-            $this->info("No payment periods starting on {$targetDate}.");
+        if ($units->isEmpty()) {
+            $this->info("No payment unit starting on {$targetDate}.");
             return;
         }
 
-        foreach ($periods as $periode) {
-            $this->info("Processing period ID: {$periode->id} (Starts: {$periode->start_date})");
+        foreach ($units as $unit) {
+            $this->info("Processing Unit ID: {$unit->id} ({$unit->name})");
             
             // Get all PPDB students with emails and matching unit
-            \App\Models\PPDBUser::where('unit_id', $periode->unit_id)
+            \App\Models\PPDBUser::where('unit_id', $unit->id)
                 ->where('status', \App\Models\PPDBUser::STATUS_SUBMITTED)
                 ->where('period_verified', \App\Models\PPDBUser::PERIOD_VERIFIED)
                 ->with('user')
-                ->chunk(100, function($students) use ($periode) {
+                ->chunk(100, function($students) use ($unit) {
                     foreach ($students as $student) {
+                        $ppdb = PPDBUser::find($student->id);
+                        $periodePayment = PriceHelper::getDatePeriodePayment($ppdb, 'activity');
+
                         $email = optional($student->user)->email;
                         if (!$email) continue;
 
                         try {
-                            Mail::to($email)->queue(new PaymentPeriodReminderMail($student, $periode));
+                            Mail::to($email)->queue(new PaymentPeriodReminderMail($student, $periodePayment));
                         } catch (\Exception $e) {
                             Log::error("Failed to send payment period reminder to {$email}: " . $e->getMessage());
                         }

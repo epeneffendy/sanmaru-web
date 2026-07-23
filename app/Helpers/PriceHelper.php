@@ -15,6 +15,21 @@ use Illuminate\Support\Arr;
 
 class PriceHelper
 {
+    private static $financesCache = null;
+
+    private static function getFinances()
+    {
+        if (self::$financesCache === null) {
+            self::$financesCache = Finance::with(['financeUser'])
+                ->select(['id', 'nominal_default', 'name', 'description', 'code', 'start_date', 'is_insider', 'is_voucher', 'is_discount', 'periode_start', 'periode_end'])
+                ->get()
+                ->makeHidden(['id', 'financeUser'])
+                ->keyBy('code')
+                ->toArray();
+        }
+        return self::$financesCache;
+    }
+
     public static function getNameFinance($model, string $type = '')
     {
         $data = self::$type($model, 0, 0, 1);
@@ -133,8 +148,7 @@ class PriceHelper
 
     private static function collect($model, $pattern, $default, $withFormat = false, $year = null, $returnModel = false)
     {
-        $finances = Finance::with(['financeUser'])->select(['id','nominal_default', 'name', 'description', 'code', 'start_date', 'is_insider', 'is_voucher', 'is_discount','periode_start','periode_end'])
-        ->get()->makeHidden(['id','financeUser'])->keyBy('code')->toArray();
+        $finances = self::getFinances();
 
         $keys = collect();
         $year = $year?: date('Y');
@@ -313,8 +327,7 @@ class PriceHelper
 
     private static function collectDevelopment($model, $pattern, $default, $withFormat = false, $year = null, $returnModel = false)
     {
-        $finances = Finance::with(['financeUser'])->select(['id','nominal_default', 'name', 'description', 'code', 'start_date', 'is_insider'])
-            ->get()->makeHidden(['id','financeUser'])->keyBy('code')->toArray();
+        $finances = self::getFinances();
 
         $keys = collect();
         $year = $year?: date('Y');

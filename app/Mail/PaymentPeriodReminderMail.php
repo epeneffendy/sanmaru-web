@@ -23,7 +23,7 @@ class PaymentPeriodReminderMail extends Mailable
      *
      * @return void
      */
-    public function __construct(PPDBUser $student, FinancePeriode $periode)
+    public function __construct(PPDBUser $student, $periode)
     {
         $this->student = $student;
         $this->periode = $periode;

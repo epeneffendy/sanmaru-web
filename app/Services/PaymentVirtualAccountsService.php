@@ -67,7 +67,7 @@ class PaymentVirtualAccountsService
         DB::beginTransaction();
         try {
             $paymentVirtualAccount = $this->findById($id);
-
+            
             if (!$paymentVirtualAccount) {
                 DB::rollBack();
                 return false;
@@ -90,6 +90,7 @@ class PaymentVirtualAccountsService
                     $char_virtual_account = strlen($virtual_account_number);
                     $is_full_payment = true;
                     $is_part = false;
+                    $payment_code = null;
                     if($char_virtual_account > 16){
                         $is_full_payment = false;
                         $payment_code = substr($virtual_account_number, -2);
@@ -114,7 +115,7 @@ class PaymentVirtualAccountsService
 
                     }
                 }
-
+                
                 if($confirmed){
                     DB::commit();
                     $email = $paymentVirtualAccount->ppdb->user->email;

@@ -12,6 +12,8 @@ class PaymentVirtualAccounts extends Model
     const STATUS_PAID = 'paid';
     const STATUS_CANCELED = 'canceled';
     const STATUS_EXPIRED = 'expired';
+    const STATUS_CLOSED = 'closed';
+    const STATUS_BLOCKED = 'blocked';
 
     const PAYMENT_TYPE_DEVELOPMENT = 'development';
     const PAYMENT_TYPE_ACTIVITY = 'activity';

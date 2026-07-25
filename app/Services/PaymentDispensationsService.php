@@ -579,27 +579,27 @@ class PaymentDispensationsService {
 
             if ($dp_detail) {
                 $dp_detail_id = $dp_detail->id;
-                if ($dp_detail->status == 'unpaid') {
-                $paymentVirtualAccountsService = app(\App\Services\PaymentVirtualAccountsService::class);
-                $va_unpaid = $paymentVirtualAccountsService->findByVirtualAccountUnpaid($dp_detail->virtual_account);
-                
-                if (!$va_unpaid) {
-                    $virtual_account_type = \App\Models\PaymentVirtualAccounts::VIRTUAL_ACCOUNT_INSTALLMENT;
-                    $virtual_account_number = $dp_detail->virtual_account;
-                    $remaining_balance = $dp_detail->nominal - $dp_detail->amount_paid;
+                if ($type != 'development' && $dp_detail->status == 'unpaid') {
+                    $paymentVirtualAccountsService = app(\App\Services\PaymentVirtualAccountsService::class);
+                    $va_unpaid = $paymentVirtualAccountsService->findByVirtualAccountUnpaid($dp_detail->virtual_account);
                     
-                    $expired_at = now()->addDays(1);
-                    if ($type == 'activity') {
-                        $expired_at = now()->addDays(30);
-                    } else {
-                        $expired_at = now()->addDays(7);
+                    if (!$va_unpaid) {
+                        $virtual_account_type = \App\Models\PaymentVirtualAccounts::VIRTUAL_ACCOUNT_INSTALLMENT;
+                        $virtual_account_number = $dp_detail->virtual_account;
+                        $remaining_balance = $dp_detail->nominal - $dp_detail->amount_paid;
+                        
+                        $expired_at = now()->addDays(1);
+                        if ($type == 'activity') {
+                            $expired_at = now()->addDays(30);
+                        } else {
+                            $expired_at = now()->addDays(7);
+                        }
+                        
+                        $fillable = $paymentVirtualAccountsService->fillable($dispensation->ppdb_user_id, $type, $virtual_account_number, $remaining_balance, $virtual_account_type, $expired_at);
+                        $paymentVirtualAccountsService->create($fillable);
                     }
-                    
-                    $fillable = $paymentVirtualAccountsService->fillable($dispensation->ppdb_user_id, $type, $virtual_account_number, $remaining_balance, $virtual_account_type, $expired_at);
-                    $paymentVirtualAccountsService->create($fillable);
                 }
             }
-        }
         }
         
         return ['status' => true, 'dp_detail_id' => $dp_detail_id ?? null, 'type' => $type];

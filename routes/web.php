@@ -840,6 +840,12 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
             Route::post('period-verified', 'PPDBMonitoringController@periodVerified')->name('period-verified');
         });
 
+        Route::prefix('administrator/ppdb-suspended')->name('admin.ppdb-suspended.')->namespace('Admin')->group(function () {
+            Route::get('', 'PPDBSuspendedController@index')->name('index');
+            Route::get('detail/{id}', 'PPDBSuspendedController@detail')->name('detail');
+            Route::post('evaluate', 'PPDBSuspendedController@evaluate')->name('evaluate');
+        });
+
         // AGE LIMIT
         Route::prefix('administrator/age-limit')->name('admin.age-limit.')->namespace('Admin')->group(function () {
             Route::get('', 'AgeLimitController@index')->name('index');
@@ -1109,6 +1115,20 @@ Route::get('/debug-email/installment-reminder', function () {
     $ppdb = $detail->dispensation->ppdb;
 
     return new \App\Mail\DevelopmentFeeInstallmentReminderMail($detail, $ppdb);
+});
+
+Route::get('/debug-email/payment-period-reminder', function () {
+    $student = \App\Models\PPDBUser::with(['user', 'unit'])->where('status', \App\Models\PPDBUser::STATUS_ACCEPTED)->first();
+    $periode = \App\Models\FinancePeriode::whereNotNull('start_date')->first();
+
+    if (!$student) {
+        return 'Tidak ada data PPDBUser dengan status diterima di database untuk di-preview.';
+    }
+    if (!$periode) {
+        return 'Tidak ada data FinancePeriode di database untuk di-preview.';
+    }
+
+    return new \App\Mail\PaymentPeriodReminderMail($student, $periode);
 });
 
 Route::get('/debug-email/payment-period-reminder', function () {

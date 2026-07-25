@@ -161,7 +161,17 @@
 
 
                     @foreach($dp_notifications ?? [] as $dp_notif)
-                        @if($dp_notif['is_dp_expired'])
+                        @if($dp_notif['is_dp_blocked'])
+                            <div class="alert mt-2 p-3" style="background-color: #f8d7da; border: 1px solid #f5c2c7; border-radius: 8px;">
+                                <h6 class="fw-bold mb-2" style="color: #842029; font-size: 13px;">
+                                    <i class="fa-solid fa-ban me-1"></i>Akun Ditangguhkan (DP {{ $dp_notif['title'] }})
+                                </h6>
+                                <ul class="mb-0 ps-3" style="color: #842029; font-size: 13px;">
+                                    <li>Akun Anda telah ditangguhkan, dikarenakan tidak melakukan pembayaran melebihi jangka waktu yang panjang.</li>
+                                    <li>Silakan lakukan pendaftaran ulang pada periode yang tersedia.</li>
+                                </ul>
+                            </div>
+                        @elseif($dp_notif['is_dp_expired'])
                             <div class="alert mt-2 p-3" style="background-color: #f8d7da; border: 1px solid #f5c2c7; border-radius: 8px;">
                                 <h6 class="fw-bold mb-2" style="color: #842029; font-size: 13px;">
                                     <i class="fa-solid fa-circle-exclamation me-1"></i>Tagihan Kedaluwarsa (DP {{ $dp_notif['title'] }})
@@ -359,17 +369,29 @@
                                                             @elseif ($stage->is_opening_development_feature)
 
                                                                 @if ($stage->passed != 'TIDAK LOLOS')
+                                                                    @php
+                                                                        $isActivePeriode = false;
+                                                                        $today = date('Y-m-d');
+                                                                        if ($today >= $financePeriodeDevelopment['start'] && $today <= $financePeriodeDevelopment['end']) {
+                                                                            $isActivePeriode = true;
+                                                                        }
+                                                                    @endphp
                                                                     <div class="status-tab status-tab-grey">
-                                                                        @if (($user->period_verified == 'waiting') ||  $user->period_verified == 'verified')
-                                                                            <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'development']) }}"
-                                                                                class="btn-detail"
-                                                                                title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
-                                                                                Penerimaan</a>
+                                                                        @if($isActivePeriode)
+                                                                            @if (($user->period_verified == 'waiting') ||  $user->period_verified == 'verified')
+                                                                                <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'development']) }}"
+                                                                                    class="btn-detail"
+                                                                                    title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
+                                                                                    Penerimaan</a>
+                                                                            @else
+                                                                                <a href="{{ route('ppdb.biaya-pengembangan') }}"
+                                                                                    class="btn-detail"
+                                                                                    title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
+                                                                                    Penerimaan</a>
+                                                                            @endif
                                                                         @else
-                                                                            <a href="{{ route('ppdb.biaya-pengembangan') }}"
-                                                                                class="btn-detail"
-                                                                                title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
-                                                                                Penerimaan</a>
+                                                                        <span style="color: #555555"><i
+                                                                                class="fa fa-file-excel-o"></i>Belum Memasuki Periode Pembayaran</span>
                                                                         @endif
                                                                     </div>
                                                                 @endif
@@ -455,11 +477,25 @@
                                                                 </div>
                                                             @elseif ($stage->is_opening_development_feature)
                                                                 @if ($stage->passed != 'TIDAK LOLOS')
-                                                                    <div class="status-tab status-tab-grey">
-                                                                        <a href="{{ route('ppdb.biaya-pengembangan') }}"
-                                                                            class="btn-detail"
-                                                                            title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
-                                                                            Penerimaan</a>
+                                                                @php
+                                                                    $isActivePeriode = false;
+                                                                    $today = date('Y-m-d');
+                                                                    if ($today >= $financePeriodeDevelopment['start'] && $today <= $financePeriodeDevelopment['end']) {
+                                                                        $isActivePeriode = true;
+                                                                    }
+                                                                @endphp
+
+                                                                <div class="status-tab status-tab-grey">
+                                                                        @if ($isActivePeriode)
+                                                                            <a href="{{ route('ppdb.biaya-pengembangan') }}"
+                                                                                class="btn-detail"
+                                                                                title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
+                                                                                Penerimaan</a>
+                                                                        @else
+                                                                            <button class="btn btn-sm btn-secondary px-3" style="font-size: 0.75rem; font-weight: 600;" disabled>
+                                                                                Belum Memasuki Periode Pembayaran
+                                                                            </button>
+                                                                        @endif
                                                                     </div>
                                                                 @endif
                                                             @endif
@@ -591,7 +627,17 @@
         </div>
 
         @foreach($dp_notifications ?? [] as $dp_notif)
-            @if($dp_notif['is_dp_expired'])
+            @if($dp_notif['is_dp_blocked'])
+                <div class="alert mt-2 p-3" style="background-color: #f8d7da; border: 1px solid #f5c2c7; border-radius: 8px;">
+                    <h6 class="fw-bold mb-2" style="color: #842029; font-size: 13px;">
+                        <i class="fa-solid fa-ban me-1"></i>Akun Ditangguhkan (DP {{ $dp_notif['title'] }})
+                    </h6>
+                    <ul class="mb-0 ps-3" style="color: #842029; font-size: 13px;">
+                        <li>Akun Anda telah ditangguhkan, dikarenakan tidak melakukan pembayaran melebihi jangka waktu yang panjang.</li>
+                        <li>Silakan lakukan pendaftaran ulang pada periode yang tersedia.</li>
+                    </ul>
+                </div>
+            @elseif($dp_notif['is_dp_expired'])
                 <div class="alert mt-2 p-3" style="background-color: #f8d7da; border: 1px solid #f5c2c7; border-radius: 8px;">
                     <h6 class="fw-bold mb-2" style="color: #842029; font-size: 13px;">
                         <i class="fa-solid fa-circle-exclamation me-1"></i>Tagihan Kedaluwarsa (DP {{ $dp_notif['title'] }})

@@ -19,6 +19,7 @@ class PPDBPaymentController extends Controller
 {
     public function choisePayment($type, Request $request, PaymentDispensationsService $paymentDispensationsService, FinanceSystemConfigurationService $financeSystemConfigurationService, PaymentVirtualAccountsService $paymentVirtualAccountsService, GeneralSettingService $generalSettingService)
     {
+        
         $arr_dispensation_type = [
             'activity' => 'Uang Kegiatan',
             'development' => 'Uang Pengembangan'

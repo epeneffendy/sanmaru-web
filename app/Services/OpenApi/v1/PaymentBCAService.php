@@ -1360,13 +1360,7 @@ class PaymentBCAService
 
             $ppdbUser = PpdbUser::where('register_number', $ppdbId)->first();
 
-            $virtual_account_unpaid = PaymentVirtualAccounts::where([
-                'ppdb_user_id' => $ppdbUser->id,
-                'type'=> $dispensation_type,
-                'virtual_account_number'=> $data->getvirtualAccountNo()
-                ])->orderBy('id', 'desc')->first();
-
-            if (!$virtual_account_unpaid) {
+            if (!$ppdbUser) {
                 $status = '01';
                 $reason = array(
                     'english' => 'Invalid Bill/Virtual Account [Not Found]',
@@ -1378,6 +1372,24 @@ class PaymentBCAService
                 $result->setresponseMessage("Invalid Bill/Virtual Account [Not Found]");
                 $result = $this->paymentFailedResponse($data, $result, $status, $reason);
             } else {
+                $virtual_account_unpaid = PaymentVirtualAccounts::where([
+                    'ppdb_user_id' => $ppdbUser->id,
+                    'type'=> $dispensation_type,
+                    'virtual_account_number'=> $data->getvirtualAccountNo()
+                    ])->orderBy('id', 'desc')->first();
+
+                if (!$virtual_account_unpaid) {
+                    $status = '01';
+                    $reason = array(
+                        'english' => 'Invalid Bill/Virtual Account [Not Found]',
+                        'indonesia' => 'Tagihan/Akun Virtual Tidak Valid [Tidak Ditemukan]',
+                    );
+                    $logExternal = $this->insertLogExternal($external_id, $data->getpaymentRequestId(), 'payments', $reason['english'], $reason['indonesia'], '01');
+
+                    $result->setresponseCode("4042512");
+                    $result->setresponseMessage("Invalid Bill/Virtual Account [Not Found]");
+                    $result = $this->paymentFailedResponse($data, $result, $status, $reason);
+                } else {
                 if (($data->getpartnerServiceId() . $data->getcustomerNo()) == $data->getvirtualAccountNo()) {
                     $currentDateTime = Carbon::now();
                     if($currentDateTime > $virtual_account_unpaid->expired_at){
@@ -1488,6 +1500,7 @@ class PaymentBCAService
                     $result->setresponseCode('4002501');
                     $result->setresponseMessage('Invalid Field Format virtualAccountNo');
                     $result = $this->paymentFailedResponse($data, $result, $status, $reason);
+                }
                 }
             }
         }

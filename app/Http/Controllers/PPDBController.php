@@ -78,6 +78,8 @@ class PPDBController extends Controller
             'notifiable_id' => $user['ppdb']['id']
         ]);
 
+        $financePeriodeDevelopment = PriceHelper::getDatePeriodePayment($user_ppdb,'development');
+        
         // if (($user->isDataCompleteWhitoutBca) && ($user->isParentsComplete)) {
 
         $is_stage_show = true;
@@ -121,9 +123,11 @@ class PPDBController extends Controller
         $dp_notifications = [];
         $is_dp_expired = false;
         $dp_dispensations = \App\Models\PaymentDispensations::where('ppdb_user_id', $user_ppdb->id)
-            ->where('status', \App\Models\PaymentDispensations::STATUS_ACTIVE)
+            ->whereIn('status', [\App\Models\PaymentDispensations::STATUS_ACTIVE, \App\Models\PaymentDispensations::STATUS_CANCELLED])
             ->whereIn('dispensation_type', ['development', 'activity'])
-            ->get();
+            ->orderBy('id', 'desc')
+            ->get()
+            ->unique('dispensation_type');
         
         foreach ($dp_dispensations as $dp_dispensation) {
             $dp_detail = \App\Models\PaymentDispensationDetails::where('payment_dispensation_id', $dp_dispensation->id)
@@ -137,6 +141,7 @@ class PPDBController extends Controller
 
                 if ($dp_va) {
                     $item_is_dp_expired = false;
+                    $item_is_dp_blocked = false;
                     if ($dp_va->status == \App\Models\PaymentVirtualAccounts::STATUS_EXPIRED) {
                         $item_is_dp_expired = true;
                         $is_dp_expired = true;
@@ -145,12 +150,18 @@ class PPDBController extends Controller
                     if($dp_va->status == \App\Models\PaymentVirtualAccounts::STATUS_CANCELED){
                         $item_is_dp_expired = false;
                     }
+
+                    if ($dp_va->status == \App\Models\PaymentVirtualAccounts::STATUS_BLOCKED) {
+                        $item_is_dp_blocked = true;
+                        $is_dp_expired = true; // Sembunyikan juga UI progres utama
+                    }
                     
-                    if ($item_is_dp_expired || $dp_va->status == \App\Models\PaymentVirtualAccounts::STATUS_UNPAID) {
+                    if ($item_is_dp_expired || $item_is_dp_blocked || $dp_va->status == \App\Models\PaymentVirtualAccounts::STATUS_UNPAID) {
                         $dp_notifications[] = [
                             'dp_va' => $dp_va,
                             'dp_detail' => $dp_detail,
                             'is_dp_expired' => $item_is_dp_expired,
+                            'is_dp_blocked' => $item_is_dp_blocked,
                             'dispensation_type' => $dp_dispensation->dispensation_type,
                             'title' => $dp_dispensation->dispensation_type == 'activity' ? 'Uang Kegiatan' : 'Uang Pengembangan'
                         ];
@@ -170,6 +181,7 @@ class PPDBController extends Controller
             'nav' => ['parent' => 'home', 'child' => 'Home'],
             'dp_notifications' => $dp_notifications,
             'is_dp_expired' => $is_dp_expired,
+            'financePeriodeDevelopment' => $financePeriodeDevelopment
         );
         $view = 'new-welcome';
 

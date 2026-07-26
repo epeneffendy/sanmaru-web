@@ -295,6 +295,11 @@
                                 class="icon color12"><i class="fa fa-calculator"></i></span>Kelola Dispensasi</a>
                     </li>
 
+                    <li><a href="{{ route('admin.overdue-bills.index') }}"
+                            class="{{ $nav['child'] == 'overdue-bills' ? 'active' : '' }}"><span
+                                class="icon color12"><i class="fa fa-money"></i></span>Tagihan Tertunda</a>
+                    </li>
+
                 </ul>
             </li>
         @endif

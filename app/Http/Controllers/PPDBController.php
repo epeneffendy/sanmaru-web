@@ -324,17 +324,20 @@ class PPDBController extends Controller
 
     public function biayaPengembanganLunasPpdb(Request $request, GeneralSettingService $generalSettingService)
     {
-        $discount = 0;
         $user = $request->session()->get('user');
         $ppdb = PPDBUser::where('id', $user['ppdb']['id'])->first();
-        $development_discount = $generalSettingService->getBySlug('development-fee-discount');
-        if($development_discount){
-            $discount = $development_discount->value;
-        }
+
+        $discountData = \App\Helpers\PriceHelper::checkDevelopmentLunasDiscount($ppdb);
+        $discount = $discountData['discount_percentage'];
+        $is_eligible_discount = $discountData['is_eligible_discount'];
+        $is_eligible_free_voucher = $discountData['is_eligible_free_voucher'];
 
         if ($ppdb->development_fee_option && in_array($ppdb->development_fee_option, ['lainnya', 'cicilan'])) {
             return redirect(route('ppdb.biaya-pengembangan.' . $ppdb->development_fee_option));
         }
+
+        $periodeActiceDevelopment = \App\Helpers\PriceHelper::getDatePeriodePayment($ppdb, 'development');
+        $keterangan = 'Wajib dibayar pada tanggal ' . Carbon::parse($periodeActiceDevelopment['start'])->format('d-m-Y') . ' sampai dengan ' . Carbon::parse($periodeActiceDevelopment['end'])->format('d-m-Y');
 
 //        $max_date = \App\Helpers\PriceHelper::developmentStudent($ppdb);
 //        if($max_date != 0){
@@ -343,7 +346,10 @@ class PPDBController extends Controller
 
         $data = array(
             'ppdb' => $ppdb,
-            'discount'=>$discount,
+            'discount' => $discount,
+            'is_eligible_discount' => $is_eligible_discount,
+            'is_eligible_free_voucher' => $is_eligible_free_voucher,
+            'keterangan'=>$keterangan,
 //            'deadline'=>Carbon::parse($deadline)->format('d-m-Y '),
             'nav' => ['parent' => 'home', 'child' => 'Informasi PPDB']
         );

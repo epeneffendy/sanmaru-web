@@ -6,7 +6,7 @@
             <div class="biaya-header col">
                 <div class="row">
                     <div class="card-green">
-                        @if (\App\Helpers\PriceHelper::getDevelopmentDiscountStatus($ppdb) && $discount > 0)
+                        @if (isset($is_eligible_discount) && $is_eligible_discount && $discount > 0)
                             <span>Nominal uang pengembangan Anda
                                 <del>{{ \App\Helpers\PriceHelper::development($ppdb, true) }}</del>
                                 {{ \App\Helpers\PriceHelper::rupiah(((100 - $discount) / 100) * \App\Helpers\PriceHelper::development($ppdb)) }}</span>
@@ -51,8 +51,8 @@
             </div>
 
             @php
-                $discountStatus = \App\Helpers\PriceHelper::getDevelopmentDiscountStatus($ppdb);
-                $voucherStatus = \App\Helpers\PriceHelper::getFreeVouchersOlahRagaProductStatus($ppdb, 'lunas');
+                $discountStatus = isset($is_eligible_discount) ? $is_eligible_discount : \App\Helpers\PriceHelper::getDevelopmentDiscountStatus($ppdb);
+                $voucherStatus = isset($is_eligible_free_voucher) ? $is_eligible_free_voucher : \App\Helpers\PriceHelper::getFreeVouchersOlahRagaProductStatus($ppdb, 'lunas');
             @endphp
             <div class="row">
                 <div class="col">
@@ -73,7 +73,7 @@
             <div class="row">
                 <div class="col">
                     <p class="text-body-title text-primary-green">Keterangan</p>
-                    <p class="text-body">{{ \App\Helpers\PriceHelper::getDescriptionFinance($ppdb, 'development') }}</p>
+                    <p class="text-body">{{$keterangan}}</p>
                 </div>
             </div>
 

@@ -591,7 +591,7 @@ class PPDBUserService
 
         $stageUser = PPDBUserStage::where('ppdb_user_id', $id)->where('stage_id', $stage_id)->first();
         if($stageUser){
-            if($stageUser->passed == 1){
+            if($stageUser->passed === 1 || $stageUser->passed === '1' || $stageUser->passed === 0 || $stageUser->passed === '0'){
                 $stageUser->passed = null;
                 $stageUser->save();
                 return true;

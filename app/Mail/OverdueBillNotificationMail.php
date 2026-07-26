@@ -9,13 +9,14 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use App\Models\PaymentDispensationDetails;
 use App\Models\PPDBUser;
 
-class DevelopmentFeeInstallmentReminderMail extends Mailable
+class OverdueBillNotificationMail extends Mailable
 {
     use Queueable, SerializesModels;
 
     public $detail;
     public $ppdbUser;
     public $unit_name;
+    public $typeLabel;
 
     /**
      * Create a new message instance.
@@ -28,6 +29,7 @@ class DevelopmentFeeInstallmentReminderMail extends Mailable
         $this->ppdbUser = $ppdbUser;
 
         $this->unit_name = $ppdbUser->unit ? $ppdbUser->unit->name : 'Sanmaru';
+        $this->typeLabel = $this->getDispensationTypeLabel();
     }
 
     /**
@@ -53,11 +55,12 @@ class DevelopmentFeeInstallmentReminderMail extends Mailable
      */
     public function build()
     {
-        $typeLabel = $this->getDispensationTypeLabel();
-
         return $this->from(config('mail.from.address'), $this->unit_name)
-                    ->subject("[SANMARU PPDB] Pengingat Jatuh Tempo Cicilan {$typeLabel} - " . $this->ppdbUser->name)
-                    ->markdown('emails.development_fee_installment_reminder')
-                    ->with(['typeLabel' => $typeLabel]);
+                    ->subject("[SANMARU PPDB] Pemberitahuan Tunggakan {$this->typeLabel} - " . $this->ppdbUser->name)
+                    ->markdown('emails.overdue_bill_notification')
+                    ->with([
+                        'ppdb' => $this->ppdbUser,
+                        'unit' => $this->ppdbUser->unit,
+                    ]);
     }
 }

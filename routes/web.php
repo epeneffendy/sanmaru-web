@@ -728,6 +728,11 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
            Route::get('fetch-anual-cost', 'PaymentDispensationController@fetchAnualCost')->name('fetch-anual-cost');
         });
 
+        Route::prefix('administrator/overdue-bills')->name('admin.overdue-bills.')->namespace('Admin')->group(function () {
+           Route::get('/', 'OverdueBillController@index')->name('index');
+           Route::post('/broadcast', 'OverdueBillController@broadcast')->name('broadcast');
+        });
+
         Route::prefix('administrator/dispensation-request')->name('admin.dispensation-request.')->namespace('Admin')->group(function () {
            Route::get('/', 'PaymentDispensationRequestController@index')->name('index');
            Route::get('/add', 'PaymentDispensationRequestController@add')->name('add');
@@ -1143,4 +1148,16 @@ Route::get('/debug-email/payment-period-reminder', function () {
     }
 
     return new \App\Mail\PaymentPeriodReminderMail($student, $periode);
+});
+
+Route::get('/debug-email/overdue_bill_notification', function () {
+    $detail = \App\Models\PaymentDispensationDetails::whereHas('dispensation.ppdb')->first();
+
+    if (!$detail) {
+        return 'Tidak ada data PaymentDispensationDetails yang memiliki relasi ke PPDBUser di database untuk di-preview.';
+    }
+
+    $ppdbUser = $detail->dispensation->ppdb;
+
+    return new \App\Mail\OverdueBillNotificationMail($detail, $ppdbUser);
 });

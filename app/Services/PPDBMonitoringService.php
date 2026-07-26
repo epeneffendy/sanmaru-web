@@ -288,7 +288,7 @@ class PPDBMonitoringService
                     $stage_id = 0;
                     if (isset($checkStage)) {
                         if (empty($user->IsStatementLetterUploaded)){
-                            if ($checkStage->passed == 1) {
+                            if ($checkStage->passed === 1 || $checkStage->passed === 0) {
                                 $is_stage_development = true;
                                 $stage_id = $checkStage->stage_id;
                             }

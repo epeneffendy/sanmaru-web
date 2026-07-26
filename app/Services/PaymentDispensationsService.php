@@ -579,7 +579,7 @@ class PaymentDispensationsService {
 
             if ($dp_detail) {
                 $dp_detail_id = $dp_detail->id;
-                if ($type != 'development' && $dp_detail->status == 'unpaid') {
+                if ($type == \App\Models\PaymentDispensations::DISPENSATION_TYPE_ACTIVITY && $dp_detail->status == 'unpaid') {
                     $paymentVirtualAccountsService = app(\App\Services\PaymentVirtualAccountsService::class);
                     $va_unpaid = $paymentVirtualAccountsService->findByVirtualAccountUnpaid($dp_detail->virtual_account);
                     
@@ -588,11 +588,16 @@ class PaymentDispensationsService {
                         $virtual_account_number = $dp_detail->virtual_account;
                         $remaining_balance = $dp_detail->nominal - $dp_detail->amount_paid;
                         
-                        $expired_at = now()->addDays(1);
-                        if ($type == 'activity') {
-                            $expired_at = now()->addDays(30);
+                        $periode = \App\Helpers\PriceHelper::getDatePeriodePayment($dispensation->ppdb, $type);
+                        if (!empty($periode['end'])) {
+                            $expired_at = \Carbon\Carbon::parse($periode['end'])->endOfDay();
                         } else {
-                            $expired_at = now()->addDays(7);
+                            $expired_at = now()->addDays(1);
+                            if ($type == 'activity') {
+                                $expired_at = now()->addDays(30);
+                            } else {
+                                $expired_at = now()->addDays(7);
+                            }
                         }
                         
                         $fillable = $paymentVirtualAccountsService->fillable($dispensation->ppdb_user_id, $type, $virtual_account_number, $remaining_balance, $virtual_account_type, $expired_at);

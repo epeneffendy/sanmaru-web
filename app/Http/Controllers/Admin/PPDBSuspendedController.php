@@ -87,17 +87,14 @@ class PPDBSuspendedController extends Controller
     public function detail($id)
     {
         $bMax = DB::table('payment_dispensations')
-            ->select('ppdb_user_id', DB::raw('MAX(id) as max_id'))
-            ->groupBy('ppdb_user_id');
-
-        $cMax = DB::table('payment_dispensation_details')
-            ->select('payment_dispensation_id', DB::raw('MAX(id) as max_detail_id'))
-            ->groupBy('payment_dispensation_id');
+            ->select('ppdb_user_id', 'dispensation_type', DB::raw('MAX(id) as max_id'))
+            ->groupBy('ppdb_user_id', 'dispensation_type');
 
         $va = DB::table('payment_virtual_accounts as a')
             ->select(
                 'a.id',
                 'c.id as dispensation_detail_id',
+                'b.id as payment_dispensation_id',
                 'a.virtual_account_number',
                 'a.type',
                 'a.total_payment',
@@ -116,25 +113,23 @@ class PPDBSuspendedController extends Controller
             ->join('ppdb_users as d', 'd.id', '=', 'a.ppdb_user_id')
             ->leftJoin('units as e', 'd.unit_id', '=', 'e.id')
             ->leftJoin('periods as f', 'd.periode', '=', 'f.id')
-            ->leftJoinSub($bMax, 'b_max', 'a.ppdb_user_id', '=', 'b_max.ppdb_user_id')
+            ->leftJoinSub($bMax, 'b_max', function($join) {
+                $join->on('a.ppdb_user_id', '=', 'b_max.ppdb_user_id')
+                     ->on('a.type', '=', 'b_max.dispensation_type');
+            })
             ->leftJoin('payment_dispensations as b', 'b.id', '=', 'b_max.max_id')
-            ->leftJoinSub($cMax, 'c_max', 'c_max.payment_dispensation_id', '=', 'b.id')
-            ->leftJoin('payment_dispensation_details as c', 'c.id', '=', 'c_max.max_detail_id')
+            ->leftJoin('payment_dispensation_details as c', function($join) {
+                $join->on('c.payment_dispensation_id', '=', 'b.id')
+                     ->where('c.installment_number', '=', 0);
+            })
             ->where('a.id', $id)
-            ->where('c.installment_number', 0)
             ->first();
         if (!$va) {
             return response()->json(['status' => false, 'message' => 'Data penangguhan tidak ditemukan.'], 404);
         }
         
-        $dispensationDetails = DB::table('payment_dispensations as b')
-            ->join('payment_dispensation_details as c', 'b.id', '=', 'c.payment_dispensation_id')
-            ->where('b.ppdb_user_id', function ($query) use ($id) {
-                $query->select('ppdb_user_id')
-                    ->from('payment_virtual_accounts')
-                    ->where('id', $id);
-            })
-            ->where('c.id', '=', $va->dispensation_detail_id)
+        $dispensationDetails = DB::table('payment_dispensation_details as c')
+            ->where('c.payment_dispensation_id', $va->payment_dispensation_id)
             ->select('c.installment_number', 'c.nominal', 'c.amount_paid', 'c.status', 'c.date', 'c.virtual_account')
             ->orderBy('c.installment_number', 'asc')
             ->get();

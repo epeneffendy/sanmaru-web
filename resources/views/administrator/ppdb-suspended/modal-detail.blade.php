@@ -53,7 +53,17 @@
                         var paymentTypeLabel = data.type === 'activity' ? 'Uang Kegiatan' : 'Uang Pengembangan';
                         var expiredDateFormatted = data.expired_at ? new Date(data.expired_at).toLocaleDateString('id-ID') : '-';
 
-                        var html = `
+                        var toleranceNotice = '';
+                        if (data.payment_tolerance_expired_at) {
+                            var toleranceFormatted = new Date(data.payment_tolerance_expired_at).toLocaleDateString('id-ID') + ' ' + new Date(data.payment_tolerance_expired_at).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + ' WIB';
+                            toleranceNotice = `
+                            <div class="alert alert-warning" style="margin-bottom:15px; border-left: 4px solid #ff9800; padding: 10px 15px;">
+                                <strong><i class="fa fa-info-circle"></i> Info:</strong> Siswa ini telah diberikan Toleransi Pembayaran. Batas akhir toleransi: <b>${toleranceFormatted}</b>.
+                            </div>
+                            `;
+                        }
+
+                        var html = toleranceNotice + `
                             <div class="panel panel-default">
                                 <div class="panel-heading"><strong>Informasi Siswa & Tagihan</strong></div>
                                 <div class="panel-body">

@@ -317,6 +317,11 @@ class PPDBPaymentController extends Controller
                             $expired_at = $periode_end ? $periode_end : now()->addDays($default_days);
                         }
                     }
+
+                    if ($ppdb->payment_tolerance_expired_at && now()->lessThan($ppdb->payment_tolerance_expired_at)) {
+                        $expired_at = \Carbon\Carbon::parse($ppdb->payment_tolerance_expired_at);
+                    }
+
                     $fillable = $paymentVirtualAccountsService->fillable($dispensation->ppdb_user_id,$type_payment, $virtual_account_number, $remaining_balance, $virtual_account_type, $expired_at);
                     $paymentVirtualAccountsService->create($fillable);
                 }

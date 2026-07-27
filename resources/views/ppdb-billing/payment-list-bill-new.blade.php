@@ -191,19 +191,23 @@
 
     <div class="container py-5">
         
-        @if ($dispensation->dispensation_mode != 'real_payment')
-            <div class="p-3 rounded-3 mb-4 shadow-sm" style="background-color: #f0fdf4; border: 1px solid #bbf7d0;">
-                <div class="d-flex align-items-start">
-                    <div class="me-3 mt-1" style="color: #166534;">
-                        <i class="fa-solid fa-tags fs-4"></i>
-                    </div>
-                    <div>
-                        <h6 class="fw-bold mb-1" style="color: #166534;">Keringanan Biaya Diterapkan</h6>
-                        <span style="color: #15803d; font-size: 13px;">Anda telah mendapatkan dispensasi atau
-                            potongan harga khusus untuk tagihan {{ $dispensation_type_label }} ini.</span>
+        @if($dispensation->actual_cost != $dispensation->total_final_fee)
+            @if ($dispensation->dispensation_mode != 'real_payment')
+                <div class="p-3 rounded-3 mb-4 shadow-sm" style="background-color: #f0fdf4; border: 1px solid #bbf7d0;">
+                    <div class="d-flex align-items-start">
+                        <div class="me-3 mt-1" style="color: #166534;">
+                            <i class="fa-solid fa-tags fs-4"></i>
+                        </div>
+                        
+                            <div>
+                                <h6 class="fw-bold mb-1" style="color: #166534;">Keringanan Biaya Diterapkan</h6>
+                                <span style="color: #15803d; font-size: 13px;">Anda telah mendapatkan dispensasi atau
+                                    potongan harga khusus untuk tagihan {{ $dispensation_type_label }} ini.</span>
+                            </div>
+                        
                     </div>
                 </div>
-            </div>
+            @endif
         @endif
 
         @if (isset($virtual_account_unpaid))

@@ -104,6 +104,7 @@ class PPDBSuspendedController extends Controller
                 'd.name as student_name',
                 'd.school_year',
                 'd.register_number',
+                'd.payment_tolerance_expired_at',
                 'e.name as unit_name',
                 'f.name as period_name',
                 'b.dispensation_mode',
@@ -181,11 +182,30 @@ class PPDBSuspendedController extends Controller
         ])->orderBy('id', 'desc')->first();
 
         if ($dispensation) {
-            $dispensation->status = PaymentDispensations::STATUS_CANCELLED;
-            $dispensation->save();
+            // Khusus evaluasi 'tolerance' untuk uang kegiatan (activity), status dispensasi tidak diubah
+            $isActivityTolerance = ($action === 'tolerance' && $va_payment->type === PaymentDispensations::DISPENSATION_TYPE_ACTIVITY);
+            if (!$isActivityTolerance) {
+                $dispensation->status = PaymentDispensations::STATUS_CANCELLED;
+                $dispensation->save();
+            } else {
+                // Khusus toleransi uang kegiatan:
+                // Set plan_date = null untuk detail yang statusnya 'unpaid', KECUALI cicilan ke-1 (installment_number = 1)
+                \App\Models\PaymentDispensationDetails::where('payment_dispensation_id', $dispensation->id)
+                    ->where('status', \App\Models\PaymentDispensationDetails::STATUS_UNPAID)
+                    ->where('installment_number', '>', 1)
+                    ->update(['plan_date' => null]);
+            }
         }
 
         $status = ($action === 'tolerance' || $action === 'closed') ? 'closed' : 'blocked';
+
+        if ($action === 'tolerance') {
+            $ppdb_user = \App\Models\PPDBUser::find($va_payment->ppdb_user_id);
+            if ($ppdb_user) {
+                $ppdb_user->payment_tolerance_expired_at = now()->addDays(7);
+                $ppdb_user->save();
+            }
+        }
 
         $updated = DB::table('payment_virtual_accounts')
             ->where('id', $id)
@@ -202,6 +222,7 @@ class PPDBSuspendedController extends Controller
                     'a.virtual_account_number',
                     'd.name as student_name',
                     'd.register_number',
+                    'd.payment_tolerance_expired_at',
                     'u.email as user_email',
                     'e.name as unit_name',
                     'f.name as period_name'

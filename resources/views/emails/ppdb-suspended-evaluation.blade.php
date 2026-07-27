@@ -10,7 +10,8 @@
             <div style="background-color: #e8f5e9; border-left: 4px solid #198754; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
                 <h4 style="margin: 0 0 10px 0; color: #146c43; font-size: 15px;">Hasil Evaluasi: Toleransi Pembayaran</h4>
                 <p style="margin: 0; font-size: 14px; color: #146c43; line-height: 1.5;">
-                    Calon siswa diberikan <b>Toleransi Pembayaran</b> untuk dapat melanjutkan proses pembayaran ulang pada sistem PPDB dan segera melakukan pembayaran.
+                    Calon siswa diberikan <b>Toleransi Pembayaran</b> untuk dapat melanjutkan proses pembayaran ulang pada sistem PPDB dan segera melakukan pembayaran.<br/>
+                    Silahkan lakukan penyelesaian pembayaran sebelum <b>{{ $data->payment_tolerance_expired_at ? \Carbon\Carbon::parse($data->payment_tolerance_expired_at)->locale('id')->translatedFormat('d F Y H:i') : '-' }} WIB</b>.
                 </p>
             </div>
         @else

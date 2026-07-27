@@ -170,6 +170,9 @@ class PaymentDispensationsService {
                 'virtual_account' => $virtual_account_number,
                 'nominal' => $value,
                 'status' => PaymentDispensationDetails::STATUS_UNPAID,
+                'plan_date' => ($dispensation_type == PaymentDispensations::DISPENSATION_TYPE_ACTIVITY && $key == 1)
+                    ? Carbon::now()->addMonth()->format('Y-m-d')
+                    : null,
             ];
         }
 
@@ -579,7 +582,7 @@ class PaymentDispensationsService {
 
             if ($dp_detail) {
                 $dp_detail_id = $dp_detail->id;
-                if ($type == \App\Models\PaymentDispensations::DISPENSATION_TYPE_ACTIVITY && $dp_detail->status == 'unpaid') {
+                if ($dp_detail->status == 'unpaid') {
                     $paymentVirtualAccountsService = app(\App\Services\PaymentVirtualAccountsService::class);
                     $va_unpaid = $paymentVirtualAccountsService->findByVirtualAccountUnpaid($dp_detail->virtual_account);
                     
@@ -588,15 +591,19 @@ class PaymentDispensationsService {
                         $virtual_account_number = $dp_detail->virtual_account;
                         $remaining_balance = $dp_detail->nominal - $dp_detail->amount_paid;
                         
-                        $periode = \App\Helpers\PriceHelper::getDatePeriodePayment($dispensation->ppdb, $type);
-                        if (!empty($periode['end'])) {
-                            $expired_at = \Carbon\Carbon::parse($periode['end'])->endOfDay();
+                        if ($type == \App\Models\PaymentDispensations::DISPENSATION_TYPE_ACTIVITY) {
+                            $expired_at = \Carbon\Carbon::parse($dispensation->created_at)->addDays(7)->endOfDay();
                         } else {
-                            $expired_at = now()->addDays(1);
-                            if ($type == 'activity') {
-                                $expired_at = now()->addDays(30);
+                            $periode = \App\Helpers\PriceHelper::getDatePeriodePayment($dispensation->ppdb, $type);
+                            if (!empty($periode['end'])) {
+                                $expired_at = \Carbon\Carbon::parse($periode['end'])->endOfDay();
                             } else {
                                 $expired_at = now()->addDays(7);
+                            }
+
+                            $ppdb = $dispensation->ppdb;
+                            if ($ppdb->payment_tolerance_expired_at && now()->lessThan($ppdb->payment_tolerance_expired_at)) {
+                                $expired_at = \Carbon\Carbon::parse($ppdb->payment_tolerance_expired_at);
                             }
                         }
                         

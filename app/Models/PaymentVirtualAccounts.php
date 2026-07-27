@@ -43,4 +43,13 @@ class PaymentVirtualAccounts extends Model
     {
     	return $this->belongsTo(PPDBUser::class, 'ppdb_user_id', 'id');
     }
+
+    /**
+     * Relasi ke detail dispensasi berdasarkan virtual account number.
+     * Digunakan untuk mengecek apakah VA ini merupakan DP (installment_number = 0).
+     */
+    public function dispensationDetail()
+    {
+        return $this->hasOne(PaymentDispensationDetails::class, 'virtual_account', 'virtual_account_number');
+    }
 }

@@ -187,8 +187,8 @@
     <script>
         const RegistrationWizard = {
             currentTab: 0,
-            tabs: ['father', 'mother'],
-
+            isSaving: false,
+            tabs: @json($ppdbUser->isWaliRequired ?? false) ? ['father', 'mother', 'wali'] : ['father', 'mother'],
 
             init() {
                 this.updateUI();
@@ -201,42 +201,241 @@
                     this.value = this.value.toUpperCase();
                 });
 
+                // Submit handler untuk tab terakhir (tombol "Simpan")
                 $('#wrapped').on('submit', (e) => {
-                    if (this.hasInvalidFieldsInAnyTab()) {
-                        e.preventDefault();
+                    e.preventDefault();
+
+                    if (this.isSaving) return;
+
+                    // Validasi tab terakhir
+                    if (!this.validateCurrentTab()) {
                         swal({
-                            icon: 'error',
-                            title: 'Gagal Simpan',
-                            text: 'Masih ada data yang tidak valid. Mohon periksa kembali semua tab.',
+                            icon: 'warning',
+                            title: 'Informasi!',
+                            text: 'Mohon lengkapi atau perbaiki data pada form sebelum menyimpan!',
                         });
+                        return;
                     }
+
+                    // Save tab terakhir via AJAX, lalu redirect
+                    this.saveTabData(this.tabs[this.currentTab], true);
                 });
 
                 $('.select2-provinces').select2({
-                    theme: 'default', // atau 'bootstrap4' jika filenya ada
+                    theme: 'default',
                     width: '100%',
                     placeholder: "Pilih Provinsi",
-                    // allowClear: true
                 });
 
                 $('.select2-cities').select2({
-                    theme: "default",
+                    theme: "bootstrap4",
                     width: '100%',
                     placeholder: "Pilih Kota"
                 });
 
                 this.setupProvinceChangeEvent();
 
-                const initialFatherProvince = $('#f_region').val();
-                if (initialFatherProvince) {
-                    this.fetchFatherCities(initialFatherProvince, "{!! old('f_city', @$dad->city) !!}"); // Kirim ID kota lama jika ada
+                const f_initialProvince = $('#f_region').val();
+                if (f_initialProvince) {
+                    this.fetchFatherCities(f_initialProvince, "{!! old('f_city', @$dad->city) !!}");
+                }
+                const m_initialProvince = $('#m_region').val();
+                if (m_initialProvince) {
+                    this.fetchMotherCities(m_initialProvince, "{!! old('m_city', @$mom->city) !!}");
+                }
+                if(this.tabs.includes('wali')) {
+                    const w_initialProvince = $('#w_region').val();
+                    if(w_initialProvince) {
+                        this.fetchWaliCities(w_initialProvince, "{!! old('w_city', @$wali->city) !!}");
+                    }
                 }
 
-                const initialMotherProvince = $('#m_region').val();
-                if (initialMotherProvince) {
-                    this.fetchMotherCities(initialMotherProvince, "{!! old('m_city', @$mom->city) !!}"); // Kirim ID kota lama jika ada
+            },
+
+            /**
+             * Validasi client-side untuk semua field .required di tab aktif.
+             */
+            validateCurrentTab() {
+                const currentTabId = this.tabs[this.currentTab];
+                const $tabPane = $(`#${currentTabId}`);
+                let isValid = true;
+
+                $tabPane.find('.required').each(function () {
+                    const $el = $(this);
+                    const tagName = this.tagName.toLowerCase();
+                    let value = $el.val();
+
+                    // Hapus feedback lama
+                    $el.siblings('.auto-validation-feedback').remove();
+                    $el.closest('.input-group, .modern-input-group, .d-flex')
+                       .siblings('.auto-validation-feedback').remove();
+
+                    if (!value || (typeof value === 'string' && value.trim() === '')) {
+                        $el.addClass('is-invalid');
+
+                        const label = $el.closest('.form-group, .custom-form-group')
+                                        .find('label').first().text().trim();
+
+                        const feedbackEl = document.createElement('div');
+                        feedbackEl.className = 'auto-validation-feedback text-danger small mt-1';
+                        feedbackEl.textContent = (label || 'Field ini') + ' wajib diisi.';
+
+                        const $inputGroup = $el.closest('.input-group, .modern-input-group, .d-flex');
+                        if ($inputGroup.length) {
+                            $inputGroup.after(feedbackEl);
+                        } else {
+                            $el.after(feedbackEl);
+                        }
+
+                        isValid = false;
+                    } else {
+                        if (!$el.siblings('.invalid-feedback').length) {
+                            $el.removeClass('is-invalid');
+                        }
+                    }
+                });
+
+                if ($tabPane.find('.is-invalid').length > 0) {
+                    isValid = false;
                 }
 
+                return isValid;
+            },
+
+            /**
+             * Simpan data tab aktif ke server via AJAX.
+             */
+            saveTabData(tabName, isFinalSave = false) {
+                if (this.isSaving) return;
+
+                this.isSaving = true;
+
+                const $nextBtn = $('#nextBtn');
+                const $saveBtn = $('#simpan-pendaftaran');
+                const originalNextText = $nextBtn.text();
+                const originalSaveText = $saveBtn.html();
+
+                if (isFinalSave) {
+                    $saveBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...');
+                } else {
+                    $nextBtn.prop('disabled', true).text('Menyimpan...');
+                }
+                $('#prevBtn').prop('disabled', true);
+
+                const formData = $('#wrapped').serialize() + '&tab=' + encodeURIComponent(tabName);
+
+                $.ajax({
+                    url: "{{ route('ppdb.form-parent.partial-save') }}",
+                    type: "POST",
+                    data: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val()
+                    },
+                    success: (response) => {
+                        this.isSaving = false;
+
+                        if (isFinalSave) {
+                            swal({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: 'Data berhasil disimpan.',
+                                timer: 1500,
+                                buttons: false,
+                            });
+                            setTimeout(() => {
+                                // Sesuai permintaan: redirect ke welcome sama seperti form siswa
+                                window.location.href = "{{ route('ppdb.welcome') }}";
+                            }, 1500);
+                        } else {
+                            this.performTabSwitch();
+                            this.showAutoSaveNotification('Data berhasil disimpan.');
+                        }
+
+                        $nextBtn.prop('disabled', false).text(originalNextText);
+                        $saveBtn.prop('disabled', false).html(originalSaveText);
+                        $('#prevBtn').prop('disabled', false);
+                    },
+                    error: (xhr) => {
+                        this.isSaving = false;
+
+                        $nextBtn.prop('disabled', false).text(originalNextText);
+                        $saveBtn.prop('disabled', false).html(originalSaveText);
+                        $('#prevBtn').prop('disabled', false);
+
+                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                            this.displayServerErrors(xhr.responseJSON.errors);
+                            swal({
+                                icon: 'warning',
+                                title: 'Validasi Gagal',
+                                text: 'Mohon periksa kembali data yang diisi.',
+                            });
+                        } else {
+                            const message = (xhr.responseJSON && xhr.responseJSON.message)
+                                ? xhr.responseJSON.message
+                                : 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.';
+                            swal({
+                                icon: 'error',
+                                title: 'Gagal Simpan',
+                                text: message,
+                            });
+                        }
+                    }
+                });
+            },
+
+            displayServerErrors(errors) {
+                $('.server-validation-feedback').remove();
+
+                for (const [fieldName, messages] of Object.entries(errors)) {
+                    const $field = $(`[name="${fieldName}"]`);
+                    if ($field.length) {
+                        $field.addClass('is-invalid');
+
+                        const feedbackEl = document.createElement('div');
+                        feedbackEl.className = 'server-validation-feedback text-danger small mt-1';
+                        feedbackEl.textContent = Array.isArray(messages) ? messages[0] : messages;
+
+                        const $inputGroup = $field.closest('.input-group, .modern-input-group, .d-flex');
+                        if ($inputGroup.length) {
+                            $inputGroup.after(feedbackEl);
+                        } else {
+                            $field.after(feedbackEl);
+                        }
+                    }
+                }
+            },
+
+            showAutoSaveNotification(message) {
+                const existing = document.getElementById('auto-save-toast');
+                if (existing) existing.remove();
+
+                const toast = document.createElement('div');
+                toast.id = 'auto-save-toast';
+                toast.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;background:#198754;color:white;padding:12px 20px;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,0.15);font-size:0.875rem;display:flex;align-items:center;gap:8px;animation:fadeInUp 0.3s ease;';
+
+                const icon = document.createElement('i');
+                icon.className = 'bi bi-check-circle-fill';
+
+                const text = document.createElement('span');
+                text.textContent = message;
+
+                toast.appendChild(icon);
+                toast.appendChild(text);
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transition = 'opacity 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 2500);
+            },
+
+            performTabSwitch() {
+                $(`#${this.tabs[this.currentTab]}`).removeClass('show active');
+                this.currentTab++;
+                $(`#${this.tabs[this.currentTab]}`).addClass('show active');
+                this.updateUI();
+                window.scrollTo({top: 0, behavior: 'smooth'});
             },
 
             hasInvalidFieldsInAnyTab() {
@@ -248,27 +447,34 @@
             },
 
             moveTab(step) {
-                if (step > 0 && this.hasInvalidFields()) {
-                    swal({
-                        icon: 'warning',
-                        title: "Informasi!",
-                        text: 'Mohon lengkapi atau perbaiki data pada form sebelum melanjutkan!',
-                    });
-                    return;
+                if (step > 0) {
+                    $('.auto-validation-feedback').remove();
+                    $('.server-validation-feedback').remove();
+
+                    if (!this.validateCurrentTab()) {
+                        swal({
+                            icon: 'warning',
+                            title: "Informasi!",
+                            text: 'Mohon lengkapi atau perbaiki data pada form sebelum melanjutkan!',
+                        });
+                        return;
+                    }
+
+                    const nextTabIndex = this.currentTab + 1;
+                    if (nextTabIndex >= this.tabs.length) return;
+
+                    this.saveTabData(this.tabs[this.currentTab]);
+                } else {
+                    const prevTabIndex = this.currentTab - 1;
+                    if (prevTabIndex < 0) return;
+
+                    $(`#${this.tabs[this.currentTab]}`).removeClass('show active');
+                    this.currentTab = prevTabIndex;
+                    $(`#${this.tabs[this.currentTab]}`).addClass('show active');
+
+                    this.updateUI();
+                    window.scrollTo({top: 0, behavior: 'smooth'});
                 }
-
-                const nextTabIndex = this.currentTab + step;
-
-                if (nextTabIndex < 0 || nextTabIndex >= this.tabs.length) return;
-
-                $(`#${this.tabs[this.currentTab]}`).removeClass('show active');
-
-                this.currentTab = nextTabIndex;
-
-                $(`#${this.tabs[this.currentTab]}`).addClass('show active');
-
-                this.updateUI();
-                window.scrollTo({top: 0, behavior: 'smooth'});
             },
 
             updateUI() {
@@ -289,10 +495,7 @@
             },
 
             checkingPhoneNumber() {
-                const telpAyah = $('input[name="f_phone"]');
-                const telpIbu = $('input[name="m_phone"]');
-
-                const validate = (el, type) => {
+                const validate = (el) => {
                     const val = el.val();
                     const feedbackId = `${el.attr('name')}-feedback`;
                     $(`#${feedbackId}`).remove();
@@ -300,44 +503,36 @@
 
                     if (val.length === 0) return;
 
-                    let regex;
-                    let errorMessage = "";
-
-                    if (type === 'hp') {
-                        // Regex HP: Awalan 08 atau +628, panjang 10-13 digit
-                        regex = /^(?:\+62|62|0)8[1-9][0-9]{7,10}$/;
-                        errorMessage = "Format No. HP tidak valid (Gunakan awalan 08 atau +628, 10-13 digit).";
-                    } else {
-                        // Regex Telp Kantor: Awalan kode area (02x/03x/dst), panjang 7-11 digit
-                        regex = /^0[2-9][1-9][0-9]{6,9}$/;
-                        errorMessage = "Format No. Telp Kantor / Sekolah tidak valid (Gunakan kode area, contoh: 031xxxx).";
-                    }
+                    // Regex HP: Awalan 08, 628, atau +628, panjang 10-13 digit (setelah prefix)
+                    const regex = /^(?:\+62|62|0)8[1-9][0-9]{7,10}$/;
+                    const errorMessage = "Format No. HP tidak valid (Gunakan awalan 08, 628, atau +628, 10-13 digit).";
 
                     if (!regex.test(val)) {
                         el.addClass('is-invalid');
-                        el.after(`<div id="${feedbackId}" class="invalid-feedback">${errorMessage}</div>`);
+                        const feedbackEl = document.createElement('div');
+                        feedbackEl.id = feedbackId;
+                        feedbackEl.className = 'invalid-feedback';
+                        feedbackEl.textContent = errorMessage;
+                        el[0].parentNode.insertBefore(feedbackEl, el[0].nextSibling);
                     } else {
                         el.addClass('is-valid');
                     }
                 };
 
-                telpAyah.on('input change', function () {
-                    validate($(this), 'hp');
-                });
+                const f_phone = $('input[name="f_phone"]');
+                const m_phone = $('input[name="m_phone"]');
 
-                if (telpAyah.val()) {
-                    validate(telpAyah, 'hp');
+                f_phone.on('input change', function () { validate($(this)); });
+                m_phone.on('input change', function () { validate($(this)); });
+
+                if (f_phone.val()) validate(f_phone);
+                if (m_phone.val()) validate(m_phone);
+                
+                if(this.tabs.includes('wali')) {
+                    const w_phone = $('input[name="w_phone"]');
+                    w_phone.on('input change', function () { validate($(this)); });
+                    if (w_phone.val()) validate(w_phone);
                 }
-
-                telpIbu.on('input change', function () {
-                    validate($(this), 'hp');
-                });
-
-                if (telpIbu.val()) {
-                    validate(telpIbu, 'hp');
-                }
-
-
             },
 
             setupProvinceChangeEvent() {
@@ -349,45 +544,29 @@
                 $('#m_region').on('change', function() {
                     self.fetchMotherCities($(this).val());
                 });
+                
+                if(this.tabs.includes('wali')) {
+                    $('#w_region').on('change', function() {
+                        self.fetchWaliCities($(this).val());
+                    });
+                }
             },
 
             fetchFatherCities(provinceId, selectedCityId = null) {
-                let citySelect = $('#f_city');
-
-                // Jangan lakukan apa-apa jika provinsi kosong
-                if (!provinceId) {
-                    citySelect.empty().append('<option value=""></option>').trigger('change');
-                    return;
-                }
-
-                citySelect.prop('disabled', true);
-
-                $.ajax({
-                    url: "{{ route('ppdb.get-cities') }}",
-                    type: "GET",
-                    data: { province_id: provinceId },
-                    success: (response) => {
-                        citySelect.empty().append('<option value=""></option>');
-
-                        $.each(response, (key, city) => {
-                            // Cek apakah ID kota ini adalah yang harus terpilih (untuk handle edit/old data)
-                            const isSelected = (selectedCityId && (city.name == selectedCityId || city.id == selectedCityId));
-                            citySelect.append(new Option(city.name, city.name, isSelected, isSelected));
-                        });
-
-                        citySelect.prop('disabled', false).trigger('change');
-                    },
-                    error: () => {
-                        alert('Gagal mengambil data kota.');
-                        citySelect.prop('disabled', false);
-                    }
-                });
+                this.fetchCitiesCore(provinceId, selectedCityId, '#f_city');
             },
 
             fetchMotherCities(provinceId, selectedCityId = null) {
-                let citySelect = $('#m_city');
+                this.fetchCitiesCore(provinceId, selectedCityId, '#m_city');
+            },
 
-                // Jangan lakukan apa-apa jika provinsi kosong
+            fetchWaliCities(provinceId, selectedCityId = null) {
+                this.fetchCitiesCore(provinceId, selectedCityId, '#w_city');
+            },
+
+            fetchCitiesCore(provinceId, selectedCityId, selectSelector) {
+                let citySelect = $(selectSelector);
+
                 if (!provinceId) {
                     citySelect.empty().append('<option value=""></option>').trigger('change');
                     return;
@@ -403,7 +582,6 @@
                         citySelect.empty().append('<option value=""></option>');
 
                         $.each(response, (key, city) => {
-                            // Cek apakah ID kota ini adalah yang harus terpilih (untuk handle edit/old data)
                             const isSelected = (selectedCityId && (city.name == selectedCityId || city.id == selectedCityId));
                             citySelect.append(new Option(city.name, city.name, isSelected, isSelected));
                         });
@@ -411,16 +589,17 @@
                         citySelect.prop('disabled', false).trigger('change');
                     },
                     error: () => {
-                        alert('Gagal mengambil data kota.');
+                        swal({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Gagal mengambil data kota.',
+                        });
                         citySelect.prop('disabled', false);
                     }
                 });
-            },
-
+            }
         };
 
-
         $(document).ready(() => RegistrationWizard.init());
-
     </script>
 @endpush

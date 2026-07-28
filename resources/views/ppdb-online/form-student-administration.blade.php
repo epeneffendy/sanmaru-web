@@ -227,6 +227,7 @@
     <script>
         const RegistrationWizard = {
             currentTab: 0,
+            isSaving: false,
             tabs: @json($ppdbUser->unit->unit_code != '05')
                 ? ['identitas', 'additional', 'school', 'medical']
                 : ['identitas', 'additional', 'school', 'medical', 'potential'],
@@ -243,22 +244,30 @@
                     this.value = this.value.toUpperCase();
                 });
 
+                // Submit handler untuk tab terakhir (tombol "Simpan")
                 $('#wrapped').on('submit', (e) => {
-                    if (this.hasInvalidFieldsInAnyTab()) {
-                        e.preventDefault();
+                    e.preventDefault();
+
+                    if (this.isSaving) return;
+
+                    // Validasi tab terakhir
+                    if (!this.validateCurrentTab()) {
                         swal({
-                            icon: 'error',
-                            title: 'Gagal Simpan',
-                            text: 'Masih ada data yang tidak valid. Mohon periksa kembali semua tab.',
+                            icon: 'warning',
+                            title: 'Informasi!',
+                            text: 'Mohon lengkapi atau perbaiki data pada form sebelum menyimpan!',
                         });
+                        return;
                     }
+
+                    // Save tab terakhir via AJAX, lalu redirect
+                    this.saveTabData(this.tabs[this.currentTab], true);
                 });
 
                 $('.select2-provinces').select2({
-                    theme: 'default', // atau 'bootstrap4' jika filenya ada
+                    theme: 'default',
                     width: '100%',
                     placeholder: "Pilih Provinsi",
-                    // allowClear: true
                 });
 
                 $('.select2-cities').select2({
@@ -271,7 +280,7 @@
 
                 const initialProvince = $('.select2-provinces').val();
                 if (initialProvince) {
-                    this.fetchCities(initialProvince, "{{ @$ppdbUser->city }}"); // Kirim ID kota lama jika ada
+                    this.fetchCities(initialProvince, "{{ @$ppdbUser->city }}");
                 }
 
                 // Menangani validasi warna border saat Select2 berubah
@@ -283,16 +292,13 @@
                     citySelect.empty().append('<option value=""></option>').trigger('change');
 
                     if (provinceId) {
-                        // Tampilkan loading pada select kota
                         citySelect.prop('disabled', true);
 
-                        // Ganti URL sesuai dengan route di Laravel Anda
                         $.ajax({
                             url: "{{ route('ppdb.get-cities') }}",
                             type: "GET",
                             data: { province_id: provinceId },
                             success: function(response) {
-                                // Isi data kota ke select2
                                 $.each(response, function(key, city) {
                                     citySelect.append(new Option(city.name, city.id, false, false));
                                 });
@@ -300,13 +306,242 @@
                                 citySelect.prop('disabled', false).trigger('change');
                             },
                             error: function() {
-                                alert('Gagal mengambil data kota.');
+                                swal({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: 'Gagal mengambil data kota.',
+                                });
                                 citySelect.prop('disabled', false);
                             }
                         });
                     }
                 });
 
+            },
+
+            /**
+             * Validasi client-side untuk semua field .required di tab aktif.
+             * Menandai field kosong dengan class is-invalid dan menampilkan feedback.
+             * @returns {boolean} true jika semua field valid
+             */
+            validateCurrentTab() {
+                const currentTabId = this.tabs[this.currentTab];
+                const $tabPane = $(`#${currentTabId}`);
+                let isValid = true;
+
+                // Cek setiap elemen yang memiliki class .required di dalam tab aktif
+                $tabPane.find('.required').each(function () {
+                    const $el = $(this);
+                    const tagName = this.tagName.toLowerCase();
+                    let value = '';
+
+                    if (tagName === 'select') {
+                        value = $el.val();
+                    } else if (tagName === 'textarea') {
+                        value = $el.val();
+                    } else {
+                        value = $el.val();
+                    }
+
+                    // Hapus feedback lama yang dibuat oleh validateCurrentTab
+                    $el.siblings('.auto-validation-feedback').remove();
+                    $el.closest('.input-group, .modern-input-group, .d-flex')
+                       .siblings('.auto-validation-feedback').remove();
+
+                    if (!value || (typeof value === 'string' && value.trim() === '')) {
+                        $el.addClass('is-invalid');
+
+                        // Ambil label dari parent .form-group
+                        const label = $el.closest('.form-group, .custom-form-group')
+                                        .find('label').first().text().trim();
+
+                        const feedbackEl = document.createElement('div');
+                        feedbackEl.className = 'auto-validation-feedback text-danger small mt-1';
+                        feedbackEl.textContent = (label || 'Field ini') + ' wajib diisi.';
+
+                        // Tempatkan feedback setelah input-group
+                        const $inputGroup = $el.closest('.input-group, .modern-input-group, .d-flex');
+                        if ($inputGroup.length) {
+                            $inputGroup.after(feedbackEl);
+                        } else {
+                            $el.after(feedbackEl);
+                        }
+
+                        isValid = false;
+                    } else {
+                        // Hanya hapus is-invalid jika bukan dari validator lain (NIK, phone, dll)
+                        if (!$el.siblings('.invalid-feedback').length) {
+                            $el.removeClass('is-invalid');
+                        }
+                    }
+                });
+
+                // Cek juga apakah ada field yang sudah ditandai is-invalid oleh validator lain
+                if ($tabPane.find('.is-invalid').length > 0) {
+                    isValid = false;
+                }
+
+                return isValid;
+            },
+
+            /**
+             * Simpan data tab aktif ke server via AJAX.
+             * @param {string} tabName - Nama tab yang akan disimpan
+             * @param {boolean} isFinalSave - Jika true, redirect ke welcome setelah berhasil
+             */
+            saveTabData(tabName, isFinalSave = false) {
+                if (this.isSaving) return;
+
+                this.isSaving = true;
+
+                // Disable tombol navigasi dan tampilkan loading
+                const $nextBtn = $('#nextBtn');
+                const $saveBtn = $('#simpan-pendaftaran');
+                const originalNextText = $nextBtn.text();
+                const originalSaveText = $saveBtn.html();
+
+                if (isFinalSave) {
+                    $saveBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...');
+                } else {
+                    $nextBtn.prop('disabled', true).text('Menyimpan...');
+                }
+                $('#prevBtn').prop('disabled', true);
+
+                const formData = $('#wrapped').serialize() + '&tab=' + encodeURIComponent(tabName);
+
+                $.ajax({
+                    url: "{{ route('ppdb.form-student.partial-save') }}",
+                    type: "POST",
+                    data: formData,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') || $('input[name="_token"]').val()
+                    },
+                    success: (response) => {
+                        this.isSaving = false;
+
+                        if (isFinalSave) {
+                            // Final save: redirect ke welcome
+                            swal({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: 'Data berhasil disimpan.',
+                                timer: 1500,
+                                buttons: false,
+                            });
+                            setTimeout(() => {
+                                window.location.href = "{{ route('ppdb.welcome') }}";
+                            }, 1500);
+                        } else {
+                            // Pindah ke tab berikutnya
+                            this.performTabSwitch();
+
+                            // Tampilkan notifikasi sukses yang tidak mengganggu
+                            this.showAutoSaveNotification('Data berhasil disimpan.');
+                        }
+
+                        // Restore tombol
+                        $nextBtn.prop('disabled', false).text(originalNextText);
+                        $saveBtn.prop('disabled', false).html(originalSaveText);
+                        $('#prevBtn').prop('disabled', false);
+                    },
+                    error: (xhr) => {
+                        this.isSaving = false;
+
+                        // Restore tombol
+                        $nextBtn.prop('disabled', false).text(originalNextText);
+                        $saveBtn.prop('disabled', false).html(originalSaveText);
+                        $('#prevBtn').prop('disabled', false);
+
+                        if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
+                            // Tampilkan validation errors dari server
+                            this.displayServerErrors(xhr.responseJSON.errors);
+                            swal({
+                                icon: 'warning',
+                                title: 'Validasi Gagal',
+                                text: 'Mohon periksa kembali data yang diisi.',
+                            });
+                        } else {
+                            const message = (xhr.responseJSON && xhr.responseJSON.message)
+                                ? xhr.responseJSON.message
+                                : 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.';
+                            swal({
+                                icon: 'error',
+                                title: 'Gagal Simpan',
+                                text: message,
+                            });
+                        }
+                    }
+                });
+            },
+
+            /**
+             * Tampilkan error dari server pada field yang bersangkutan.
+             * Menggunakan DOM API yang aman (textContent) bukan innerHTML.
+             * @param {Object} errors - Object berisi field name → array of error messages
+             */
+            displayServerErrors(errors) {
+                // Hapus semua server error feedback sebelumnya
+                $('.server-validation-feedback').remove();
+
+                for (const [fieldName, messages] of Object.entries(errors)) {
+                    const $field = $(`[name="${fieldName}"]`);
+                    if ($field.length) {
+                        $field.addClass('is-invalid');
+
+                        const feedbackEl = document.createElement('div');
+                        feedbackEl.className = 'server-validation-feedback text-danger small mt-1';
+                        feedbackEl.textContent = Array.isArray(messages) ? messages[0] : messages;
+
+                        const $inputGroup = $field.closest('.input-group, .modern-input-group, .d-flex');
+                        if ($inputGroup.length) {
+                            $inputGroup.after(feedbackEl);
+                        } else {
+                            $field.after(feedbackEl);
+                        }
+                    }
+                }
+            },
+
+            /**
+             * Tampilkan notifikasi auto-save (toast-style, non-intrusive).
+             * Menggunakan DOM API yang aman.
+             * @param {string} message
+             */
+            showAutoSaveNotification(message) {
+                // Hapus notifikasi sebelumnya
+                const existing = document.getElementById('auto-save-toast');
+                if (existing) existing.remove();
+
+                const toast = document.createElement('div');
+                toast.id = 'auto-save-toast';
+                toast.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;background:#198754;color:white;padding:12px 20px;border-radius:10px;box-shadow:0 4px 15px rgba(0,0,0,0.15);font-size:0.875rem;display:flex;align-items:center;gap:8px;animation:fadeInUp 0.3s ease;';
+
+                const icon = document.createElement('i');
+                icon.className = 'bi bi-check-circle-fill';
+
+                const text = document.createElement('span');
+                text.textContent = message;
+
+                toast.appendChild(icon);
+                toast.appendChild(text);
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transition = 'opacity 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 2500);
+            },
+
+            /**
+             * Pindah tab secara visual (dipanggil setelah save berhasil).
+             */
+            performTabSwitch() {
+                $(`#${this.tabs[this.currentTab]}`).removeClass('show active');
+                this.currentTab++;
+                $(`#${this.tabs[this.currentTab]}`).addClass('show active');
+                this.updateUI();
+                window.scrollTo({top: 0, behavior: 'smooth'});
             },
 
             hasInvalidFieldsInAnyTab() {
@@ -318,27 +553,38 @@
             },
 
             moveTab(step) {
-                if (step > 0 && this.hasInvalidFields()) {
-                    swal({
-                        icon: 'warning',
-                        title: "Informasi!",
-                        text: 'Mohon lengkapi atau perbaiki data pada form sebelum melanjutkan!',
-                    });
-                    return;
+                if (step > 0) {
+                    // Maju: validasi + save via AJAX
+                    // Hapus feedback validasi lama terlebih dahulu
+                    $('.auto-validation-feedback').remove();
+                    $('.server-validation-feedback').remove();
+
+                    if (!this.validateCurrentTab()) {
+                        swal({
+                            icon: 'warning',
+                            title: "Informasi!",
+                            text: 'Mohon lengkapi atau perbaiki data pada form sebelum melanjutkan!',
+                        });
+                        return;
+                    }
+
+                    const nextTabIndex = this.currentTab + 1;
+                    if (nextTabIndex >= this.tabs.length) return;
+
+                    // Save data tab aktif, lalu pindah tab jika berhasil
+                    this.saveTabData(this.tabs[this.currentTab]);
+                } else {
+                    // Mundur: langsung pindah tanpa save (sesuai permintaan user)
+                    const prevTabIndex = this.currentTab - 1;
+                    if (prevTabIndex < 0) return;
+
+                    $(`#${this.tabs[this.currentTab]}`).removeClass('show active');
+                    this.currentTab = prevTabIndex;
+                    $(`#${this.tabs[this.currentTab]}`).addClass('show active');
+
+                    this.updateUI();
+                    window.scrollTo({top: 0, behavior: 'smooth'});
                 }
-
-                const nextTabIndex = this.currentTab + step;
-
-                if (nextTabIndex < 0 || nextTabIndex >= this.tabs.length) return;
-
-                $(`#${this.tabs[this.currentTab]}`).removeClass('show active');
-
-                this.currentTab = nextTabIndex;
-
-                $(`#${this.tabs[this.currentTab]}`).addClass('show active');
-
-                this.updateUI();
-                window.scrollTo({top: 0, behavior: 'smooth'});
             },
 
             updateUI() {
@@ -396,7 +642,12 @@
 
                     if (errorMessage) {
                         el.addClass('is-invalid');
-                        el.after(`<div id="${feedbackId}" class="invalid-feedback">${errorMessage}</div>`);
+                        // Gunakan DOM API yang aman untuk membuat feedback
+                        const feedbackEl = document.createElement('div');
+                        feedbackEl.id = feedbackId;
+                        feedbackEl.className = 'invalid-feedback';
+                        feedbackEl.textContent = errorMessage;
+                        el[0].parentNode.insertBefore(feedbackEl, el[0].nextSibling);
                         return false;
                     } else {
                         el.addClass('is-valid');
@@ -437,9 +688,9 @@
                     let errorMessage = "";
 
                     if (type === 'hp') {
-                        // Regex HP: Awalan 08 atau +628, panjang 10-13 digit
-                        regex = /^(\+62|0)8[1-9][0-9]{7,10}$/;
-                        errorMessage = "Format No. HP tidak valid (Gunakan awalan 08 atau +628, 10-13 digit).";
+                        // Regex HP: Awalan 08, 628, atau +628, panjang 10-13 digit (setelah prefix)
+                        regex = /^(?:\+62|62|0)8[1-9][0-9]{7,10}$/;
+                        errorMessage = "Format No. HP tidak valid (Gunakan awalan 08, 628, atau +628, 10-13 digit).";
                     } else {
                         // Regex Telp Kantor: Awalan kode area (02x/03x/dst), panjang 7-11 digit
                         regex = /^0[2-9][1-9][0-9]{6,9}$/;
@@ -448,7 +699,12 @@
 
                     if (!regex.test(val)) {
                         el.addClass('is-invalid');
-                        el.after(`<div id="${feedbackId}" class="invalid-feedback">${errorMessage}</div>`);
+                        // Gunakan DOM API yang aman untuk membuat feedback
+                        const feedbackEl = document.createElement('div');
+                        feedbackEl.id = feedbackId;
+                        feedbackEl.className = 'invalid-feedback';
+                        feedbackEl.textContent = errorMessage;
+                        el[0].parentNode.insertBefore(feedbackEl, el[0].nextSibling);
                     } else {
                         el.addClass('is-valid');
                     }
@@ -497,7 +753,11 @@
                         citySelect.prop('disabled', false).trigger('change');
                     },
                     error: () => {
-                        alert('Gagal mengambil data kota.');
+                        swal({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Gagal mengambil data kota.',
+                        });
                         citySelect.prop('disabled', false);
                     }
                 });

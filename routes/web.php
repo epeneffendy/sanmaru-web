@@ -70,8 +70,10 @@ Route::group(['domain' => $routeService->getPpdbSubdomain()], function () use ($
         Route::post("/$prefix/change-password", 'PPDBController@updatePassword')->name('ppdb.change-password.update');
         Route::get("/$prefix/form-student", 'PPDBController@formStudent')->name('ppdb.form-student');
         Route::post("/$prefix/form-student/submit", 'PPDBController@formStudentSubmit')->name('ppdb.form-student.submit');
+        Route::post("/$prefix/form-student/partial-save", 'PPDBController@formStudentPartialSave')->name('ppdb.form-student.partial-save');
         Route::get("/$prefix/form-parent", 'PPDBController@formParent')->name('ppdb.form-parent');
         Route::post("/$prefix/form-parent/submit", 'PPDBController@formParentSubmit')->name('ppdb.form-parent.submit');
+        Route::post("/$prefix/form-parent/partial-save", 'PPDBController@formParentPartialSave')->name('ppdb.form-parent.partial-save');
         Route::post("/$prefix/upload-payment-form", 'PPDBController@uploadPaymentForm')->name('ppdb.upload-payment-form');
         Route::post("/$prefix/upload-birth-certificate", 'PPDBController@uploadBirthCertificate')->name('ppdb.upload-birth-certificate');
         Route::post("/$prefix/upload-development-fee", 'PPDBController@uploadDevelopmentFee')->name('ppdb.upload-development-fee');

@@ -555,6 +555,173 @@ class PPDBController extends Controller
         // dd($cities);
     }
 
+    /**
+     * AJAX partial save per-tab pada form administrasi siswa.
+     * Memvalidasi dan menyimpan hanya field yang relevan dengan tab yang aktif.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function formStudentPartialSave(Request $request)
+    {
+        $user = $request->session()->get('user');
+        $ppdbUser = PPDBUser::where('user_id', $user['id'])->firstOrFail();
+        $unit = $ppdbUser->unit;
+        $tab = $request->input('tab');
+        $input = $request->all();
+
+        // Ambil validation rules berdasarkan tab yang aktif
+        $rules = $this->getValidationRulesForTab($tab, $unit, $input);
+
+        if (empty($rules)) {
+            return Response::json([
+                'status' => 'error',
+                'message' => 'Tab tidak dikenali.',
+            ], 400);
+        }
+
+        $validator = Validator::make($input, $rules);
+
+        if ($validator->fails()) {
+            return Response::json([
+                'status' => 'error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            $fillableFields = array_keys($rules);
+            $updateData = [];
+
+            foreach ($fillableFields as $field) {
+                if (array_key_exists($field, $input)) {
+                    $updateData[$field] = $input[$field];
+                }
+            }
+
+            // Handle special cases
+            if (isset($updateData['date_of_birth']) && $updateData['date_of_birth']) {
+                $updateData['date_of_birth'] = date('Y-m-d', strtotime($updateData['date_of_birth']));
+            }
+
+            if ($tab === 'identitas' && isset($input['place_of_birth']) && $input['place_of_birth'] === 'another_city' && isset($input['another_city'])) {
+                $updateData['place_of_birth'] = $input['another_city'];
+            }
+
+            $ppdbUser->update($updateData);
+
+            return Response::json([
+                'status' => 'success',
+                'message' => 'Data berhasil disimpan.',
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Error formStudentPartialSave: " . $e->getMessage());
+
+            return Response::json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan sistem saat menyimpan data, silakan coba lagi.',
+            ], 500);
+        }
+    }
+
+    /**
+     * Mengembalikan validation rules berdasarkan tab yang aktif.
+     * Menggunakan InputCollectionHelper untuk mendapatkan field-field dinamis per unit,
+     * lalu di-filter berdasarkan tab yang diminta.
+     *
+     * @param string $tab
+     * @param Unit $unit
+     * @param array $input
+     * @return array
+     */
+    private function getValidationRulesForTab(string $tab, Unit $unit, array $input): array
+    {
+        $additionalInputs = InputCollectionHelper::additionalData($unit);
+
+        // Field yang ada di tab "identitas" (partial: _identitas.blade.php)
+        $identitasFields = [
+            'name', 'nik_siswa', 'gender', 'religion',
+            'place_of_birth', 'date_of_birth', 'address',
+            'region', 'city', 'country',
+        ];
+
+        // Field yang ada di tab "additional" (partial: _additional_data.blade.php)
+        $additionalFields = [
+            'nama_siswa', 'nama_panggilan', 'nik_ortu', 'no_akta_kelahiran',
+            'bahasa', 'jumlah_saudara_kandung', 'anak_ke', 'jumlah_saudara_tiri',
+            'alamat_sesuai_kk', 'alamat_tempat_tinggal', 'status_orangtua',
+            'tinggal_dengan', 'jarak_tempat_tinggal', 'waktu_tempuh',
+            'nik_ayah', 'nik_ibu', 'penanggungjawab_biaya',
+            'nama_saudara_se_sekolah',
+        ];
+
+        // Field yang ada di tab "school" (partial: _school_form.blade.php)
+        $schoolFields = [
+            'asal_sekolah', 'alamat_asal_sekolah', 'kecamatan_asal_sekolah',
+            'kabupaten_asal_sekolah', 'kota_asal_sekolah', 'provinsi_asal_sekolah',
+            'nomor_telepon_asal_sekolah', 'transportasi_ke_sekolah',
+            'nisn', 'tahun_lulus', 'nomor_ujian_nasional',
+            'nomor_seri_shun', 'nomor_seri_ijazah',
+            'kelurahan_asal_sekolah',
+        ];
+
+        // Field yang ada di tab "medical" (partial: _medical_history.blade.php)
+        $medicalFields = [
+            'tinggi', 'berat', 'golongan_darah',
+            'pernah_dirawat', 'kapan_dirawat',
+            'penyakit', 'alergi', 'kelainan',
+            'kontak_darurat_keluarga',
+        ];
+
+        // Field yang ada di tab "potential" (partial: _potential_student.blade.php)
+        $potentialFields = [
+            'potensi_dan_bakat_sains', 'potensi_dan_bakat_seni',
+            'potensi_dan_bakat_olahraga', 'potensi_dan_bakat_lainnya',
+        ];
+
+        // Mapping tab ke field list
+        $tabFieldMapping = [
+            'identitas'  => $identitasFields,
+            'additional' => $additionalFields,
+            'school'     => $schoolFields,
+            'medical'    => $medicalFields,
+            'potential'  => $potentialFields,
+        ];
+
+        if (!isset($tabFieldMapping[$tab])) {
+            return [];
+        }
+
+        $allowedFields = $tabFieldMapping[$tab];
+        $rules = [];
+
+        // Tab identitas menggunakan rules statis (selalu ada di semua unit)
+        if ($tab === 'identitas') {
+            $rules = [
+                'name'           => ['required', 'string', 'max:255'],
+                'gender'         => ['required'],
+                'place_of_birth' => ['required'],
+                'date_of_birth'  => ['required'],
+                'address'        => ['required'],
+                'city'           => ['required'],
+                'region'         => ['required'],
+                'country'        => ['required'],
+                'religion'       => ['required'],
+                'nik_siswa'      => ['required', 'numeric', 'digits:16'],
+            ];
+            return $rules;
+        }
+
+        // Untuk tab lain, gunakan rules dari InputCollectionHelper yang difilter
+        foreach ($additionalInputs->all() as $fieldName => $fieldRules) {
+            if (in_array($fieldName, $allowedFields)) {
+                $rules[$fieldName] = $fieldRules;
+            }
+        }
+
+        return $rules;
+    }
+
     public function formStudentSubmit(Request $request, PPDBUserService $ppdbUserService)
     {
         $input = $request->all();
@@ -670,6 +837,164 @@ class PPDBController extends Controller
             return view('ppdb-online/form-parent-administration', $data);
         }
 
+    }
+
+    /**
+     * AJAX partial save per-tab pada form administrasi orang tua.
+     * Memvalidasi dan menyimpan hanya data ayah, ibu, atau wali berdasarkan tab yang aktif.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function formParentPartialSave(Request $request)
+    {
+        $input = $request->all();
+        $user = $request->session()->get('user');
+        $ppdb = PPDBUser::where('user_id', $user['id'])->firstOrFail();
+        $tab = $request->input('tab'); // 'father', 'mother', or 'wali'
+
+        // Tentukan validation rules berdasarkan tab
+        $rules = [];
+        $text = 'Nomor telepon yang dimasukkan tidak valid. Silahkan periksa kembali';
+        $messages = [
+            'f_phone.phone' => $text,
+            'f_phone.mobile' => $text,
+            'm_phone.phone' => $text,
+            'm_phone.mobile' => $text,
+            'w_phone.phone' => $text,
+            'w_phone.mobile' => $text,
+        ];
+
+        if ($tab === 'father') {
+            $rules = [
+                'father_name' => ['required', 'string', 'max:255'],
+                'f_phone' => ['required', 'phone:ID,mobile'],
+                'f_place_of_birth' => ['required'],
+                'f_date_of_birth' => ['required'],
+                'f_address' => ['required'],
+                'f_city' => ['required'],
+                'f_region' => ['required'],
+                'f_country' => ['required'],
+                'f_religion' => ['required'],
+                'f_job' => ['required'],
+                'f_salary' => ['required'],
+                'f_education' => ['required'],
+            ];
+        } elseif ($tab === 'mother') {
+            $rules = [
+                'mother_name' => ['required', 'string', 'max:255'],
+                'm_phone' => ['required', 'phone:ID,mobile'],
+                'm_place_of_birth' => ['required'],
+                'm_date_of_birth' => ['required'],
+                'm_address' => ['required'],
+                'm_city' => ['required'],
+                'm_region' => ['required'],
+                'm_country' => ['required'],
+                'm_religion' => ['required'],
+                'm_job' => ['required'],
+                'm_salary' => ['required'],
+                'm_education' => ['required'],
+            ];
+        } elseif ($tab === 'wali') {
+            $rules = [
+                'wali_name' => ['required', 'string', 'max:255'],
+                'w_phone' => ['required', 'phone:ID,mobile'],
+                'w_place_of_birth' => ['required'],
+                'w_date_of_birth' => ['required'],
+                'w_address' => ['required'],
+                'w_city' => ['required'],
+                'w_region' => ['required'],
+                'w_country' => ['required'],
+                'w_religion' => ['required'],
+                'w_job' => ['required'],
+                'w_salary' => ['required'],
+                'w_education' => ['required']
+            ];
+        } else {
+            return \Illuminate\Support\Facades\Response::json([
+                'status' => 'error',
+                'message' => 'Tab tidak dikenali.',
+            ], 400);
+        }
+
+        $validator = Validator::make($input, $rules, $messages);
+
+        if ($validator->fails()) {
+            return \Illuminate\Support\Facades\Response::json([
+                'status' => 'error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            if ($tab === 'father') {
+                Parents::updateOrCreate(
+                    ['children_id' => $user['id'], 'type' => 'father'],
+                    [
+                        'name' => $input['father_name'],
+                        'place_of_birth' => $input['f_place_of_birth'],
+                        'date_of_birth' => date('Y-m-d', strtotime($input['f_date_of_birth'])),
+                        'address' => $input['f_address'],
+                        'city' => $input['f_city'],
+                        'region' => $input['f_region'],
+                        'country' => $input['f_country'],
+                        'religion' => $input['f_religion'],
+                        'job' => $input['f_job'],
+                        'phone' => app('phoneNormalizerService')->normalize($input['f_phone']),
+                        'education' => $input['f_education'],
+                        'salary' => $input['f_salary'],
+                    ]
+                );
+            } elseif ($tab === 'mother') {
+                Parents::updateOrCreate(
+                    ['children_id' => $user['id'], 'type' => 'mother'],
+                    [
+                        'name' => $input['mother_name'],
+                        'place_of_birth' => $input['m_place_of_birth'],
+                        'date_of_birth' => date('Y-m-d', strtotime($input['m_date_of_birth'])),
+                        'address' => $input['m_address'],
+                        'city' => $input['m_city'],
+                        'region' => $input['m_region'],
+                        'country' => $input['m_country'],
+                        'religion' => $input['m_religion'],
+                        'job' => $input['m_job'],
+                        'phone' => app('phoneNormalizerService')->normalize($input['m_phone']),
+                        'education' => $input['m_education'],
+                        'salary' => $input['m_salary'],
+                    ]
+                );
+            } elseif ($tab === 'wali') {
+                Parents::updateOrCreate(
+                    ['children_id' => $user['id'], 'type' => 'wali'],
+                    [
+                        'name' => $input['wali_name'],
+                        'place_of_birth' => $input['w_place_of_birth'],
+                        'date_of_birth' => date('Y-m-d', strtotime($input['w_date_of_birth'])),
+                        'address' => $input['w_address'],
+                        'city' => $input['w_city'],
+                        'region' => $input['w_region'],
+                        'country' => $input['w_country'],
+                        'religion' => $input['w_religion'],
+                        'job' => $input['w_job'],
+                        'phone' => app('phoneNormalizerService')->normalize($input['w_phone']),
+                        'education' => $input['w_education'],
+                        'salary' => $input['w_salary'],
+                    ]
+                );
+            }
+
+            return \Illuminate\Support\Facades\Response::json([
+                'status' => 'success',
+                'message' => 'Data berhasil disimpan.',
+            ]);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Error formParentPartialSave: " . $e->getMessage());
+
+            return \Illuminate\Support\Facades\Response::json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan sistem saat menyimpan data, silakan coba lagi.',
+            ], 500);
+        }
     }
 
     public function formParentSubmit(Request $request)

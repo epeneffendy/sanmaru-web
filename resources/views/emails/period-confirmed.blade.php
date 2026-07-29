@@ -8,9 +8,9 @@
         <p>Yth. Orang Tua/Wali dari <b>{{ $ppdb->name }}</b><br />
             Siswa {{ $unit->name }},</p>
 
-        <p>Selamat!,Kami informaskan bahwa berkas persyaratan pendafaran calon peserta didik baru yang di unggah telah
-            berhasil <b>Diverifikasi</b> dan dinyatakan <b>Lengkap</b> oleh tim administasi kami.</p>
-
+        <p>Selamat! Berkas persyaratan pendaftaran calon peserta didik baru yang Anda unggah telah berhasil diterima oleh sistem 
+            dan saat ini sedang dalam proses verifikasi oleh tim administrasi.</p>
+           
         <table width="100%" border="0" cellspacing="0" cellpadding="0"
             style="background-color: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 25px;">
             <tr>
@@ -41,7 +41,8 @@
             style="background-color: #e8f5e9; border-left: 4px solid #198754; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
             <h4 style="margin: 0 0 10px 0; color: #146c43; font-size: 15px;">Langkah Selanjutnya:</h4>
             <p style="margin: 0; font-size: 14px; color: #146c43; line-height: 1.5;">
-                Silakan masuk ke dasbor pendaftaran untuk melihat instruksi lebih detail.
+                Silakan menunggu proses verifikasi selesai. Informasi hasil verifikasi dan tahapan 
+            berikutnya dapat dilihat secara berkala melalui dasbor pendaftaran
             </p>
         </div>
     @endcomponent

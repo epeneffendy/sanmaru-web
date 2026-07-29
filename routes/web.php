@@ -1163,3 +1163,4 @@ Route::get('/debug-email/overdue_bill_notification', function () {
 
     return new \App\Mail\OverdueBillNotificationMail($detail, $ppdbUser);
 });
+

@@ -17,7 +17,7 @@ class DevelopmentReportController extends Controller
 
     public function index(Request $request, PPDBUserService $ppdbUserService){
         $params = $this->getParams($request);
-
+        
         $data_ppdb = [];
         if(!empty($request->all())){
             $data_ppdb = $ppdbUserService->getDevelopmentReport($params);

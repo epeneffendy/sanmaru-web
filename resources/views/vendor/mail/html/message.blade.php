@@ -2,7 +2,7 @@
     {{-- Header --}}
     @slot('header')
         @component('mail::header', ['url' => config('app.url')])
-            {{ @$header }} SANMARU SMPB
+            {{ @$header }} SANMARU SPMB
         @endcomponent
     @endslot
 

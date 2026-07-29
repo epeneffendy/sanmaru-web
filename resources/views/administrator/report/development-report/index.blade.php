@@ -92,6 +92,26 @@
                                     <div class="row">
                                         <input type="hidden" name="apply_filter" value="1">
 
+                                        <div class="form-group col-md-3">
+                                            <label for="search">Cari</label>
+                                            <input type="text" name="search" placeholder="Search"
+                                                value="{{ @$params['search'] }}" class="form-control input-sm" />
+                                        </div>
+                                        
+                                        <div class="form-group col-md-3">
+                                            <label for="scope">Berdasarkan</label>
+                                            <select name="scope" class="form-control input-sm">
+                                                <option value="name"
+                                                    {{ @$params['scope'] == 'name' ? 'selected' : null }}>
+                                                    Nama
+                                                </option>
+                                                <option value="register_number"
+                                                    {{ @$params['scope'] == 'register_number' ? 'selected' : null }}>
+                                                    Nomor Registrasi
+                                                </option>
+                                            </select>
+                                        </div>
+
                                         <div class="form-group col-md-2">
                                             <label for="unit" class="form-label">Unit</label>
                                             <select name="unit" class="form-control input-sm">

@@ -100,6 +100,7 @@
 
                 <form id="wrapped" method="POST" autocomplete="off"
                       action="{{route('ppdb.form-parent.submit')}}">
+                    @csrf
 
                     <div class="row">
                         <div class="col-md-12">
@@ -226,7 +227,7 @@
                         <div class="col-md-6 mb-4">
                             <label class="form-label fw-bold text-muted mb-2">No. Telp Wali</label>
                             <div class="input-group modern-input-group">
-                                <input type="text" pattern="0-9" name="w_phone"
+                                <input type="text" pattern="[0-9+]+" name="w_phone"
                                        value="{{ (!empty(@$wali['phone']))?$wali['phone']:old('w_phone') }}"
                                        class="form-control required" placeholder="Telepon">
                             </div>
@@ -392,9 +393,9 @@
                     let errorMessage = "";
 
                     if (type === 'hp') {
-                        // Regex HP: Awalan 08 atau +628, panjang 10-13 digit
-                        regex = /^(\+62|0)8[1-9][0-9]{7,10}$/;
-                        errorMessage = "Format No. HP tidak valid (Gunakan awalan 08 atau +628, 10-13 digit).";
+                        // Regex HP: Awalan 08, 628, atau +628, panjang 10-13 digit
+                        regex = /^(?:\+62|62|0)8[1-9][0-9]{7,10}$/;
+                        errorMessage = "Format No. HP tidak valid (Gunakan awalan 08, 628, 10-13 digit).";
                     } else {
                         // Regex Telp Kantor: Awalan kode area (02x/03x/dst), panjang 7-11 digit
                         regex = /^0[2-9][1-9][0-9]{6,9}$/;

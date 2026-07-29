@@ -343,8 +343,12 @@
                                 buttons: false,
                             });
                             setTimeout(() => {
-                                // Sesuai permintaan: redirect ke welcome sama seperti form siswa
-                                window.location.href = "{{ route('ppdb.welcome') }}";
+                                @if($ppdbUser->isWaliRequired ?? false)
+                                     window.location.href = "{{ route('ppdb.welcome') }}";
+                                @else
+                                    // Sesuai permintaan: redirect ke welcome sama seperti form siswa
+                                    window.location.href = "{{ route('ppdb.welcome') }}";
+                                @endif
                             }, 1500);
                         } else {
                             this.performTabSwitch();
@@ -361,6 +365,18 @@
                         $nextBtn.prop('disabled', false).text(originalNextText);
                         $saveBtn.prop('disabled', false).html(originalSaveText);
                         $('#prevBtn').prop('disabled', false);
+
+                        if (xhr.status === 419) {
+                            swal({
+                                icon: 'error',
+                                title: 'Sesi Berakhir',
+                                text: 'Sesi Anda telah berakhir karena terlalu lama diam (Page Expired). Halaman akan dimuat ulang...',
+                                timer: 3000,
+                                buttons: false,
+                            });
+                            setTimeout(() => window.location.reload(), 3000);
+                            return;
+                        }
 
                         if (xhr.status === 422 && xhr.responseJSON && xhr.responseJSON.errors) {
                             this.displayServerErrors(xhr.responseJSON.errors);
@@ -505,7 +521,7 @@
 
                     // Regex HP: Awalan 08, 628, atau +628, panjang 10-13 digit (setelah prefix)
                     const regex = /^(?:\+62|62|0)8[1-9][0-9]{7,10}$/;
-                    const errorMessage = "Format No. HP tidak valid (Gunakan awalan 08, 628, atau +628, 10-13 digit).";
+                    const errorMessage = "Format No. HP tidak valid (Gunakan awalan 08, 628, 10-13 digit).";
 
                     if (!regex.test(val)) {
                         el.addClass('is-invalid');

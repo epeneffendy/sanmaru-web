@@ -385,7 +385,7 @@
                                 @if ($inputs->get('nomor_telepon_asal_sekolah'))
                                 <div class="form-group">
                                     <label class="control-label">Nomor Telepon Asal Sekolah</label>
-                                    <input type="text" pattern="0-9" name="nomor_telepon_asal_sekolah"
+                                    <input type="text" pattern="[0-9+]+" name="nomor_telepon_asal_sekolah"
                                         value="{{ old('nomor_telepon_asal_sekolah', @$ppdbUser->nomor_telepon_asal_sekolah) }}"
                                         class="form-control required" placeholder="Nomor Telepon Asal Sekolah">
                                 </div>

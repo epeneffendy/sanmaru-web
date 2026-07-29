@@ -1151,6 +1151,9 @@ class PPDBController extends Controller
                 ->withErrors($e->getMessage())
                 ->withInput();
         }
+        if ($ppdb->isWaliRequired) {
+            return redirect(route('ppdb.welcome'))->with('message', 'Data berhasil disimpan.');
+        }
         return redirect(route('ppdb.welcome'))->with('message', 'Data berhasil disimpan.');
     }
 

@@ -690,7 +690,7 @@
                     if (type === 'hp') {
                         // Regex HP: Awalan 08, 628, atau +628, panjang 10-13 digit (setelah prefix)
                         regex = /^(?:\+62|62|0)8[1-9][0-9]{7,10}$/;
-                        errorMessage = "Format No. HP tidak valid (Gunakan awalan 08, 628, atau +628, 10-13 digit).";
+                        errorMessage = "Format No. HP tidak valid (Gunakan awalan 08, 628, 10-13 digit).";
                     } else {
                         // Regex Telp Kantor: Awalan kode area (02x/03x/dst), panjang 7-11 digit
                         regex = /^0[2-9][1-9][0-9]{6,9}$/;

@@ -100,7 +100,7 @@ $provinces = [
                         </div>
                         <div class="form-group">
                             <label class="control-label">Nomor Telepon Ayah</label>
-                            <input type="text" pattern="0-9" name="f_phone"
+                            <input type="text" pattern="[0-9+]+" name="f_phone"
                                    value="{{ (!empty(@$dad['phone']))?$dad['phone']:old('f_phone') }}"
                                    class="form-control required" placeholder="Telepon">
                         </div>
@@ -219,7 +219,7 @@ $provinces = [
                         </div>
                         <div class="form-group">
                             <label class="control-label">Nomor Telepon Ibu</label>
-                            <input type="text" pattern="0-9" name="m_phone"
+                            <input type="text" pattern="[0-9+]+" name="m_phone"
                                    value="{{ (!empty(@$mom['phone']))?$mom['phone']:old('m_phone') }}"
                                    class="form-control required" placeholder="Telepon">
                         </div>
@@ -340,7 +340,7 @@ $provinces = [
                         </div>
                         <div class="form-group">
                             <label class="control-label">Nomor Telepon Wali</label>
-                            <input type="text" pattern="0-9" name="w_phone"
+                            <input type="text" pattern="[0-9+]+" name="w_phone"
                                    value="{{ (!empty(@$wali['phone']))?$wali['phone']:old('w_phone') }}"
                                    class="form-control required" placeholder="Telepon">
                         </div>

@@ -709,7 +709,18 @@ class PPDBUserService
     public function getDevelopmentReport($params){
         
 
-        $ppdbUser = PPDBUser::where(['unit_id'=>$params['unit'],'school_year'=> $params['year']])->get();
+        $query = PPDBUser::where(['unit_id' => $params['unit'], 'school_year' => $params['year']]);
+
+        if (!empty($params['search'])) {
+            $scope = $params['scope'] ?? 'name';
+            if ($scope === 'name') {
+                $query->where('name', 'like', '%' . $params['search'] . '%');
+            } elseif ($scope === 'register_number') {
+                $query->where('register_number', 'like', '%' . $params['search'] . '%');
+            }
+        }
+
+        $ppdbUser = $query->get();
 
         $arr_data = [];
         foreach($ppdbUser as $ppdb){

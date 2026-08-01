@@ -28,6 +28,20 @@
     </div>
 @endif
 
+@if ($inputs->get('kabupaten_asal_sekolah'))
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="form-group custom-form-group">
+                <label class="form-label fw-bold text-muted mb-2">Kabupaten Asal Sekolah</label>
+                <div class="input-group modern-input-group">
+                    <textarea class="form-control uppercase-input required" name="kabupaten_asal_sekolah" rows="3"
+                              placeholder="Alamat Asal Sekolah">{{ old('kabupaten_asal_sekolah', @$ppdbUser->kabupaten_asal_sekolah) }}</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif
+
 @if ($inputs->get('kecamatan_asal_sekolah'))
     <div class="row">
         <div class="col-md-12 mb-4">
@@ -43,15 +57,15 @@
     </div>
 @endif
 
-@if ($inputs->get('kabupaten_asal_sekolah'))
+@if ($inputs->get('kelurahan_asal_sekolah'))
     <div class="row">
         <div class="col-md-12 mb-4">
             <div class="form-group custom-form-group">
-                <label class="form-label fw-bold text-muted mb-2">Kabupaten Asal Sekolah</label>
+                <label class="form-label fw-bold text-muted mb-2">Kelurahan Asal Sekolah</label>
                 <div class="input-group modern-input-group">
-                    <input type="text" name="kabupaten_asal_sekolah"
-                           value="{{ old('kabupaten_asal_sekolah', @$ppdbUser->kabupaten_asal_sekolah) }}"
-                           class="form-control uppercase-input required" placeholder="Kabupaten Asal Sekolah">
+                    <input type="text" name="kelurahan_asal_sekolah"
+                           value="{{ old('kelurahan_asal_sekolah', @$ppdbUser->kelurahan_asal_sekolah) }}"
+                           class="form-control uppercase-input required" placeholder="Kecamatan Asal Sekolah">
                 </div>
             </div>
         </div>

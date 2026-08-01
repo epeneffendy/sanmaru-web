@@ -708,7 +708,6 @@ class PPDBUserService
 
     public function getDevelopmentReport($params){
         
-
         $query = PPDBUser::where(['unit_id' => $params['unit'], 'school_year' => $params['year']]);
 
         if (!empty($params['search'])) {

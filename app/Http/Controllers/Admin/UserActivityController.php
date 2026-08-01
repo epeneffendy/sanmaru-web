@@ -34,14 +34,24 @@ class UserActivityController extends Controller
 		if ($request->input('model_id')) {
 			$logs = $logs->where('model_id', $request->input('model_id'));
 		}
+		
+		if ($request->input('unit_id')) {
+			$logs = $logs->where(function($q) use ($request) {
+                $q->where('model_metadata', 'like', '%"unit_id":'.$request->input('unit_id').'%')
+                  ->orWhere('model_metadata', 'like', '%"unit_id":"'.$request->input('unit_id').'"%');
+            });
+		}
 
     	$logs = $logs->orderBy('id', 'desc')->paginate(50);
+
+        $units = \App\Models\Unit::all();
 
     	$data = [
 			'nav' => $this->page,
 			'modelTypes' => $contents,
 			'params' => $request->all(),
-    		'data' => $logs
+    		'data' => $logs,
+            'units' => $units
     	];
 
     	return view('administrator.user-activity.list', $data);

@@ -112,6 +112,8 @@ class ActivityLog extends Model
             $metadata = $model->getModelMetadata();
         }
 
+        $metadata = static::appendDynamicMetadata($model, $metadata);
+
         return [
             $new,
             [],
@@ -134,6 +136,8 @@ class ActivityLog extends Model
             $metadata = $model->getModelMetadata();
         }
 
+        $metadata = static::appendDynamicMetadata($model, $metadata);
+
         return [
             $new,
             $old,
@@ -150,6 +154,8 @@ class ActivityLog extends Model
             $metadata = $model->getModelMetadata();
         }
 
+        $metadata = static::appendDynamicMetadata($model, $metadata);
+
         return [
             [],
             $old,
@@ -165,6 +171,8 @@ class ActivityLog extends Model
             $metadata = $model->getModelMetadata();
         }
 
+        $metadata = static::appendDynamicMetadata($model, $metadata);
+
         return [
             [],
             [],
@@ -179,6 +187,8 @@ class ActivityLog extends Model
         if ($model instanceof ModelMetadata) {
             $metadata = $model->getModelMetadata();
         }
+
+        $metadata = static::appendDynamicMetadata($model, $metadata);
 
         return [
             [],
@@ -245,6 +255,14 @@ class ActivityLog extends Model
         
         if ($title) {
             $description .= " \"{$title}\"";
+        }
+
+        if (isset($metadata['unit_name'])) {
+            $description .= " di Unit \"{$metadata['unit_name']}\"";
+        }
+        
+        if (isset($metadata['category_name'])) {
+            $description .= " (Kategori: {$metadata['category_name']})";
         }
 
         return  $description;
@@ -347,6 +365,20 @@ class ActivityLog extends Model
             'Product',
             'ProductDetail',
         ];
+    }
+
+    public static function appendDynamicMetadata($model, $metadata)
+    {
+        if (method_exists($model, 'unit') && $model->unit) {
+            $metadata['unit_name'] = $model->unit->name;
+            $metadata['unit_id'] = $model->unit->id;
+        }
+
+        if (method_exists($model, 'category') && $model->category) {
+            $metadata['category_name'] = $model->category->name;
+        }
+
+        return $metadata;
     }
 
     private function cleanData($data=null)

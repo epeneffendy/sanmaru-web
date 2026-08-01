@@ -37,14 +37,22 @@
                             <div class="panel-body">
                                 <form role="form" autocomplete="off" method="GET" action="{{ route('admin.user-activity.index') }}">
                                     <input autocomplete="false" name="hidden" disabled type="text" style="display:none;">
-                                    <div class="form-group col-md-3">
+                                    <div class="form-group col-md-2">
                                         <input type="text" name="username" placeholder="Username" value="{{ @$params['username'] }}" class="form-control input-sm" />
                                     </div>
-                                    <div class="form-group col-md-3">
+                                    <div class="form-group col-md-2">
                                         <select class="form-control input-sm" name="model_type">
                                             <option value="">-- ALL --</option>
                                             @foreach ($modelTypes as $modelType)
                                                 <option value="{{ $modelType }}" {{ @$params['model_type'] == $modelType ? 'selected' : NULL }}>{{ $modelType }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-3">
+                                        <select class="form-control input-sm" name="unit_id">
+                                            <option value="">-- ALL UNIT --</option>
+                                            @foreach ($units as $unit)
+                                                <option value="{{ $unit->id }}" {{ @$params['unit_id'] == $unit->id ? 'selected' : NULL }}>{{ $unit->name }}</option>
                                             @endforeach
                                         </select>
                                     </div>

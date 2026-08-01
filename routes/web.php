@@ -1124,33 +1124,26 @@ Route::get('/debug-email/installment-reminder', function () {
     return new \App\Mail\DevelopmentFeeInstallmentReminderMail($detail, $ppdb);
 });
 
-Route::get('/debug-email/payment-period-reminder', function () {
-    $student = \App\Models\PPDBUser::with(['user', 'unit'])->where('status', \App\Models\PPDBUser::STATUS_ACCEPTED)->first();
-    $periode = \App\Models\FinancePeriode::whereNotNull('start_date')->first();
-
-    if (!$student) {
-        return 'Tidak ada data PPDBUser dengan status diterima di database untuk di-preview.';
+Route::get('/debug-email/payment-period-reminder/{id?}', function ($id = null) {
+    if ($id) {
+        $student = \App\Models\PPDBUser::with(['user', 'unit'])->where('id', $id)->first();
+    } else {
+        $student = \App\Models\PPDBUser::with(['user', 'unit'])->where('status', \App\Models\PPDBUser::STATUS_ACCEPTED)->first();
     }
-    if (!$periode) {
-        return 'Tidak ada data FinancePeriode di database untuk di-preview.';
+    
+    if (!$student) {
+        return 'Tidak ada data PPDBUser (Parameter: ' . ($id ?: 'Status Diterima') . ') di database untuk di-preview.';
+    }
+
+    $periode = \App\Helpers\PriceHelper::getDatePeriodePayment($student, 'activity');
+
+    if (!$periode['start'] || !$periode['end']) {
+        return 'Tidak ada data periode pembayaran activity di database untuk di-preview (PPDBUser ID: ' . $student->id . ').';
     }
 
     return new \App\Mail\PaymentPeriodReminderMail($student, $periode);
 });
 
-Route::get('/debug-email/payment-period-reminder', function () {
-    $student = \App\Models\PPDBUser::with(['user', 'unit'])->where('status', \App\Models\PPDBUser::STATUS_ACCEPTED)->first();
-    $periode = \App\Models\FinancePeriode::whereNotNull('start_date')->first();
-
-    if (!$student) {
-        return 'Tidak ada data PPDBUser dengan status diterima di database untuk di-preview.';
-    }
-    if (!$periode) {
-        return 'Tidak ada data FinancePeriode di database untuk di-preview.';
-    }
-
-    return new \App\Mail\PaymentPeriodReminderMail($student, $periode);
-});
 
 Route::get('/debug-email/overdue_bill_notification', function () {
     $detail = \App\Models\PaymentDispensationDetails::whereHas('dispensation.ppdb')->first();

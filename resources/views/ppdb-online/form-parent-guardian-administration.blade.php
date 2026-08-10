@@ -353,9 +353,9 @@
                         </div>
                     </div>
 
-                    <div class="form-footer mt-5 pt-4 d-flex justify-content-between">
-                        <button type="submit" class="btn btn-success btn-lg rounded-pill px-5 shadow">
-                            Simpan
+                    <div class="form-footer mt-4 mt-md-5 pt-3 pt-md-4 mb-4 mb-md-0 d-flex justify-content-between align-items-center gap-2">
+                        <button type="submit" class="btn btn-success btn-md rounded-pill px-4 px-sm-5 shadow ms-auto">
+                            Simpan <i class="bi bi-check-circle me-1 me-sm-2"></i>
                         </button>
                     </div>
 

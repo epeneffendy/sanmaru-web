@@ -207,12 +207,12 @@
 
                     </div>
 
-                    <div class="form-footer mt-5 pt-4 d-flex justify-content-between">
-                        <button type="button" class="btn btn-light btn-sm rounded-pill px-5 shadow" id="prevBtn">Sebelumnya</button>
-                        <button type="button" class="btn btn-info btn-sm rounded-pill px-5 shadow" id="nextBtn">Selanjutnya</button>
-                        <button type="submit" class="btn btn-success btn-sm rounded-pill px-5 shadow d-none"
+                    <div class="form-footer mt-4 mt-md-5 pt-3 pt-md-4 mb-4 mb-md-0 d-flex justify-content-between align-items-center gap-2">
+                        <button type="button" class="btn btn-light btn-sm rounded-pill px-3 px-sm-5 shadow" id="prevBtn">Sebelumnya</button>
+                        <button type="button" class="btn btn-info btn-sm rounded-pill px-3 px-sm-5 shadow ms-auto" id="nextBtn">Selanjutnya</button>
+                        <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 px-sm-5 shadow ms-auto d-none"
                                 id="simpan-pendaftaran">
-                            Simpan <i class="bi bi-check-circle me-2"></i>
+                            Simpan <i class="bi bi-check-circle me-1 me-sm-2"></i>
                         </button>
                     </div>
                 </form>

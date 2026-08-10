@@ -25,8 +25,8 @@
 
     <!-- YOUR CUSTOM CSS -->
     <link href="{{asset('css/app.css')}}" rel="stylesheet">
-    <link rel="stylesheet" href="{{asset('frontend-ppdb-online/css/desktop.css')}}">
-    <link rel="stylesheet" href="{{asset('frontend-ppdb-online/css/mobile.css')}}">
+    <link rel="stylesheet" href="{{asset('frontend-ppdb-online/css/desktop.css')}}?v={{ filemtime(public_path('frontend-ppdb-online/css/desktop.css')) }}">
+    <link rel="stylesheet" href="{{asset('frontend-ppdb-online/css/mobile.css')}}?v={{ filemtime(public_path('frontend-ppdb-online/css/mobile.css')) }}">
 
     <!-- MODERNIZR MENU -->
     <script src="{{asset('frontend-ppdb-online/js/modernizr.js')}}"></script>

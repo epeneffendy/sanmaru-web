@@ -149,7 +149,7 @@ class User extends Authenticatable
 
     public function ppdb()
     {
-        return $this->hasOne('\App\Models\PPDBUser', 'user_id');
+        return $this->hasOne('\App\Models\PPDBUser', 'user_id')->latest('id');
     }
 
     public function vendor()

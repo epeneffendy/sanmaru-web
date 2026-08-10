@@ -770,7 +770,7 @@
                                     <div class="col-3">
                                         <div class="row">
                                             <div class="col">
-                                                <a href="{{ route('ppdb.download-angket-peminatan') }}" target="_blank"
+                                                <a href="{{ route('ppdb.download-angket-peminatan') }}?v={{ time() }}" target="_blank"
                                                     class="btn btn-download">Unduh</a>
                                                 <div class="input-group mb-3">
                                                     <div class="custom-file">
@@ -832,7 +832,7 @@
                                     <div class="col-3">
                                         <div class="row">
                                             <div class="col">
-                                                <a href="{{ route('ppdb.download-statement-letter') }}" target="_blank"
+                                                <a href="{{ route('ppdb.download-statement-letter') }}?v={{ time() }}" target="_blank"
                                                     class="btn btn-download">Unduh</a>
                                                 <div class="input-group mb-3">
                                                     <div class="custom-file">

@@ -175,14 +175,16 @@
                             @include('ppdb-online.partials.form_registration._additional_data')
                         </div>
 
-                        <div class="tab-pane fade" id="school" role="tabpanel">
-                            <div class="col-12">
-                                <h5 class="section-title"><i class="bi bi-person-badge me-2"></i>Asal Sekolah Calon
-                                    Peserta Didik</h5>
-                            </div>
+                        @if (!in_array($ppdbUser->unit->level_of_education, ['KB', 'TK']))
+                            <div class="tab-pane fade" id="school" role="tabpanel">
+                                <div class="col-12">
+                                    <h5 class="section-title"><i class="bi bi-person-badge me-2"></i>Asal Sekolah Calon
+                                        Peserta Didik</h5>
+                                </div>
 
-                            @include('ppdb-online.partials.form_registration._school_form')
-                        </div>
+                                @include('ppdb-online.partials.form_registration._school_form')
+                            </div>
+                        @endif
 
                         <div class="tab-pane fade" id="medical" role="tabpanel">
                             <div class="col-12">
@@ -228,9 +230,12 @@
         const RegistrationWizard = {
             currentTab: 0,
             isSaving: false,
-            tabs: @json($ppdbUser->unit->unit_code != '05')
-                ? ['identitas', 'additional', 'school', 'medical']
-                : ['identitas', 'additional', 'school', 'medical', 'potential'],
+            tabs: {!! json_encode(array_values(array_diff(
+                $ppdbUser->unit->unit_code != '05'
+                    ? ['identitas', 'additional', 'school', 'medical']
+                    : ['identitas', 'additional', 'school', 'medical', 'potential'],
+                in_array($ppdbUser->unit->level_of_education, ['KB', 'TK']) ? ['school'] : []
+            ))) !!},
 
             init() {
                 this.updateUI();

@@ -124,25 +124,21 @@
                                         onchange="getVals(this, 'name');">
                                 </div>
                                 @if (!\Illuminate\Support\Str::startsWith($unit->name, ['KB', 'TK']))
-                                    @if ($unit->ongoingPeriods->first()->is_feeder_school)
-                                        <div class="form-group">
-                                            <select name="origin_school" class="form-control required">
-                                                @foreach ($unit->ongoingPeriods->first()->origin_school_options as $value)
-                                                    <option value="{{ $value }}"
-                                                        {{ old('origin_school') == $value ? 'selected' : null }}>
-                                                        {{ $value }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    @else
-                                        <div class="form-group">
-                                            <input type="text" name="origin_school"
-                                                class="form-control uppercase-input required" placeholder="Sekolah Asal"
-                                                value="{{ old('origin_school') }}"
-                                                onchange="getVals(this, 'origin_school');">
-                                        </div>
-                                    @endif
-
+                                    {{-- Feeder school: dropdown sekolah asal (toggle by JS) --}}
+                                    <div class="form-group" id="origin-school-select-container" style="display: none;">
+                                        <select name="origin_school_select" id="origin_school_select" class="form-control">
+                                            <option value="">-- Pilih Sekolah Asal --</option>
+                                        </select>
+                                    </div>
+                                    {{-- Non-feeder school: input text sekolah asal (toggle by JS) --}}
+                                    <div class="form-group" id="origin-school-input-container" style="display: none;">
+                                        <input type="text" name="origin_school_input" id="origin_school_input"
+                                            class="form-control uppercase-input" placeholder="Sekolah Asal"
+                                            value="{{ old('origin_school') }}"
+                                            onchange="getVals(this, 'origin_school');">
+                                    </div>
+                                    {{-- Hidden input yang dikirim ke server --}}
+                                    <input type="hidden" name="origin_school" id="origin_school_hidden" value="{{ old('origin_school') }}">
                                 @endif
 
                                 @if ($unit->isAgeLimitApplied)
@@ -263,6 +259,15 @@
     <!-- Wizard script -->
     <script>
         var ageLimitByMonths = {{ $ageLimit ? $ageLimit->months : 0 }};
+        var periodsFeederMap = @json(
+            $periods->mapWithKeys(function ($period) {
+                return [$period->id => [
+                    'is_feeder_school' => $period->is_feeder_school,
+                    'origin_school_options' => $period->origin_school_options ?? [],
+                ]];
+            })
+        );
+        var isUnitKBorTK = {{ \Illuminate\Support\Str::startsWith($unit->name, ['KB', 'TK']) ? 'true' : 'false' }};
     </script>
     <script src="{{ asset('frontend-ppdb-online/js/registration_func.js') }}"></script>
     <script src="https://unpkg.com/gijgo@1.9.13/js/gijgo.min.js" type="text/javascript"></script>
@@ -486,6 +491,7 @@
                         hint.html('<i class="fa fa-check"></i> Periode terpilih.').removeClass(
                             'text-info').addClass(
                             'text-success');
+                        updateOriginSchoolField(val);
                         fieldsContainer.fadeIn(500);
                     } else {
                         $('#period_id').val('')
@@ -508,5 +514,61 @@
                     .removeClass('text-info').addClass('text-danger');
             }
         });
+
+        function updateOriginSchoolField(periodId) {
+            if (isUnitKBorTK) return;
+
+            var selectContainer = $('#origin-school-select-container');
+            var inputContainer = $('#origin-school-input-container');
+            var selectEl = $('#origin_school_select');
+            var inputEl = $('#origin_school_input');
+            var hiddenEl = $('#origin_school_hidden');
+
+            // Reset keduanya
+            selectContainer.hide();
+            inputContainer.hide();
+            selectEl.removeClass('required');
+            inputEl.removeClass('required');
+
+            if (!periodId || !periodsFeederMap[periodId]) {
+                hiddenEl.val('');
+                return;
+            }
+
+            var periodData = periodsFeederMap[periodId];
+
+            if (periodData.is_feeder_school && periodData.origin_school_options.length > 0) {
+                // Tampilkan dropdown dengan opsi sekolah asal
+                selectEl.empty().append('<option value="">-- Pilih Sekolah Asal --</option>');
+                periodData.origin_school_options.forEach(function(school) {
+                    var option = $('<option></option>').val(school).text(school);
+                    selectEl.append(option);
+                });
+                selectEl.addClass('required');
+                selectContainer.show();
+
+                // Sync select ke hidden
+                selectEl.off('change.originSync').on('change.originSync', function() {
+                    hiddenEl.val($(this).val());
+                });
+                // Reset hidden jika value sebelumnya tidak ada di opsi baru
+                if (periodData.origin_school_options.indexOf(hiddenEl.val()) === -1) {
+                    hiddenEl.val('');
+                    selectEl.val('');
+                } else {
+                    selectEl.val(hiddenEl.val());
+                }
+            } else {
+                // Tampilkan input text
+                inputEl.addClass('required');
+                inputContainer.show();
+
+                // Sync input ke hidden
+                inputEl.off('input.originSync').on('input.originSync', function() {
+                    hiddenEl.val($(this).val());
+                });
+                inputEl.val(hiddenEl.val());
+            }
+        }
     </script>
 @endpush

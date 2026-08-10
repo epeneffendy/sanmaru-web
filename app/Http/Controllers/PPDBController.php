@@ -542,6 +542,10 @@ class PPDBController extends Controller
         if ($user_ppdb->unit->unit_code != '05') {
             unset($arr_stepper[4]);
         }
+        if (in_array($user_ppdb->unit->level_of_education, ['KB', 'TK'])) {
+            unset($arr_stepper[2]);
+        }
+        $arr_stepper = array_values($arr_stepper);
 
         $data = array(
             'ppdbUser' => $user_ppdb,
@@ -688,7 +692,7 @@ class PPDBController extends Controller
             'potential'  => $potentialFields,
         ];
 
-        if (!isset($tabFieldMapping[$tab])) {
+        if (!isset($tabFieldMapping[$tab]) || ($tab === 'school' && in_array($unit->level_of_education, ['KB', 'TK']))) {
             return [];
         }
 
@@ -1259,18 +1263,56 @@ class PPDBController extends Controller
     public function downloadStatementLetter()
     {
         $user = session()->get('user');
-        $user_ppdb = PPDBUser::where('user_id', $user['id'])->with('unit')->first();
+        $user_ppdb = PPDBUser::where('user_id', $user['id'])
+            ->where('status', '<>', 'incomplete')
+            ->with('unit')
+            ->latest('id')
+            ->first();
 
-        return response()->download(public_path("docs/surat-pernyataan/{$user_ppdb->unit->name_with_file_format}.pdf"));
+        if (!$user_ppdb) {
+            $user_ppdb = PPDBUser::where('user_id', $user['id'])
+                ->with('unit')
+                ->latest('id')
+                ->firstOrFail();
+        }
+
+        return response()->download(
+            public_path("docs/surat-pernyataan/{$user_ppdb->unit->name_with_file_format}.pdf"),
+            null,
+            [
+                'Cache-Control' => 'no-cache, no-store, must-revalidate, max-age=0',
+                'Pragma'        => 'no-cache',
+                'Expires'       => 'Sat, 01 Jan 2000 00:00:00 GMT',
+            ]
+        );
     }
 
     public function downloadAngketPeminatan()
     {
         $user = session()->get('user');
-        $user_ppdb = PPDBUser::where('user_id', $user['id'])->with('unit')->first();
+        $user_ppdb = PPDBUser::where('user_id', $user['id'])
+            ->where('status', '<>', 'incomplete')
+            ->with('unit')
+            ->latest('id')
+            ->first();
+
+        if (!$user_ppdb) {
+            $user_ppdb = PPDBUser::where('user_id', $user['id'])
+                ->with('unit')
+                ->latest('id')
+                ->firstOrFail();
+        }
 
         // return response()->download(public_path("docs/angket-peminatan/{$user_ppdb->unit->name_with_file_format}.pdf"));
-        return response()->download(public_path("docs/angket-peminatan/{$user_ppdb->unit->name_with_file_format}.docx"));
+        return response()->download(
+            public_path("docs/angket-peminatan/{$user_ppdb->unit->name_with_file_format}.docx"),
+            null,
+            [
+                'Cache-Control' => 'no-cache, no-store, must-revalidate, max-age=0',
+                'Pragma'        => 'no-cache',
+                'Expires'       => 'Sat, 01 Jan 2000 00:00:00 GMT',
+            ]
+        );
     }
 
     public function uploadStatementLetter(Request $request)

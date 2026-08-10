@@ -1,3 +1,4 @@
+@if (!in_array(@$ppdbUser->unit->level_of_education, ['KB', 'TK']))
 <div class="row">
     <div class="col-md-12 mb-4">
         @if ($inputs->get('asal_sekolah'))
@@ -200,5 +201,6 @@
     @endif
 
 </div>
+@endif
 
 

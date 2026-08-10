@@ -14,10 +14,11 @@ trait ImageHandler
         $config = config("filesystems.disks.{$driver}");
 
         $path = $type . '/';
+        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension());
         $filename = bin2hex(@$user['id'] .
             $file->getFilename()) .
             '.' .
-            $file->extension();
+            $extension;
         $path_upload = $path . (isset($config['prefix_filename']) ? $config['prefix_filename'] : null) . $filename;
 
         if ($storage = Storage::disk($driver)->put((isset($config['prefix']) ? $config['prefix'] .'/' : NULL) . 'images/' . $path_upload, File::get($file), isset($config['visibility']) ? $config['visibility'] : false)) {

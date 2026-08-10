@@ -412,8 +412,8 @@
                                                             @endif
                                                             @break;
                                                         @case('multiple')
-                                                            <input type="file" class="form-control" placeholder="{{ $file[2] }}" name="{{ $file[0] }}[]" multiple accept="image/x-png,image/jpeg"/>
-                                                            <small class="text-muted">*bisa upload lebih dari satu file</small>
+                                                            <input type="file" class="form-control" placeholder="{{ $file[2] }}" name="{{ $file[0] }}[]" multiple accept="image/x-png,image/jpeg,image/png,application/pdf,.pdf"/>
+                                                            <small class="text-muted">*bisa upload lebih dari satu file (Format: JPG, PNG, PDF)</small>
                                                             @break;
                                                         @case('link')
                                                             <a href="{{ config('form') }}" class="btn btn-success google-form" target="_blank">Google Form</a>

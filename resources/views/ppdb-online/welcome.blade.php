@@ -429,7 +429,10 @@
 
                             @if ($input = $uploadsForm->get('report_cards'))
                                 <div class="row table-row" id="table-row-raport-cards">
-                                    <div class="col-5">{{ $input['nama'] }}</div>
+                                    <div class="col-5">
+                                        {{ $input['nama'] }}
+                                        <small class="text-muted" style="display: block; font-size: 11px;">(Format file: JPG, PNG, PDF)</small>
+                                    </div>
                                     <div class="col-3">
                                         <div class="input-group mb-3">
                                             <div class="custom-file">
@@ -440,7 +443,7 @@
                                                     <span>Browse</span>
                                                 </div>
                                                 <input type="file" name="report_card" class="custom-file-input"
-                                                    accept="image/x-png,image/jpeg" id="report_card"
+                                                    accept="image/x-png,image/jpeg,image/png,application/pdf,.pdf" id="report_card"
                                                     aria-describedby="inputGroupFileAddon01">
                                                 <label class="custom-file-label" for="report_card"
                                                     style="white-space: nowrap;overflow: auto;">Choose file</label>

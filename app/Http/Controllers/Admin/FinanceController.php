@@ -19,6 +19,8 @@ use App\Events\PPDB\FinanceActivityUpdated;
 use App\Services\FinanceService;
 use App\Services\GeneralSettingService;
 use App\Services\PeriodService;
+use App\Services\PPDBUserService;
+use App\Helpers\PriceHelper;
 
 class FinanceController extends Controller
 {
@@ -76,7 +78,7 @@ class FinanceController extends Controller
         return view('administrator.finance.add', $data);
     }
 
-    public function insert(FinanceStoreRequest $request)
+    public function insert(FinanceStoreRequest $request, PPDBUserService $ppdbUserService)
     {
         $input = $request->validated();
         $status = DB::transaction(function () use ($input) {
@@ -86,14 +88,20 @@ class FinanceController extends Controller
         });
 
         \Cache::forget('finance-all');
+        PriceHelper::clearCache();
 
-        if ($status
-            && isset($input['type']) && ($input['type'] == 'activity')
-            && isset($input['user_ids']) && $input['user_ids'] && count($input['user_ids']) ) {
-            $ppdb = PPDBUser::whereIn('user_id', $input['user_ids'])->get();
+        if ($status && isset($input['user_ids']) && $input['user_ids'] && count($input['user_ids'])) {
+            $ppdbUsers = PPDBUser::whereIn('user_id', $input['user_ids'])->get();
 
-            foreach ($ppdb as $key => $value) {
-                event(new FinanceActivityUpdated($value));
+            if (isset($input['type']) && ($input['type'] == 'activity')) {
+                foreach ($ppdbUsers as $key => $value) {
+                    event(new FinanceActivityUpdated($value));
+                }
+            }
+
+            $type = $input['type'] ?? null;
+            foreach ($ppdbUsers as $ppdbUser) {
+                $ppdbUserService->studentBills($ppdbUser, $type);
             }
         }
 
@@ -116,7 +124,7 @@ class FinanceController extends Controller
         return view('administrator.finance.add', $data);
     }
 
-    public function update(FinanceUpdateRequest $request, Finance $finance)
+    public function update(FinanceUpdateRequest $request, Finance $finance, PPDBUserService $ppdbUserService)
     {
         $input = $request->validated();
         $status = DB::transaction(function () use ($finance, $input) {
@@ -126,14 +134,20 @@ class FinanceController extends Controller
         });
 
         \Cache::forget('finance-all');
+        PriceHelper::clearCache();
 
-        if ($status
-            && isset($input['type']) && ($input['type'] == 'activity')
-            && isset($input['user_ids']) && $input['user_ids'] && count($input['user_ids']) ) {
-            $ppdb = PPDBUser::whereIn('user_id', $input['user_ids'])->get();
+        if ($status && isset($input['user_ids']) && $input['user_ids'] && count($input['user_ids'])) {
+            $ppdbUsers = PPDBUser::whereIn('user_id', $input['user_ids'])->get();
 
-            foreach ($ppdb as $key => $value) {
-                event(new FinanceActivityUpdated($value));
+            if (isset($input['type']) && ($input['type'] == 'activity')) {
+                foreach ($ppdbUsers as $key => $value) {
+                    event(new FinanceActivityUpdated($value));
+                }
+            }
+
+            $type = $input['type'] ?? $finance->type;
+            foreach ($ppdbUsers as $ppdbUser) {
+                $ppdbUserService->studentBills($ppdbUser, $type);
             }
         }
 

@@ -30,6 +30,11 @@ class PriceHelper
         return self::$financesCache;
     }
 
+    public static function clearCache()
+    {
+        self::$financesCache = null;
+    }
+
     public static function getNameFinance($model, string $type = '')
     {
         $data = self::$type($model, 0, 0, 1);

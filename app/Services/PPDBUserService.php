@@ -601,14 +601,22 @@ class PPDBUserService
         return false;
     }
 
-    public function studentBills($ppdb){
-        $categories = [
+    public function studentBills($ppdb, $types = null){
+        $allCategories = [
             'registrasi',
             'activity',
             'development',
             'tuition',
             'other'
         ];
+
+        if ($types !== null) {
+            $filterTypes = (array) $types;
+            $categories = array_intersect($allCategories, $filterTypes);
+        } else {
+            $categories = $allCategories;
+        }
+
         $createdBills = [];
 
         foreach($categories as $category){
@@ -649,7 +657,9 @@ class PPDBUserService
                         $is_payment_term = StudentBills::PAYMENT_TERM_FULL;
                     }
 
-                    $checkBils = StudentBills::where('ppdb_user_id', $ppdb->id)->where('finance_id', $finance->id)->first();
+                    $checkBils = StudentBills::where('ppdb_user_id', $ppdb->id)
+                        ->where('type', $category)
+                        ->first();
 
                     if(empty($checkBils)){
                         $bills = new StudentBills();
@@ -664,6 +674,13 @@ class PPDBUserService
 
                         $createdBills[] = $bills;
                     } else {
+                        if ($checkBils->payment_method === StudentBills::PAYMENT_METHOD_UNPAID) {
+                            $checkBils->finance_id = $finance->id;
+                            $checkBils->amount = $price['nominal_default'];
+                            $checkBils->due_date = $finance->start_date;
+                            $checkBils->save();
+                        }
+
                         $createdBills[] = $checkBils;
                     }
 

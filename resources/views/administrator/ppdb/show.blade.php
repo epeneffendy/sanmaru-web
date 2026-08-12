@@ -639,11 +639,11 @@
                                                 <hr/>
                                             @endif
 
-                                            @if ($uploadsForm->get('report_cards'))
+                                                @if ($uploadsForm->get('report_cards'))
                                                 <div class="form-group">
                                                     <div class="row">
                                                         <label class="control-label col-sm-2" for="image">Raport</label>
-                                                        @forelse (@$data->report_cards as $report)
+                                                        @forelse ($data->report_cards as $report)
                                                             @if ($loop->index % 2 === 0)
                                                     </div>
                                                     <div class="row" style="margin-top: 5px;">
@@ -651,13 +651,24 @@
                                                             @else
                                                                 <div class="col-sm-4">
                                                                     @endif
-                                                                    <a href="{{ $data->getRaportImageUrl($report) }}"
-                                                                       target="_blank">
-                                                                        <img
-                                                                            src="{{ $data->getRaportImageUrl($report) }}"
-                                                                            alt="Raport"
-                                                                            style="max-width: 300px; height: auto;">
-                                                                    </a>
+                                                                    @if (strtolower(pathinfo($report, PATHINFO_EXTENSION)) === 'pdf')
+                                                                        <a href="{{ $data->getRaportImageUrl($report) }}"
+                                                                           target="_blank"
+                                                                           class="btn btn-default"
+                                                                           style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                                                            <i class="fa fa-file-pdf-o text-danger"
+                                                                               style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                                                            <span>Lihat PDF Raport</span>
+                                                                        </a>
+                                                                    @else
+                                                                        <a href="{{ $data->getRaportImageUrl($report) }}"
+                                                                           target="_blank">
+                                                                            <img
+                                                                                src="{{ $data->getRaportImageUrl($report) }}"
+                                                                                alt="Raport"
+                                                                                style="max-width: 300px; height: auto;">
+                                                                        </a>
+                                                                    @endif
                                                                 </div>
                                                                 @empty
 

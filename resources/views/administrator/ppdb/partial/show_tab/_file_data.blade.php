@@ -48,7 +48,7 @@
                         </span>
                             @else
                                 <span class="badge-status danger">
-                            <i class="fa fa-exclamation-circle"></i> Belum Melakukan Pembayaran
+                            <i class="fa fa-exclamation-circle"></i> Belum Tersedia
                         </span>
                             @endif
                         </div>
@@ -59,13 +59,18 @@
             <div id="collapseFour" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
                 <div class="panel-body">
                     @if ($data->birth_certificate !== null)
+                        @php($fileUrl = $data->getBirtCertificateImageUrl())
                         <div style="text-align: center">
-                            <a href="{{ $data->getBirtCertificateImageUrl() }}"
-                               target="_blank">
-                                <img src="{{ $data->getBirtCertificateImageUrl() }}"
-                                     alt="Akta Kelahiran"
-                                     style="max-width: 300px; height: auto;">
-                            </a>
+                            @if (strtolower(pathinfo($fileUrl, PATHINFO_EXTENSION)) === 'pdf' || \Illuminate\Support\Str::endsWith(strtolower($fileUrl), '.pdf'))
+                                <a href="{{ $fileUrl }}" target="_blank" class="btn btn-default" style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                    <i class="fa fa-file-pdf-o text-danger" style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                    <span>Lihat PDF Akta Kelahiran</span>
+                                </a>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank">
+                                    <img src="{{ $fileUrl }}" alt="Akta Kelahiran" style="max-width: 300px; height: auto;">
+                                </a>
+                            @endif
                         </div>
                     @else
                         <div class="status-badge-wrapper" style="text-align: center">
@@ -106,12 +111,18 @@
             <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
                 <div class="panel-body">
                     @if ($data->photo !== null)
+                        @php($fileUrl = $data->getPhotoImageUrl())
                         <div style="text-align: center">
-                            <a href="{{ $data->getPhotoImageUrl() }}" target="_blank">
-                                <img src="{{ $data->getPhotoImageUrl() }}"
-                                     alt="Foto 3x4"
-                                     style="max-width: 300px; height: auto;">
-                            </a>
+                            @if (strtolower(pathinfo($fileUrl, PATHINFO_EXTENSION)) === 'pdf' || \Illuminate\Support\Str::endsWith(strtolower($fileUrl), '.pdf'))
+                                <a href="{{ $fileUrl }}" target="_blank" class="btn btn-default" style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                    <i class="fa fa-file-pdf-o text-danger" style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                    <span>Lihat PDF Foto</span>
+                                </a>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank">
+                                    <img src="{{ $fileUrl }}" alt="Foto 3x4" style="max-width: 300px; height: auto;">
+                                </a>
+                            @endif
                         </div>
                     @else
                         <div class="status-badge-wrapper" style="text-align: center">
@@ -152,13 +163,18 @@
             <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
                 <div class="panel-body">
                     @if ($data->parent_identity_card !== null)
+                        @php($fileUrl = $data->getParentIdentityCardImageUrl())
                         <div style="text-align: center">
-                            <a href="{{ $data->getParentIdentityCardImageUrl() }}"
-                               target="_blank">
-                                <img src="{{ $data->getParentIdentityCardImageUrl() }}"
-                                     alt="KTP Orang Tua"
-                                     style="max-width: 300px; height: auto;">
-                            </a>
+                            @if (strtolower(pathinfo($fileUrl, PATHINFO_EXTENSION)) === 'pdf' || \Illuminate\Support\Str::endsWith(strtolower($fileUrl), '.pdf'))
+                                <a href="{{ $fileUrl }}" target="_blank" class="btn btn-default" style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                    <i class="fa fa-file-pdf-o text-danger" style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                    <span>Lihat PDF KTP Orang Tua</span>
+                                </a>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank">
+                                    <img src="{{ $fileUrl }}" alt="KTP Orang Tua" style="max-width: 300px; height: auto;">
+                                </a>
+                            @endif
                         </div>
                     @else
                         <div class="status-badge-wrapper" style="text-align: center">
@@ -199,13 +215,18 @@
             <div id="collapseFive" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFive">
                 <div class="panel-body">
                     @if ($data->marriage_certificate !== null)
+                        @php($fileUrl = $data->getMarriageCertificateImageUrl())
                         <div style="text-align: center">
-                            <a href="{{ $data->getMarriageCertificateImageUrl() }}"
-                               target="_blank">
-                                <img src="{{ $data->getMarriageCertificateImageUrl() }}"
-                                     alt="Akta Pernikahan Orangtua"
-                                     style="max-width: 300px; height: auto;">
-                            </a>
+                            @if (strtolower(pathinfo($fileUrl, PATHINFO_EXTENSION)) === 'pdf' || \Illuminate\Support\Str::endsWith(strtolower($fileUrl), '.pdf'))
+                                <a href="{{ $fileUrl }}" target="_blank" class="btn btn-default" style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                    <i class="fa fa-file-pdf-o text-danger" style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                    <span>Lihat PDF Akte Pernikahan</span>
+                                </a>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank">
+                                    <img src="{{ $fileUrl }}" alt="Akta Pernikahan Orangtua" style="max-width: 300px; height: auto;">
+                                </a>
+                            @endif
                         </div>
                     @else
                         <div class="status-badge-wrapper" style="text-align: center">
@@ -246,13 +267,18 @@
             <div id="collapseSix" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSix">
                 <div class="panel-body">
                     @if ($data->family_card !== null)
+                        @php($fileUrl = $data->getFamilyCardImageUrl())
                         <div style="text-align: center">
-                            <a href="{{ $data->getFamilyCardImageUrl() }}"
-                               target="_blank">
-                                <img src="{{ $data->getFamilyCardImageUrl() }}"
-                                     alt="Kartu Keluarga"
-                                     style="max-width: 300px; height: auto;">
-                            </a>
+                            @if (strtolower(pathinfo($fileUrl, PATHINFO_EXTENSION)) === 'pdf' || \Illuminate\Support\Str::endsWith(strtolower($fileUrl), '.pdf'))
+                                <a href="{{ $fileUrl }}" target="_blank" class="btn btn-default" style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                    <i class="fa fa-file-pdf-o text-danger" style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                    <span>Lihat PDF Kartu Keluarga</span>
+                                </a>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank">
+                                    <img src="{{ $fileUrl }}" alt="Kartu Keluarga" style="max-width: 300px; height: auto;">
+                                </a>
+                            @endif
                         </div>
                     @else
                         <div class="status-badge-wrapper" style="text-align: center">
@@ -276,7 +302,7 @@
                         <span class="flex-grow-1">Rapot</span>
 
                         <div class="status-container" style="margin-left: 20px; margin-right: 10px;">
-                            @if($data->report_cards !== null)
+                            @if($data->report_cards !== null && count((array)$data->report_cards) > 0)
                                 <span class="badge-status success">
                             <i class="fa fa-check-circle"></i> Tersedia
                         </span>
@@ -292,14 +318,23 @@
             </div>
             <div id="collapseSeven" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSeven">
                 <div class="panel-body">
-                    @if ($data->family_card !== null)
-                        <div style="text-align: center">
-                            <a href="{{ $data->getFamilyCardImageUrl() }}"
-                               target="_blank">
-                                <img src="{{ $data->getFamilyCardImageUrl() }}"
-                                     alt="Kartu Keluarga"
-                                     style="max-width: 300px; height: auto;">
-                            </a>
+                    @if ($data->report_cards !== null && count((array)$data->report_cards) > 0)
+                        <div style="text-align: center; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px;">
+                            @foreach ((array)$data->report_cards as $report)
+                                @php($reportUrl = $data->getRaportImageUrl($report))
+                                <div style="margin: 10px;">
+                                    @if (strtolower(pathinfo($report, PATHINFO_EXTENSION)) === 'pdf' || \Illuminate\Support\Str::endsWith(strtolower($reportUrl), '.pdf'))
+                                        <a href="{{ $reportUrl }}" target="_blank" class="btn btn-default" style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                            <i class="fa fa-file-pdf-o text-danger" style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                            <span>Lihat PDF Raport</span>
+                                        </a>
+                                    @else
+                                        <a href="{{ $reportUrl }}" target="_blank">
+                                            <img src="{{ $reportUrl }}" alt="Raport" style="max-width: 300px; height: auto;">
+                                        </a>
+                                    @endif
+                                </div>
+                            @endforeach
                         </div>
                     @else
                         <div class="status-badge-wrapper" style="text-align: center">
@@ -340,13 +375,18 @@
             <div id="collapseEight" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingEight">
                 <div class="panel-body">
                     @if ($data->award_photo !== null)
+                        @php($fileUrl = $data->getAwardPhotoImageUrl())
                         <div style="text-align: center">
-                            <a href="{{ $data->getAwardPhotoImageUrl() }}"
-                               target="_blank">
-                                <img src="{{ $data->getAwardPhotoImageUrl() }}"
-                                     alt="Piagam Penghargaan"
-                                     style="max-width: 300px; height: auto;">
-                            </a>
+                            @if (strtolower(pathinfo($fileUrl, PATHINFO_EXTENSION)) === 'pdf' || \Illuminate\Support\Str::endsWith(strtolower($fileUrl), '.pdf'))
+                                <a href="{{ $fileUrl }}" target="_blank" class="btn btn-default" style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                    <i class="fa fa-file-pdf-o text-danger" style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                    <span>Lihat PDF Piagam Penghargaan</span>
+                                </a>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank">
+                                    <img src="{{ $fileUrl }}" alt="Piagam Penghargaan" style="max-width: 300px; height: auto;">
+                                </a>
+                            @endif
                         </div>
                     @else
                         <div class="status-badge-wrapper" style="text-align: center">
@@ -387,14 +427,18 @@
             <div id="collapseNine" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingNine">
                 <div class="panel-body">
                     @if ($data->baptismal_certificate !== null)
+                        @php($fileUrl = $data->getBaptismalCertificateImageUrl())
                         <div style="text-align: center">
-                            <a href="{{ $data->getBaptismalCertificateImageUrl() }}"
-                               target="_blank">
-                                <img
-                                    src="{{ $data->getBaptismalCertificateImageUrl() }}"
-                                    alt="Kartu Baptismal"
-                                    style="max-width: 300px; height: auto;">
-                            </a>
+                            @if (strtolower(pathinfo($fileUrl, PATHINFO_EXTENSION)) === 'pdf' || \Illuminate\Support\Str::endsWith(strtolower($fileUrl), '.pdf'))
+                                <a href="{{ $fileUrl }}" target="_blank" class="btn btn-default" style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                    <i class="fa fa-file-pdf-o text-danger" style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                    <span>Lihat PDF Kartu Baptismal</span>
+                                </a>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank">
+                                    <img src="{{ $fileUrl }}" alt="Kartu Baptismal" style="max-width: 300px; height: auto;">
+                                </a>
+                            @endif
                         </div>
                     @else
                         <div class="status-badge-wrapper" style="text-align: center">
@@ -435,14 +479,18 @@
             <div id="collapseTen" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTen">
                 <div class="panel-body">
                     @if ($data->angket_peminatan !== null)
+                        @php($fileUrl = $data->getAngketPeminatanFileUrl())
                         <div style="text-align: center">
-                            <a href="{{ $data->getAngketPeminatanFileUrl() }}"
-                               target="_blank">
-                                <img
-                                    src="{{ $data->getAngketPeminatanFileUrl() }}"
-                                    alt="Angket Peminatan"
-                                    style="max-width: 300px; height: auto;">
-                            </a>
+                            @if (strtolower(pathinfo($fileUrl, PATHINFO_EXTENSION)) === 'pdf' || \Illuminate\Support\Str::endsWith(strtolower($fileUrl), '.pdf'))
+                                <a href="{{ $fileUrl }}" target="_blank" class="btn btn-default" style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                    <i class="fa fa-file-pdf-o text-danger" style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                    <span>Lihat PDF Angket Peminatan</span>
+                                </a>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank">
+                                    <img src="{{ $fileUrl }}" alt="Angket Peminatan" style="max-width: 300px; height: auto;">
+                                </a>
+                            @endif
                         </div>
                     @else
                         <div class="status-badge-wrapper" style="text-align: center">
@@ -483,14 +531,18 @@
             <div id="collapseEleven" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingEleven">
                 <div class="panel-body">
                     @if ($data->rekomendasi_bk !== null)
+                        @php($fileUrl = $data->getRekomendasiBkImageUrl())
                         <div style="text-align: center">
-                            <a href="{{ $data->getRekomendasiBkImageUrl() }}"
-                               target="_blank">
-                                <img
-                                    src="{{ $data->getRekomendasiBkImageUrl() }}"
-                                    alt="Rekomendasi BK"
-                                    style="max-width: 300px; height: auto;">
-                            </a>
+                            @if (strtolower(pathinfo($fileUrl, PATHINFO_EXTENSION)) === 'pdf' || \Illuminate\Support\Str::endsWith(strtolower($fileUrl), '.pdf'))
+                                <a href="{{ $fileUrl }}" target="_blank" class="btn btn-default" style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                    <i class="fa fa-file-pdf-o text-danger" style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                    <span>Lihat PDF Rekomendasi BK</span>
+                                </a>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank">
+                                    <img src="{{ $fileUrl }}" alt="Rekomendasi BK" style="max-width: 300px; height: auto;">
+                                </a>
+                            @endif
                         </div>
                     @else
                         <div class="status-badge-wrapper" style="text-align: center">
@@ -531,14 +583,18 @@
             <div id="collapseTwelve" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwelve">
                 <div class="panel-body">
                     @if ($data->statement_letter !== null)
+                        @php($fileUrl = $data->getStatementLetterFileUrl())
                         <div style="text-align: center">
-                            <a href="{{ $data->getStatementLetterFileUrl() }}"
-                               target="_blank">
-                                <img
-                                    src="{{ $data->getStatementLetterFileUrl() }}"
-                                    alt="Surat Pernyataan"
-                                    style="max-width: 300px; height: auto;">
-                            </a>
+                            @if (strtolower(pathinfo($fileUrl, PATHINFO_EXTENSION)) === 'pdf' || \Illuminate\Support\Str::endsWith(strtolower($fileUrl), '.pdf'))
+                                <a href="{{ $fileUrl }}" target="_blank" class="btn btn-default" style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                    <i class="fa fa-file-pdf-o text-danger" style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                    <span>Lihat PDF Surat Pernyataan</span>
+                                </a>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank">
+                                    <img src="{{ $fileUrl }}" alt="Surat Pernyataan" style="max-width: 300px; height: auto;">
+                                </a>
+                            @endif
                         </div>
                     @else
                         <div class="status-badge-wrapper" style="text-align: center">
@@ -580,14 +636,18 @@
                  aria-labelledby="headingThreeten">
                 <div class="panel-body">
                     @if ($data->potensi_kecerdasan_image !== null)
+                        @php($fileUrl = $data->getPotensiKecerdasanImageUrl())
                         <div style="text-align: center">
-                            <a href="{{ $data->getPotensiKecerdasanImageUrl() }}"
-                               target="_blank">
-                                <img
-                                    src="{{ $data->getPotensiKecerdasanImageUrl() }}"
-                                    alt="Potensi Kecerdasan"
-                                    style="max-width: 300px; height: auto;">
-                            </a>
+                            @if (strtolower(pathinfo($fileUrl, PATHINFO_EXTENSION)) === 'pdf' || \Illuminate\Support\Str::endsWith(strtolower($fileUrl), '.pdf'))
+                                <a href="{{ $fileUrl }}" target="_blank" class="btn btn-default" style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                    <i class="fa fa-file-pdf-o text-danger" style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                    <span>Lihat PDF Potensi Kecerdasan</span>
+                                </a>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank">
+                                    <img src="{{ $fileUrl }}" alt="Potensi Kecerdasan" style="max-width: 300px; height: auto;">
+                                </a>
+                            @endif
                         </div>
                     @else
                         <div class="status-badge-wrapper" style="text-align: center">
@@ -629,13 +689,18 @@
                  aria-labelledby="headingFourteen">
                 <div class="panel-body">
                     @if ($data->bakat_istimewa_image !== null)
+                        @php($fileUrl = $data->getBakatIstimewaImageUrl())
                         <div style="text-align: center">
-                            <a href="{{ $data->getBakatIstimewaImageUrl() }}"
-                               target="_blank">
-                                <img src="{{ $data->getBakatIstimewaImageUrl() }}"
-                                     alt="Bakat Istimewa"
-                                     style="max-width: 300px; height: auto;">
-                            </a>
+                            @if (strtolower(pathinfo($fileUrl, PATHINFO_EXTENSION)) === 'pdf' || \Illuminate\Support\Str::endsWith(strtolower($fileUrl), '.pdf'))
+                                <a href="{{ $fileUrl }}" target="_blank" class="btn btn-default" style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                    <i class="fa fa-file-pdf-o text-danger" style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                    <span>Lihat PDF Bakat Istimewa</span>
+                                </a>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank">
+                                    <img src="{{ $fileUrl }}" alt="Bakat Istimewa" style="max-width: 300px; height: auto;">
+                                </a>
+                            @endif
                         </div>
                     @else
                         <div class="status-badge-wrapper" style="text-align: center">
@@ -677,13 +742,18 @@
                  aria-labelledby="headingFiveteen">
                 <div class="panel-body">
                     @if ($data->kesiapan_psikis_image !== null)
+                        @php($fileUrl = $data->getKesiapanPsikisImageUrl())
                         <div style="text-align: center">
-                            <a href="{{ $data->getKesiapanPsikisImageUrl() }}"
-                               target="_blank">
-                                <img src="{{ $data->getKesiapanPsikisImageUrl() }}"
-                                     alt="Kesiapan Psikis"
-                                     style="max-width: 300px; height: auto;">
-                            </a>
+                            @if (strtolower(pathinfo($fileUrl, PATHINFO_EXTENSION)) === 'pdf' || \Illuminate\Support\Str::endsWith(strtolower($fileUrl), '.pdf'))
+                                <a href="{{ $fileUrl }}" target="_blank" class="btn btn-default" style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                    <i class="fa fa-file-pdf-o text-danger" style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                    <span>Lihat PDF Kesiapan Psikis</span>
+                                </a>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank">
+                                    <img src="{{ $fileUrl }}" alt="Kesiapan Psikis" style="max-width: 300px; height: auto;">
+                                </a>
+                            @endif
                         </div>
                     @else
                         <div class="status-badge-wrapper" style="text-align: center">
@@ -724,14 +794,18 @@
             <div id="collapseSixteen" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingSixteen">
                 <div class="panel-body">
                     @if ($data->kartu_golongan_darah !== null)
+                        @php($fileUrl = $data->getKartuGolonganDarahImageUrl())
                         <div style="text-align: center">
-                            <a href="{{ $data->getKartuGolonganDarahImageUrl() }}"
-                               target="_blank">
-                                <img
-                                    src="{{ $data->getKartuGolonganDarahImageUrl() }}"
-                                    alt="Kartu Golongan Darah"
-                                    style="max-width: 300px; height: auto;">
-                            </a>
+                            @if (strtolower(pathinfo($fileUrl, PATHINFO_EXTENSION)) === 'pdf' || \Illuminate\Support\Str::endsWith(strtolower($fileUrl), '.pdf'))
+                                <a href="{{ $fileUrl }}" target="_blank" class="btn btn-default" style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                    <i class="fa fa-file-pdf-o text-danger" style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                    <span>Lihat PDF Kartu Golongan Darah</span>
+                                </a>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank">
+                                    <img src="{{ $fileUrl }}" alt="Kartu Golongan Darah" style="max-width: 300px; height: auto;">
+                                </a>
+                            @endif
                         </div>
                     @else
                         <div class="status-badge-wrapper" style="text-align: center">
@@ -773,12 +847,18 @@
                  aria-labelledby="headingSeventeen">
                 <div class="panel-body">
                     @if ($data->kms !== null)
+                        @php($fileUrl = $data->getKmsImageUrl())
                         <div style="text-align: center">
-                            <a href="{{ $data->getKmsImageUrl() }}" target="_blank">
-                                <img src="{{ $data->getKmsImageUrl() }}"
-                                     alt="Kartu Menuju Sehat"
-                                     style="max-width: 300px; height: auto;">
-                            </a>
+                            @if (strtolower(pathinfo($fileUrl, PATHINFO_EXTENSION)) === 'pdf' || \Illuminate\Support\Str::endsWith(strtolower($fileUrl), '.pdf'))
+                                <a href="{{ $fileUrl }}" target="_blank" class="btn btn-default" style="display: inline-block; padding: 10px 15px; border: 1px solid #ccc; text-align: center; text-decoration: none;">
+                                    <i class="fa fa-file-pdf-o text-danger" style="font-size: 36px; display: block; margin-bottom: 5px; color: #d9534f;"></i>
+                                    <span>Lihat PDF KMS</span>
+                                </a>
+                            @else
+                                <a href="{{ $fileUrl }}" target="_blank">
+                                    <img src="{{ $fileUrl }}" alt="Kartu Menuju Sehat" style="max-width: 300px; height: auto;">
+                                </a>
+                            @endif
                         </div>
                     @else
                         <div class="status-badge-wrapper" style="text-align: center">

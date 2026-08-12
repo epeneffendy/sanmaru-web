@@ -238,12 +238,16 @@
         display: flex;
         flex-direction: row;
         justify-content: start;
+        align-items: stretch;
+        margin-bottom: 0.5rem;
     }
     .status-indicator {
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        justify-content: flex-start;
         align-items: center;
+        flex-shrink: 0;
+        min-width: 15px;
     }
     .status-circle {
         margin: .25rem 0;
@@ -251,6 +255,7 @@
         height: 11px;
         border-radius: 100%;
         background: #DBD2C4;
+        flex-shrink: 0;
     }
     .status-circle-green {
         background: #86BD2D;
@@ -258,17 +263,25 @@
     .status-circle-red {
         background: #ED473A;
     }
+    .status-circle-yellow {
+        background: #FFD600;
+    }
     .status-line {
-        min-height: 39px;
-        max-height: fit-content;
+        min-height: 25px;
+        flex-grow: 1;
         width: 2px;
         background: #DBD2C4;
+        margin-top: 2px;
     }
     .status-description {
         margin-left: 1rem;
+        flex: 1;
+        min-width: 0;
+        padding-bottom: 1rem;
     }
     .status-detail {
         margin-bottom: .5rem;
+        word-wrap: break-word;
     }
     .status-tab {
         display: flex;
@@ -281,34 +294,41 @@
         color: white;
         margin-right: .5rem;
     }
-    .status-tab-green {
+    .status-tab-green, .status-tab-green-full {
         background: #86BD2D;
     }
-    .status-tab-green span {
+    .status-tab-green span, .status-tab-green-full span {
         color: white;
     }
-    .status-tab-red {
+    .status-tab-red, .status-tab-red-full {
         background: #ED473A;
+    }
+    .status-tab-red span, .status-tab-red-full span {
+        color: white;
     }
     .status-tab-grey {
         background: #C4C4C4;
     }
-    .status-tab-yellow {
+    .status-tab-yellow, .status-tab-yellow-full {
         background: #FFD600;
+        color: #333333;
     }
-    .status-tab-green .green {
+    .status-tab-yellow span, .status-tab-yellow-full span {
+        color: #333333;
+    }
+    .status-tab-green .green, .status-tab-green-full .green {
         display: block;
     }
-    .status-tab-green .check-green {
+    .status-tab-green .check-green, .status-tab-green-full .check-green {
         display: none;
     }
-    .status-tab-red .red {
+    .status-tab-red .red, .status-tab-red-full .red {
         display: block;
     }
     .status-tab-grey .grey {
         display: block;
     }
-    .status-tab-yellow .grey {
+    .status-tab-yellow .grey, .status-tab-yellow-full .grey {
         display: block;
     }
     .status-tab span {

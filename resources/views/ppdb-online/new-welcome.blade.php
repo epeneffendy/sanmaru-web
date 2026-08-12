@@ -742,7 +742,7 @@
                                         </div>
                                         <div class="status-description">
                                             <p class="text-body status-detail">{{ $stage->name }}</p>
-                                            <div class="d-flex align-items-center">
+                                            <div class="d-flex align-items-center flex-wrap" style="gap: 5px;">
                                                 @if ($stage->passed == '-')
                                                     <div class="status-tab status-tab-yellow-full">
                                                         @if ($stage->is_opening_development_feature)
@@ -761,14 +761,13 @@
                                                     </div>
                                                 @else
                                                     <div
-                                                        class="status-tab status-tab-{{ @$stage->passed == 'LOLOS' ? 'green' : 'red' }}">
+                                                        class="status-tab status-tab-{{ $stage->passed == 'LOLOS' ? 'green' : 'red' }}-full">
                                                         <img class="green"
                                                             src="{{ asset('frontend-ppdb-online/img/Icon/Tab/check.png') }}"
                                                             alt="">
                                                         <img class="red"
                                                             src="{{ asset('frontend-ppdb-online/img/Icon/Tab/cross.png') }}"
                                                             alt="">
-
                                                         @if ($stage->passed == 'LOLOS')
                                                             <span>{{ $stage->passed == 'LOLOS' ? 'TAHAP TERPENUHI' : $stage->passed }}</span>
                                                         @else
@@ -785,27 +784,47 @@
                                                                     title="Finalisasi penerimaan murid baru belum lengkap. Anda masih bisa mengganti pilihan pembayaran (lunas/cicilan). Silahkan klik finalisasi penerimaan kembali dan unggah surat pernyataan kembali agar status dapat dinyatakan DITERIMA">{{ $stage->passed == 'TIDAK LOLOS' ? 'BELUM MEMENUHI KRITERIA' : $stage->passed }}</span>
                                                             @endif
                                                         @endif
-
                                                     </div>
                                                 @endif
-
                                                 @if ($stage->passed == 'LOLOS')
                                                     <div class="status-tab status-tab-grey">
                                                         <a href="{{ route('ppdb.informasi-ppdb', ['id' => $stage->id]) }}"
-                                                            class="btn-detail">Detail</a>
+                                                            class="btn-detail"
+                                                            title="Silahkan klik tombol detail untuk melihat informasi lengkap mengenai tahap ini">Detail</a>
                                                     </div>
                                                 @elseif ($stage->is_opening_development_feature)
                                                     @if ($stage->passed != 'TIDAK LOLOS')
+                                                        @php
+                                                            $isActivePeriode = false;
+                                                            $today = date('Y-m-d');
+                                                            if ($today >= $financePeriodeDevelopment['start'] && $today <= $financePeriodeDevelopment['end']) {
+                                                                $isActivePeriode = true;
+                                                            }
+                                                        @endphp
                                                         <div class="status-tab status-tab-grey">
-                                                            <a href="{{ route('ppdb.biaya-pengembangan') }}"
-                                                                class="btn-detail">Detail</a>
+                                                            @if($isActivePeriode)
+                                                                @if (($user->period_verified == 'waiting') ||  $user->period_verified == 'verified')
+                                                                    <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'development']) }}"
+                                                                        class="btn-detail"
+                                                                        title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
+                                                                        Penerimaan</a>
+                                                                @else
+                                                                    <a href="{{ route('ppdb.biaya-pengembangan') }}"
+                                                                        class="btn-detail"
+                                                                        title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
+                                                                        Penerimaan</a>
+                                                                @endif
+                                                            @else
+                                                            <span style="color: #555555"><i
+                                                                    class="fa fa-file-excel-o"></i>Belum Memasuki Periode Pembayaran</span>
+                                                            @endif
                                                         </div>
                                                     @endif
                                                 @endif
                                             </div>
                                         </div>
                                     </div>
-                                @elseif($stage->passed == 'LOLOS')
+                                            @elseif($stage->passed == 'LOLOS')
                                     <div class="status-container">
                                         <div class="status-indicator">
                                             @if ($stage->passed == '-')
@@ -821,7 +840,7 @@
                                         </div>
                                         <div class="status-description">
                                             <p class="text-body status-detail">{{ $stage->name }}</p>
-                                            <div class="d-flex align-items-center">
+                                            <div class="d-flex align-items-center flex-wrap" style="gap: 5px;">
                                                 @if ($stage->passed == '-')
                                                     <div class="status-tab status-tab-yellow-full">
                                                         @if ($stage->is_opening_development_feature)
@@ -840,14 +859,13 @@
                                                     </div>
                                                 @else
                                                     <div
-                                                        class="status-tab status-tab-{{ @$stage->passed == 'LOLOS' ? 'green' : 'red' }}">
+                                                        class="status-tab status-tab-{{ $stage->passed == 'LOLOS' ? 'green' : 'red' }}-full">
                                                         <img class="green"
                                                             src="{{ asset('frontend-ppdb-online/img/Icon/Tab/check.png') }}"
                                                             alt="">
                                                         <img class="red"
                                                             src="{{ asset('frontend-ppdb-online/img/Icon/Tab/cross.png') }}"
                                                             alt="">
-
                                                         @if ($stage->passed == 'LOLOS')
                                                             <span>{{ $stage->passed == 'LOLOS' ? 'TAHAP TERPENUHI' : $stage->passed }}</span>
                                                         @else
@@ -864,20 +882,35 @@
                                                                     title="Finalisasi penerimaan murid baru belum lengkap. Anda masih bisa mengganti pilihan pembayaran (lunas/cicilan). Silahkan klik finalisasi penerimaan kembali dan unggah surat pernyataan kembali agar status dapat dinyatakan DITERIMA">{{ $stage->passed == 'TIDAK LOLOS' ? 'BELUM MEMENUHI KRITERIA' : $stage->passed }}</span>
                                                             @endif
                                                         @endif
-
                                                     </div>
                                                 @endif
-
                                                 @if ($stage->passed == 'LOLOS')
                                                     <div class="status-tab status-tab-grey">
                                                         <a href="{{ route('ppdb.informasi-ppdb', ['id' => $stage->id]) }}"
-                                                            class="btn-detail">Detail</a>
+                                                            class="btn-detail"
+                                                            title="Silahkan klik tombol detail untuk melihat informasi lengkap mengenai tahap ini">Detail</a>
                                                     </div>
                                                 @elseif ($stage->is_opening_development_feature)
                                                     @if ($stage->passed != 'TIDAK LOLOS')
+                                                        @php
+                                                            $isActivePeriode = false;
+                                                            $today = date('Y-m-d');
+                                                            if ($today >= $financePeriodeDevelopment['start'] && $today <= $financePeriodeDevelopment['end']) {
+                                                                $isActivePeriode = true;
+                                                            }
+                                                        @endphp
+
                                                         <div class="status-tab status-tab-grey">
-                                                            <a href="{{ route('ppdb.biaya-pengembangan') }}"
-                                                                class="btn-detail">Detail</a>
+                                                            @if ($isActivePeriode)
+                                                                <a href="{{ route('ppdb.biaya-pengembangan') }}"
+                                                                    class="btn-detail"
+                                                                    title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
+                                                                    Penerimaan</a>
+                                                            @else
+                                                                <button class="btn btn-sm btn-secondary px-3" style="font-size: 0.75rem; font-weight: 600;" disabled>
+                                                                    Belum Memasuki Periode Pembayaran
+                                                                </button>
+                                                            @endif
                                                         </div>
                                                     @endif
                                                 @endif

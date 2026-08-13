@@ -492,14 +492,14 @@
                                                 target="_blank" class="font-weight-bold text-success">disini</a></p>
                                     </div>
 
-                                    <div class="upload-image-desktop mt-4" id="upload-box">
+                                    <div class="upload-image-box mt-4" id="upload-box">
                                         <div class="btn-upload p-4 text-center"
                                             style="border: 2px dashed #a7f3d0; border-radius: 12px; background-color: #f0fdf4;">
                                             <div class="row justify-content-center align-items-center flex-column">
                                                 <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: #166534;"></i>
                                                 <span class="d-block font-weight-bold mb-2" style="color: #166534;">Pilih
                                                     file
-                                                    dari perangkat komputer Anda</span>
+                                                    dari perangkat Anda</span>
                                                 <span class="text-muted d-block mb-3">Support: PDF</span>
                                                 <span class="btn btn-dark-green text-white position-relative">
                                                     Browse

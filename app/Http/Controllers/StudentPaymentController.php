@@ -37,30 +37,28 @@ class StudentPaymentController extends Controller
         $dpOptions = [];
         $installmentOptions = [];
         if($configuration){
-            $minDp = (int)$configuration->min_down_payment;
+            $minDp = max(30, (int)$configuration->min_down_payment);
             $multiple = (int)$configuration->down_payment_multiple;
             $recommended = (int)$configuration->recommended_down_payment;
             $maxLimit = 80;
-            $maxInstallment = (int)$configuration->max_absolute_installment;
+            $maxInstallment = max(10, (int)$configuration->max_absolute_installment);
 
-            $dpOptions[$minDp] = ($minDp == $recommended)
-                                ? "{$minDp}% (Rekomendasi)"
-                                : "{$minDp}%";
-            for ($i = $multiple; $i < $maxLimit; $i += $multiple) {
-                if ($i == $minDp) continue;
-
+            for ($i = $minDp; $i < $maxLimit; $i += $multiple) {
                 if ($i == $recommended) {
                     $dpOptions[$i] = "{$i}% (Rekomendasi)";
                 } else {
                     $dpOptions[$i] = "{$i}%";
                 }
             }
+            ksort($dpOptions);
 
-            for($i = 2; $i <= $maxInstallment; $i++){
+            for($i = 1; $i <= $maxInstallment; $i++){
                 $installmentOptions[$i] = "{$i}x Bulan";
             }
         }
         
+        $dpTenorScheme = $financeSystemConfigurationService->getDpTenorScheme($configuration);
+
         if(!empty($dispensation)){
             $arr_value = json_decode($dispensation->value);
             $data =[
@@ -68,6 +66,7 @@ class StudentPaymentController extends Controller
                 'ppdb' => $user['ppdb'],
                 'dpOptions'=>$dpOptions,
                 'installmentOptions'=> $installmentOptions,
+                'dpTenorScheme' => $dpTenorScheme,
                 'configuration'=>$configuration,
                 'va_full' => $arr_value->va_full_statement,
                 'va_partial' =>$arr_value->va_partial,
@@ -123,6 +122,7 @@ class StudentPaymentController extends Controller
                 'ppdb' => $user['ppdb'],
                 'dpOptions'=>$dpOptions,
                 'installmentOptions'=> $installmentOptions,
+                'dpTenorScheme' => $dpTenorScheme,
                 'configuration'=>$configuration,
                 'total_bill'=>$total_bill,
                 'discount'=>$discount,

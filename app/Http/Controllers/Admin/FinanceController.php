@@ -127,6 +127,8 @@ class FinanceController extends Controller
     public function update(FinanceUpdateRequest $request, Finance $finance, PPDBUserService $ppdbUserService)
     {
         $input = $request->validated();
+        $oldUserIds = $finance->users()->pluck('users.id')->toArray();
+
         $status = DB::transaction(function () use ($finance, $input) {
             return tap($finance->update($input), function () use ($finance, $input) {
                 return $finance->users()->sync($input['user_ids']);
@@ -136,8 +138,11 @@ class FinanceController extends Controller
         \Cache::forget('finance-all');
         PriceHelper::clearCache();
 
-        if ($status && isset($input['user_ids']) && $input['user_ids'] && count($input['user_ids'])) {
-            $ppdbUsers = PPDBUser::whereIn('user_id', $input['user_ids'])->get();
+        $newUserIds = $input['user_ids'] ?? [];
+        $allUserIds = array_unique(array_merge($oldUserIds, $newUserIds));
+
+        if ($status && count($allUserIds) > 0) {
+            $ppdbUsers = PPDBUser::whereIn('user_id', $allUserIds)->get();
 
             if (isset($input['type']) && ($input['type'] == 'activity')) {
                 foreach ($ppdbUsers as $key => $value) {

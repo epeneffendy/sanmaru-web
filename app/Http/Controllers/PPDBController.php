@@ -1534,7 +1534,7 @@ class PPDBController extends Controller
         if($installment){
             foreach($installment->details as $item){
                 $dataAngsuran[] = [
-                    'desc'       => ($item->installment_number == 0) ? 'Pembayaran DP' : 'Angsuran ke-'.$item->installment_number,
+                    'desc'       => ($item->installment_number == 0) ? 'Telah Dibayar DP' : 'Angsuran ke-'.$item->installment_number,
                     'plan_date'  => \Carbon\Carbon::parse($item->plan_date)->format('d M Y'),
                     'nominal'    => PriceHelper::rupiah($item->nominal) // Langsung format rupiah di sini
                 ];
@@ -1585,24 +1585,44 @@ class PPDBController extends Controller
             'school_year' => $school_year,
         ]);
 
-        if($type == 'cicilan'){
-            // PERUBAHAN DISINI: Proses Loop Dynamic Table menggunakan cloneRow
-            if (!empty($dataAngsuran)) {
-                // Kita jadikan placeholder 'desc' sebagai acuan untuk menduplikasi baris tabel
-                $templateProcessor->cloneRow('desc', count($dataAngsuran));
+        if ($type == 'cicilan') {
+            try {
+                if (!empty($dataAngsuran)) {
+                    $templateProcessor->cloneRow('desc', count($dataAngsuran));
 
-                foreach ($dataAngsuran as $index => $angsuran) {
-                    $rowNumber = $index + 1; // PHPWord penomoran baris hasil klon dimulai dari 1
-                    $templateProcessor->setValue('desc#' . $rowNumber, $angsuran['desc']);
-                    $templateProcessor->setValue('plan_date#' . $rowNumber, $angsuran['plan_date']);
-                    $templateProcessor->setValue('nominal#' . $rowNumber, $angsuran['nominal']);
+                    foreach ($dataAngsuran as $index => $angsuran) {
+                        $rowNumber = $index + 1;
+                        $templateProcessor->setValue('desc#' . $rowNumber, $angsuran['desc']);
+                        $templateProcessor->setValue('plan_date#' . $rowNumber, $angsuran['plan_date']);
+                        $templateProcessor->setValue('nominal#' . $rowNumber, $angsuran['nominal']);
+                    }
+                } else {
+                    $templateProcessor->cloneRow('desc', 1);
+                    $templateProcessor->setValue('desc#1', '-');
+                    $templateProcessor->setValue('plan_date#1', '-');
+                    $templateProcessor->setValue('nominal#1', '-');
                 }
-            } else {
-                // Antisipasi jika data angsuran kosong (misal tipe lunas), agar template tidak rusak/bocor code
-                $templateProcessor->cloneRow('desc', 1);
-                $templateProcessor->setValue('desc#1', '-');
-                $templateProcessor->setValue('plan_date#1', '-');
-                $templateProcessor->setValue('nominal#1', '-');
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Surat Pernyataan Template cloneRow ('desc') failed: " . $e->getMessage());
+
+                for ($i = 1; $i <= 5; $i++) {
+                    $angsuranKey = 'angsuran_' . $i;
+                    $cicilanKey = 'cicilan_' . $i;
+
+                    $angsuranVal = '-';
+                    $cicilanVal = '-';
+
+                    if (isset($dataAngsuran[$i - 1])) {
+                        $angsuranVal = $dataAngsuran[$i - 1]['plan_date'];
+                        $cicilanVal = $dataAngsuran[$i - 1]['nominal'];
+                    } elseif (isset($ppdb->{$angsuranKey}) && $ppdb->{$angsuranKey}) {
+                        $angsuranVal = \Carbon\Carbon::parse($ppdb->{$angsuranKey})->format('d M Y');
+                        $cicilanVal = PriceHelper::rupiah($ppdb->{$cicilanKey});
+                    }
+
+                    $templateProcessor->setValue($angsuranKey, $angsuranVal);
+                    $templateProcessor->setValue($cicilanKey, $cicilanVal);
+                }
             }
         }
 

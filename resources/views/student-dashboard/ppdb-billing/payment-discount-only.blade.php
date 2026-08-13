@@ -205,24 +205,6 @@
                     <div id="installmentSettings" style="display: block;">
                         <div class="row g-3 mb-4">
                             <div class="col-6">
-                                <label for="tenorSelect" class="form-label small fw-semibold mb-2" style="color: #0f2b5b;">
-                                    Pilih Tenor Cicilan
-                                </label>
-                                <select class="form-select form-select-custom shadow-sm w-100" id="tenorSelect"
-                                    name="tenor">
-                                    @if (!empty($installmentOptions))
-                                        @foreach ($installmentOptions as $value => $label)
-                                            <option value="{{ $value }}">
-                                                {{ $label }}
-                                            </option>
-                                        @endforeach
-                                    @else
-                                        <option value="">Konfigurasi Cicilan tidak ditemukan</option>
-                                    @endif
-                                </select>
-                            </div>
-
-                            <div class="col-6">
                                 <label for="dpSelect" class="form-label small fw-semibold mb-2" style="color: #0f2b5b;">
                                     Pilih Down Payment (DP)
                                 </label>
@@ -237,6 +219,24 @@
                                         @endforeach
                                     @else
                                         <option value="">Konfigurasi DP tidak ditemukan</option>
+                                    @endif
+                                </select>
+                            </div>
+
+                            <div class="col-6">
+                                <label for="tenorSelect" class="form-label small fw-semibold mb-2" style="color: #0f2b5b;">
+                                    Pilih Tenor Cicilan
+                                </label>
+                                <select class="form-select form-select-custom shadow-sm w-100" id="tenorSelect"
+                                    name="tenor">
+                                    @if (!empty($installmentOptions))
+                                        @foreach ($installmentOptions as $value => $label)
+                                            <option value="{{ $value }}">
+                                                {{ $label }}
+                                            </option>
+                                        @endforeach
+                                    @else
+                                        <option value="">Konfigurasi Cicilan tidak ditemukan</option>
                                     @endif
                                 </select>
                             </div>
@@ -312,6 +312,71 @@
                     }).format(angka);
                 };
 
+                // Cache initial tenor options
+                const allTenorOptions = [];
+                $tenorSelect.find('option').each(function() {
+                    const val = parseInt($(this).val());
+                    if (!isNaN(val)) {
+                        allTenorOptions.push({
+                            value: val,
+                            text: $(this).text()
+                        });
+                    }
+                });
+
+                const DP_TENOR_SCHEME = @json($dpTenorScheme ?? []);
+
+                const calculateTenorFromDp = (dpVal, totalAmount = 0) => {
+                    let dpPercent = parseFloat(dpVal) || 0;
+                    if (dpPercent > 100 && totalAmount > 0) {
+                        dpPercent = Math.round((dpPercent / totalAmount) * 100);
+                    }
+                    if (Array.isArray(DP_TENOR_SCHEME) && DP_TENOR_SCHEME.length > 0) {
+                        let maxTenor = 2;
+                        for (let i = 0; i < DP_TENOR_SCHEME.length; i++) {
+                            const rule = DP_TENOR_SCHEME[i];
+                            if (dpPercent >= parseFloat(rule.dp)) {
+                                maxTenor = parseInt(rule.max_tenor);
+                            }
+                        }
+                        return maxTenor;
+                    }
+                    if (dpPercent <= 30) return 2;
+                    if (dpPercent <= 35) return 3;
+                    if (dpPercent <= 40) return 4;
+                    if (dpPercent <= 50) return 5;
+                    if (dpPercent <= 55) return 6;
+                    if (dpPercent <= 60) return 7;
+                    if (dpPercent <= 65) return 8;
+                    if (dpPercent <= 70) return 9;
+                    return 10;
+                };
+
+                const updateTenorByDp = () => {
+                    const dpVal = $dpSelect.val();
+                    const maxTenor = calculateTenorFromDp(dpVal, totalBiaya);
+                    const currentSelectedTenor = parseInt($tenorSelect.val()) || maxTenor;
+
+                    $tenorSelect.empty();
+                    if (allTenorOptions.length > 0) {
+                        allTenorOptions.forEach(opt => {
+                            if (opt.value <= maxTenor) {
+                                $tenorSelect.append(new Option(opt.text, opt.value));
+                            }
+                        });
+                    } else {
+                        for (let i = 1; i <= maxTenor; i++) {
+                            $tenorSelect.append(new Option(`${i}x Bulan`, i));
+                        }
+                    }
+
+                    if (currentSelectedTenor <= maxTenor && $tenorSelect.find(`option[value="${currentSelectedTenor}"]`).length > 0) {
+                        $tenorSelect.val(currentSelectedTenor);
+                    } else {
+                        $tenorSelect.val(maxTenor);
+                    }
+                };
+
                 // 4. Fungsi Kalkulasi Utama
                 const hitungCicilan = () => {
                     const nilaiDP = parseFloat($dpSelect.val()) || 0;
@@ -344,9 +409,14 @@
                 };
 
                 // 5. Daftarkan Event Listener agar kalkulasi berjalan jika ada perubahan drop-down
-                $tenorSelect.add($dpSelect).on('change', hitungCicilan);
+                $tenorSelect.on('change', hitungCicilan);
+                $dpSelect.on('change', function() {
+                    updateTenorByDp();
+                    hitungCicilan();
+                });
 
                 // 6. Jalankan kalkulasi pertama kali untuk inisialisasi state UI
+                updateTenorByDp();
                 hitungCicilan();
             });
         </script>

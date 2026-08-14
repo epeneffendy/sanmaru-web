@@ -505,11 +505,15 @@
                                             <p class="mb-0">Surat pernyataan Anda telah berhasil disimpan di sistem.</p>
                                         </div>
                                     </div>
-                                    <div>
+                                    <div class="d-flex flex-wrap align-items-center mb-3" style="gap: 16px;">
                                         <a target="_blank" class="btn btn-outline-dark-green font-weight-bold"
                                             href="{{ route('ppdb.download-development-statement-letter') }}">
                                             <i class="fas fa-file-pdf mr-2"></i>Lihat Surat Pernyataan
                                         </a>
+                                        <a href="javascript:void(0)" class="text-success font-weight-bold upload-reupload-btn" style="cursor: pointer;">
+                                            <i class="fas fa-upload mr-1"></i>Upload Ulang
+                                        </a>
+                                        <input type="file" name="development_statement" accept="application/pdf" id="development_statement" style="display: none;" />
                                     </div>
                                 @else
                                     <div id="upload-instruction">
@@ -518,14 +522,14 @@
                                                 target="_blank" class="font-weight-bold text-success">disini</a></p>
                                     </div>
 
-                                    <div class="upload-image-box mt-4" id="upload-box">
+                                    <div class="upload-image-desktop mt-4" id="upload-box">
                                         <div class="btn-upload p-4 text-center"
                                             style="border: 2px dashed #a7f3d0; border-radius: 12px; background-color: #f0fdf4;">
                                             <div class="row justify-content-center align-items-center flex-column">
                                                 <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: #166534;"></i>
                                                 <span class="d-block font-weight-bold mb-2" style="color: #166534;">Pilih
                                                     file
-                                                    dari perangkat Anda</span>
+                                                    dari perangkat komputer Anda</span>
                                                 <span class="text-muted d-block mb-3">Support: PDF</span>
                                                 <span class="btn btn-dark-green text-white position-relative">
                                                     Browse
@@ -623,15 +627,16 @@
                         document.getElementById("installment_date_" + month).value = "";
                         return;
                     }
-                } else {
-                    document.getElementById("alert-dates").innerHTML = isMonthBeforeUndef;
-                    document.getElementById("installment_date_" + month).value = "";
-                    return;
                 }
             }
 
             document.getElementById("alert-dates").innerHTML = "";
         }
+
+        $(document).on('click', '.upload-reupload-btn', function(e) {
+            e.preventDefault();
+            $('#development_statement').trigger('click');
+        });
 
         $(document).on('change', "#development_statement", function() {
             if ($(this).val()) {
@@ -648,14 +653,25 @@
                     contentType: false,
                     processData: false,
                     beforeSend: function() {
-                        $('#message_development_statement').html(
-                            '<span class="text-warning font-weight-bold"><i class="fas fa-spinner fa-spin me-2"></i>Uploading...</span>'
-                        );
+                        $('.upload-reupload-btn').css('pointer-events', 'none').html('<i class="fas fa-spinner fa-spin mr-1"></i>Uploading...');
+                        if ($('#message_development_statement').length) {
+                            $('#message_development_statement').html(
+                                '<span class="text-warning font-weight-bold"><i class="fas fa-spinner fa-spin me-2"></i>Uploading...</span>'
+                            );
+                        }
                     },
                     error: function(data) {
-                        $('#message_development_statement').html(
-                            '<span class="text-danger font-weight-bold"><i class="fas fa-times-circle me-2"></i>Gagal Upload</span>'
-                        );
+                        $('.upload-reupload-btn').css('pointer-events', 'auto').html('<i class="fas fa-upload mr-1"></i>Upload Ulang');
+                        if ($('#message_development_statement').length) {
+                            $('#message_development_statement').html(
+                                '<span class="text-danger font-weight-bold"><i class="fas fa-times-circle me-2"></i>Gagal Upload</span>'
+                            );
+                        }
+                        swal({
+                            icon: 'error',
+                            title: "Gagal!",
+                            text: 'Gagal mengunggah dokumen. Silahkan coba lagi.',
+                        });
                     },
                     success: function(data) {
                         $('#upload-instruction').hide();

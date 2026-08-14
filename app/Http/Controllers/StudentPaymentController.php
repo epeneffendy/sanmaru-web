@@ -57,7 +57,7 @@ class StudentPaymentController extends Controller
             }
         }
         
-        $dpTenorScheme = $financeSystemConfigurationService->getDpTenorScheme($configuration);
+        $dpTenorScheme = method_exists($financeSystemConfigurationService, 'getDpTenorScheme') ? $financeSystemConfigurationService->getDpTenorScheme($configuration) : [];
 
         if(!empty($dispensation)){
             $arr_value = json_decode($dispensation->value);
@@ -356,7 +356,7 @@ class StudentPaymentController extends Controller
         $user = $request->session()->get('user');
         $confirm = $paymentDispensationsService->confirmPlanDate($request->all(), $user['ppdb']['id']);
         if($confirm['status']){
-            if ($confirm['type'] == 'activity' && $confirm['dp_detail_id']) {
+            if ($confirm['type'] == 'activity' && isset($confirm['dp_detail_id']) && $confirm['dp_detail_id']) {
                 return redirect()->route('bills.payment-now', [
                     'id' => $confirm['dp_detail_id'], 
                     'type' => 'installment', 

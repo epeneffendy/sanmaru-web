@@ -562,8 +562,6 @@ class PaymentDispensationsService {
         $type = $params['dispensation_type'] ?? 'development';
         $dispensation = $this->getByUserPpdb($ppdb_id, $type);
 
-        $dp_detail_id = null;
-
         if($dispensation){
             if(isset($params['dates'])) {
                 foreach($params['dates'] as $key => $value){
@@ -574,46 +572,8 @@ class PaymentDispensationsService {
                     }
                 }
             }
-
-            // Create VA for DP automatically
-            $dp_detail = PaymentDispensationDetails::where('payment_dispensation_id', $dispensation->id)
-                ->where('installment_number', 0)
-                ->first();
-
-            if ($dp_detail) {
-                $dp_detail_id = $dp_detail->id;
-                if ($dp_detail->status == 'unpaid') {
-                    $paymentVirtualAccountsService = app(\App\Services\PaymentVirtualAccountsService::class);
-                    $va_unpaid = $paymentVirtualAccountsService->findByVirtualAccountUnpaid($dp_detail->virtual_account);
-                    
-                    if (!$va_unpaid) {
-                        $virtual_account_type = \App\Models\PaymentVirtualAccounts::VIRTUAL_ACCOUNT_INSTALLMENT;
-                        $virtual_account_number = $dp_detail->virtual_account;
-                        $remaining_balance = $dp_detail->nominal - $dp_detail->amount_paid;
-                        
-                        if ($type == \App\Models\PaymentDispensations::DISPENSATION_TYPE_ACTIVITY) {
-                            $expired_at = \Carbon\Carbon::parse($dispensation->created_at)->addDays(7)->endOfDay();
-                        } else {
-                            $periode = \App\Helpers\PriceHelper::getDatePeriodePayment($dispensation->ppdb, $type);
-                            if (!empty($periode['end'])) {
-                                $expired_at = \Carbon\Carbon::parse($periode['end'])->endOfDay();
-                            } else {
-                                $expired_at = now()->addDays(7);
-                            }
-
-                            $ppdb = $dispensation->ppdb;
-                            if ($ppdb->payment_tolerance_expired_at && now()->lessThan($ppdb->payment_tolerance_expired_at)) {
-                                $expired_at = \Carbon\Carbon::parse($ppdb->payment_tolerance_expired_at);
-                            }
-                        }
-                        
-                        $fillable = $paymentVirtualAccountsService->fillable($dispensation->ppdb_user_id, $type, $virtual_account_number, $remaining_balance, $virtual_account_type, $expired_at);
-                        $paymentVirtualAccountsService->create($fillable);
-                    }
-                }
-            }
         }
         
-        return ['status' => true, 'dp_detail_id' => $dp_detail_id ?? null, 'type' => $type];
+        return ['status' => true, 'type' => $type];
     }
 }

@@ -322,7 +322,7 @@ class PPDBController extends Controller
         return view('ppdb-online.biaya-pengembangan.cicilan', $data);
     }
 
-    public function biayaPengembanganLunasPpdb(Request $request, GeneralSettingService $generalSettingService)
+    public function biayaPengembanganLunasPpdb(Request $request, GeneralSettingService $generalSettingService, PaymentDispensationsService $paymentDispensationsService)
     {
         $user = $request->session()->get('user');
         $ppdb = PPDBUser::where('id', $user['ppdb']['id'])->first();
@@ -336,21 +336,18 @@ class PPDBController extends Controller
             return redirect(route('ppdb.biaya-pengembangan.' . $ppdb->development_fee_option));
         }
 
+        $dispensation = $paymentDispensationsService->getByUserPpdb($ppdb->id, PaymentDispensations::DISPENSATION_TYPE_DEVELOPMENT);
+
         $periodeActiceDevelopment = \App\Helpers\PriceHelper::getDatePeriodePayment($ppdb, 'development');
         $keterangan = 'Wajib dibayar pada tanggal ' . Carbon::parse($periodeActiceDevelopment['start'])->format('d-m-Y') . ' sampai dengan ' . Carbon::parse($periodeActiceDevelopment['end'])->format('d-m-Y');
 
-//        $max_date = \App\Helpers\PriceHelper::developmentStudent($ppdb);
-//        if($max_date != 0){
-//            $deadline = $max_date;
-//        }
-
         $data = array(
             'ppdb' => $ppdb,
+            'dispensation' => $dispensation,
             'discount' => $discount,
             'is_eligible_discount' => $is_eligible_discount,
             'is_eligible_free_voucher' => $is_eligible_free_voucher,
             'keterangan'=>$keterangan,
-//            'deadline'=>Carbon::parse($deadline)->format('d-m-Y '),
             'nav' => ['parent' => 'home', 'child' => 'Informasi PPDB']
         );
         return view('ppdb-online.biaya-pengembangan.lunas', $data);
@@ -555,7 +552,7 @@ class PPDBController extends Controller
             'nav' => ['parent' => 'data', 'child' => 'Data Siswa']
         );
 
-        return view('ppdb-online/form-student-administration', $data);
+        return view('ppdb-online/form-student', $data);
         // dd($cities);
     }
 
@@ -1383,47 +1380,49 @@ class PPDBController extends Controller
                 $ppdb->is_upload_development_statement = 1;
                 $ppdb->save();
 
-                // VA Generation for DP
-                $dispensation = $paymentDispensationsService->getByUserPpdb($ppdb->id, PaymentDispensations::DISPENSATION_TYPE_DEVELOPMENT);
-                if ($dispensation) {
-                    $dp_detail = null;
-                    foreach ($dispensation->details as $d) {
-                        if ($d->installment_number == 0) {
-                            $dp_detail = $d;
-                            break;
-                        }
-                    }
-
-                    if ($dp_detail) {
-                        $virtual_account_number = $dp_detail->virtual_account;
-                        $remaining_balance = $dp_detail->nominal - $dp_detail->amount_paid;
-                        $virtual_account_type = PaymentVirtualAccounts::VIRTUAL_ACCOUNT_INSTALLMENT;
-
-                        $va_unpaid = $paymentVirtualAccountsService->findByVirtualAccountUnpaid($virtual_account_number);
-
-                        if ($va_unpaid) {
-                            if (\Carbon\Carbon::now()->greaterThan(\Carbon\Carbon::parse($va_unpaid->expired_at))) {
-                                $va_unpaid->status = PaymentVirtualAccounts::STATUS_EXPIRED;
-                                $va_unpaid->save();
-                                $va_unpaid = null;
-                            } elseif ($va_unpaid->total_payment != $remaining_balance) {
-                                $va_unpaid->status = PaymentVirtualAccounts::STATUS_CANCELED;
-                                $va_unpaid->save();
-                                $va_unpaid = null;
+                // VA Generation ONLY for Cicilan (DP)
+                if ($request->input('development_fee_option') == 'cicilan') {
+                    $dispensation = $paymentDispensationsService->getByUserPpdb($ppdb->id, PaymentDispensations::DISPENSATION_TYPE_DEVELOPMENT);
+                    if ($dispensation && count($dispensation->details) > 1) {
+                        $dp_detail = null;
+                        foreach ($dispensation->details as $d) {
+                            if ($d->installment_number == 0) {
+                                $dp_detail = $d;
+                                break;
                             }
                         }
 
-                        if (!$va_unpaid) {
-                            $expired_at = now()->addDays(7); // 7x24 jam
-                            $fillable = $paymentVirtualAccountsService->fillable($ppdb->id, PaymentDispensations::DISPENSATION_TYPE_DEVELOPMENT, $virtual_account_number, $remaining_balance, $virtual_account_type, $expired_at);
-                            $paymentVirtualAccountsService->create($fillable);
-                        }
+                        if ($dp_detail) {
+                            $virtual_account_number = $dp_detail->virtual_account;
+                            $remaining_balance = $dp_detail->nominal - $dp_detail->amount_paid;
+                            $virtual_account_type = PaymentVirtualAccounts::VIRTUAL_ACCOUNT_INSTALLMENT;
 
-                        $data['redirect_url'] = route('ppdb.bills.payment-now', [
-                            'id' => $dp_detail->id,
-                            'type' => 'installment',
-                            'dispensation_type' => 'development'
-                        ]);
+                            $va_unpaid = $paymentVirtualAccountsService->findByVirtualAccountUnpaid($virtual_account_number);
+
+                            if ($va_unpaid) {
+                                if (\Carbon\Carbon::now()->greaterThan(\Carbon\Carbon::parse($va_unpaid->expired_at))) {
+                                    $va_unpaid->status = PaymentVirtualAccounts::STATUS_EXPIRED;
+                                    $va_unpaid->save();
+                                    $va_unpaid = null;
+                                } elseif ($va_unpaid->total_payment != $remaining_balance) {
+                                    $va_unpaid->status = PaymentVirtualAccounts::STATUS_CANCELED;
+                                    $va_unpaid->save();
+                                    $va_unpaid = null;
+                                }
+                            }
+
+                            if (!$va_unpaid) {
+                                $expired_at = now()->addDays(7); // 7x24 jam
+                                $fillable = $paymentVirtualAccountsService->fillable($ppdb->id, PaymentDispensations::DISPENSATION_TYPE_DEVELOPMENT, $virtual_account_number, $remaining_balance, $virtual_account_type, $expired_at);
+                                $paymentVirtualAccountsService->create($fillable);
+                            }
+
+                            $data['redirect_url'] = route('ppdb.bills.payment-now', [
+                                'id' => $dp_detail->id,
+                                'type' => 'installment',
+                                'dispensation_type' => 'development'
+                            ]);
+                        }
                     }
                 }
             }

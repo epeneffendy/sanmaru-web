@@ -265,21 +265,31 @@
             </div>
         @endif
 
+        @php
+            $isLunasMode = (isset($dispensation->details) && count($dispensation->details) == 1) || (isset($dispensation->payment_type) && $dispensation->payment_type == 'lunas');
+        @endphp
+
         @if ($type == 'development')
             <div class="alert mt-2 p-3" style="background-color: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px;">
                 <h6 class="fw-bold mb-2" style="color: #075985; font-size: 13px;">
                     <i class="fa-solid fa-gift me-1"></i> Informasi Penting:
                 </h6>
                 <ul class="mb-0 ps-3" style="color: #075985; font-size: 13px;">
-                    <li>1. Silahkan tentukan rencana bayar pada <b>Cicilan ke-1 dst</b>.</li>
-                    <li>2. Tanggal rencana bayar harus beda bulan dari tanggal sebelumnya</li>
-                    <li>3. Periode bulan pada rencana bayar harus berurutan dari bulan sebelumnya</li>
-                    <li>4. Setelah simpan tanggal cicilan lakukan donwload dan upload <b>Surat Pernyataan</b></li>
+                    @if ($isLunasMode)
+                        <li>1. Anda memilih opsi <b>Pembayaran Lunas (Full Settlement)</b>.</li>
+                        <li>2. Silahkan download dan upload <b>Surat Pernyataan</b> terlebih dahulu.</li>
+                        <li>3. Setelah Upload Dokumen akan muncul <b>Virtual Account</b> untuk Pembayaran Lunas. Segera lakukan <b>Pembayaran Lunas 7x24 Jam</b> agar bisa menyelesaikan tahap ini.</li>
+                    @else
+                        <li>1. Silahkan tentukan rencana bayar pada <b>Cicilan ke-1 dst</b>.</li>
+                        <li>2. Tanggal rencana bayar harus beda bulan dari tanggal sebelumnya</li>
+                        <li>3. Periode bulan pada rencana bayar harus berurutan dari bulan sebelumnya</li>
+                        <li>4. Setelah simpan tanggal cicilan lakukan donwload dan upload <b>Surat Pernyataan</b></li>
+                    @endif
                 </ul>
             </div>
         @endif
 
-        @if ($dispensation->status_payment != 'paid' && $ppdb['is_upload_development_statement'] == 1)
+        @if ($dispensation->status_payment != 'paid' && $ppdb['is_upload_development_statement'] == 1 && !$isLunasMode)
             <h5 class="font-weight-bold text-secondary mb-3">Alternatif Pembayaran</h5>
             <div class="row mb-5">
                 <div class="col-md-6 mb-3 mb-md-0">
@@ -335,7 +345,9 @@
         @if ($dispensation->total_final_fee == $dispensation->remaining_balance)
             @if ($dispensation->dispensation_mode == 'real_payment')
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="font-weight-bold text-secondary mb-0">Rencana Cicilan / Setup Pembayaran</h5>
+                    <h5 class="font-weight-bold text-secondary mb-0">
+                        {{ $isLunasMode ? 'Setup Pembayaran Lunas' : 'Rencana Cicilan / Setup Pembayaran' }}
+                    </h5>
                     <a href="{{ route('bills.change-payment-method', ['id' => $dispensation->id, 'dispensation_type' => $type]) }}"
                         class=" font-weight-bold">
                         Ubah Cara Bayar
@@ -374,7 +386,11 @@
                             @foreach ($dispensation->details as $index => $detail)
                                 <tr>
                                     <td class="font-weight-bold">
-                                        {{ $detail->installment_number == 0 ? 'Uang Muka (DP)' : 'Cicilan Ke-' . $detail->installment_number }}
+                                        @if ($isLunasMode)
+                                            Pembayaran Lunas (100%)
+                                        @else
+                                            {{ $detail->installment_number == 0 ? 'Uang Muka (DP)' : 'Cicilan Ke-' . $detail->installment_number }}
+                                        @endif
                                     </td>
                                     <td class="font-weight-bold">Rp
                                         {{ number_format($detail['nominal'] ?? 0, 0, ',', '.') }}
@@ -465,9 +481,12 @@
                 <div class="d-flex justify-content-between align-items-center mt-5 mb-3">
                     <h5 class="font-weight-bold text-secondary mb-0">Upload Surat Pernyataan</h5>
                 </div>
+                @php
+                    $statementDownloadType = (isset($dispensation->details) && count($dispensation->details) == 1) ? 'lunas' : 'cicilan';
+                @endphp
                 <div class="card border-0 shadow-sm p-4" style="border-radius: 12px;">
                     <form id="form-development">
-                        <input type="hidden" name="development_fee_option" value="cicilan" />
+                        <input type="hidden" name="development_fee_option" value="{{ $statementDownloadType }}" />
                         <div class="row">
                             <div class="col-md-12">
                                 @if (!empty($dispensation->ppdb->development_statement))
@@ -479,16 +498,20 @@
                                             <p class="mb-0">Surat pernyataan Anda telah berhasil disimpan di sistem.</p>
                                         </div>
                                     </div>
-                                    <div>
+                                    <div class="d-flex flex-wrap align-items-center mb-3" style="gap: 16px;">
                                         <a target="_blank" class="btn btn-outline-dark-green font-weight-bold"
                                             href="{{ route('download-development-statement-letter') }}">
                                             <i class="fas fa-file-pdf mr-2"></i>Lihat Surat Pernyataan
                                         </a>
+                                        <a href="javascript:void(0)" class="text-warning font-weight-bold upload-reupload-btn" style="cursor: pointer;">
+                                            <i class="fas fa-upload mr-1"></i>Upload Ulang
+                                        </a>
+                                        <input type="file" name="development_statement" accept="application/pdf" id="development_statement" style="display: none;" />
                                     </div>
                                 @else
                                     <div id="upload-instruction">
                                         <p class="text-muted">Silahkan download form surat pernyataan terlebih dahulu <a
-                                                href="{{ route('download-biaya-pengembangan', ['type' => 'cicilan']) }}"
+                                                href="{{ route('download-biaya-pengembangan', ['type' => $statementDownloadType]) }}"
                                                 target="_blank" class="font-weight-bold text-success">disini</a></p>
                                     </div>
 
@@ -593,6 +616,11 @@
             document.getElementById("alert-dates").innerHTML = "";
         }
 
+        $(document).on('click', '.upload-reupload-btn', function(e) {
+            e.preventDefault();
+            $('#development_statement').trigger('click');
+        });
+
         $(document).on('change', "#development_statement", function() {
             if ($(this).val()) {
                 var self = $(this);
@@ -608,14 +636,25 @@
                     contentType: false,
                     processData: false,
                     beforeSend: function() {
-                        $('#message_development_statement').html(
-                            '<span class="text-warning font-weight-bold"><i class="fas fa-spinner fa-spin me-2"></i>Uploading...</span>'
-                        );
+                        $('.upload-reupload-btn').css('pointer-events', 'none').html('<i class="fas fa-spinner fa-spin mr-1"></i>Uploading...');
+                        if ($('#message_development_statement').length) {
+                            $('#message_development_statement').html(
+                                '<span class="text-warning font-weight-bold"><i class="fas fa-spinner fa-spin me-2"></i>Uploading...</span>'
+                            );
+                        }
                     },
                     error: function(data) {
-                        $('#message_development_statement').html(
-                            '<span class="text-danger font-weight-bold"><i class="fas fa-times-circle me-2"></i>Gagal Upload</span>'
-                        );
+                        $('.upload-reupload-btn').css('pointer-events', 'auto').html('<i class="fas fa-upload mr-1"></i>Upload Ulang');
+                        if ($('#message_development_statement').length) {
+                            $('#message_development_statement').html(
+                                '<span class="text-danger font-weight-bold"><i class="fas fa-times-circle me-2"></i>Gagal Upload</span>'
+                            );
+                        }
+                        swal({
+                            icon: 'error',
+                            title: "Gagal!",
+                            text: 'Gagal mengunggah dokumen. Silahkan coba lagi.',
+                        });
                     },
                     success: function(data) {
                         $('#upload-instruction').hide();

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\PaymentVirtualAccounts;
 use App\Models\Period;
 use App\Models\PPDBUser;
 use App\Models\PPDBUserStage;
@@ -181,6 +182,7 @@ class PPDBMonitoringService
             }
 
             foreach ($ppdbUser as $user) {
+                $is_reset_payment_method = false;
                 if (($user->isDataCompleteWhitoutBca) && ($user->isParentsComplete)) {
                      $status_confirm = '<span class="badge-modern badge-soft-info" title="Periode"> Dokumen Lengkap</span>';
                 } else {
@@ -207,6 +209,15 @@ class PPDBMonitoringService
                 $status_period = '<label class="label label-success">Periode Telah Terverifikasi</label>';
                 if($user->period_verified == PPDBUser::PERIOD_WAITING){
                     $status_period = '<label class="label label-warning">Menunggu Verifikasi Periode</label>';
+                }
+
+                $va_unpaid = PaymentVirtualAccounts::where([
+                    'ppdb_user_id'=>$user->id,
+                    'status'=>PaymentVirtualAccounts::STATUS_UNPAID,
+                    'type'=>PaymentVirtualAccounts::PAYMENT_TYPE_DEVELOPMENT
+                ])->count();
+                if($va_unpaid > 0){
+                    $is_reset_payment_method = true;
                 }
 
                 $baseData = [
@@ -236,7 +247,8 @@ class PPDBMonitoringService
                     'status_stage' => $stage_status,
                     'voucher' => $voucher,
                     'status_period'=> $status_period,
-                    'status_student'=>$user->user->type ?? null
+                    'status_student'=>$user->user->type ?? null,
+                    'is_reset_payment_method' => $is_reset_payment_method
                 ];
 
                 if ($flag == 'development-statement') {

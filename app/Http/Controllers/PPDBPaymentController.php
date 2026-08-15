@@ -253,15 +253,29 @@ class PPDBPaymentController extends Controller
         $virtual_account_type = $virtual_account_number = $remaining_balance = $installment_number =$installment_type = null;
         $is_create =false;
         if($dispensation){
-
             if($request->type == PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT){
-                $virtual_account_type = PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT;
-                $virtual_account_number = json_decode($dispensation->value)->va_full_statement;
-                $remaining_balance = $dispensation->remaining_balance;
-                if(isset($request->payment_type)){
-                    if($request->payment_type == 'lunas'){
-                        $virtual_account_number = $dispensation->details[0]->virtual_account;
+                $check_va = $paymentVirtualAccountsService->findByUserPpdbUnpaid($ppdbId, $dispensation_type);
+                if(empty($check_va)){
+                    $virtual_account_type = PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT;
+                    $virtual_account_number = json_decode($dispensation->value)->va_full_statement;
+                    $remaining_balance = $dispensation->remaining_balance;
+                    if(isset($request->payment_type)){
+                        if($request->payment_type == 'lunas'){
+                            $virtual_account_number = $dispensation->details[0]->virtual_account;
+                        }
                     }
+                }else{
+                    if ($request->payment_type != 'lunas') {
+                        return redirect()->route('ppdb.bills.payment-now', [
+                            'id' => $dispensation->id,
+                            'type' => PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT,
+                            'payment_type' => 'lunas',
+                            'dispensation_type' => $dispensation_type
+                        ]);
+                    }
+                    $virtual_account_number = $check_va->virtual_account_number;
+                    $virtual_account_type = $check_va->virtual_account_type ?? PaymentVirtualAccounts::VIRTUAL_ACCOUNT_FULL_STATEMENT;
+                    $remaining_balance = $check_va->total_payment;
                 }
             }
 

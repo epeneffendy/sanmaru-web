@@ -392,13 +392,13 @@
                         </button>
 
                         {{-- ACTION MODAL --}}
-                        @if ($item['development_fee_option'] && !$item['isOrderConfirmed'])
+                        @if ($item['is_reset_payment_method'])
                             <div class="mt-2">
                                 <button data-toggle="modal"
                                     data-target="#reset-development-payment-modal-{{ $item['id'] }}"
                                     class="btn btn-sm btn-outline-warning btn-modern"
-                                    onclick="return confirm('Apakah anda yakin akan mereset tahapan ini? Surat pernyataan akan terhapus');">
-                                    <i class="fa fa-sync-alt"></i> Reset
+                                    onclick="return confirm('Apakah anda yakin akan mereset tahapan ini? Tagihan siswa akan terhapus');">
+                                    <i class="fa fa-sync-alt"></i> Reset Cara Bayar
                                 </button>
                             </div>
                         @endif
@@ -444,7 +444,7 @@
 {{ $data->appends(request()->except('page'))->links() }}
 
 @foreach ($data as $item)
-    @if ($item['development_fee_option'] && !$item['isOrderConfirmed'])
+    @if ($item['is_reset_payment_method'])
         <!-- Modal -->
         <div id="reset-development-payment-modal-{{ $item['id'] }}" class="modal fade text-left" role="dialog">
             <div class="modal-dialog">

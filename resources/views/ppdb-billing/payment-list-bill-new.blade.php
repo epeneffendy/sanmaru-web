@@ -533,9 +533,15 @@
                                     </div>
                                 @else
                                     <div id="upload-instruction">
-                                        <p class="text-muted">Silahkan download form surat pernyataan terlebih dahulu <a
+                                        @if(count($dispensation->details) > 1)
+                                            <p class="text-muted">Silahkan download form surat pernyataan terlebih dahulu <a
                                                 href="{{ route('ppdb.download-biaya-pengembangan', ['type' => 'cicilan']) }}"
                                                 target="_blank" class="font-weight-bold text-success">disini</a></p>
+                                        @else
+                                            <p class="text-muted">Silahkan download form surat pernyataan terlebih dahulu <a
+                                                href="{{ route('ppdb.download-biaya-pengembangan', ['type' => 'lunas']) }}"
+                                                target="_blank" class="font-weight-bold text-success">disini</a></p>
+                                        @endif
                                     </div>
 
                                     <div class="upload-image-desktop mt-4" id="upload-box">
@@ -554,6 +560,20 @@
                                                         id="development_statement"
                                                         style="left: 0; top: 0; opacity: 0; cursor: pointer;" />
                                                 </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="upload-image-mobile mt-4" id="upload-box-mobile">
+                                        <div class="btn-upload p-3 text-center"
+                                            style="border: 2px dashed #a7f3d0; border-radius: 12px; background-color: #f0fdf4;">
+                                            <div class="d-flex flex-column align-items-center">
+                                                <i class="fas fa-cloud-upload-alt fa-2x mb-2" style="color: #166534;"></i>
+                                                <span class="font-weight-bold mb-1" style="color: #166534; font-size: 0.95rem;">Pilih file dari perangkat Anda</span>
+                                                <span class="text-muted mb-3" style="font-size: 0.8rem;">Support: PDF</span>
+                                                <button type="button" class="btn btn-dark-green text-white w-100 py-2 upload-reupload-btn font-weight-bold">
+                                                    <i class="fas fa-upload mr-1"></i>Upload Surat Pernyataan
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -692,6 +712,7 @@
                     success: function(data) {
                         $('#upload-instruction').hide();
                         $('#upload-box').hide();
+                        $('#upload-box-mobile').hide();
                         
                         if (data.redirect_url) {
                             var html =

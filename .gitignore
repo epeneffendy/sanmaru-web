@@ -18,3 +18,6 @@ php
 .vscode/
 settings.json
 .DS_Store
+*.pem
+public/adminer.php
+.env.save*

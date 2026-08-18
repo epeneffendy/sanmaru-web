@@ -274,13 +274,21 @@
                 <h6 class="fw-bold mb-2" style="color: #075985; font-size: 13px;">
                     <i class="fa-solid fa-gift me-1"></i> INFORMASI PENTING!!!:
                 </h6>
-                <ul class="mb-0 ps-3" style="color: #075985; font-size: 13px;">
-                    <li>1. Silahkan tentukan rencana bayar pada <b>Cicilan ke-2 dst</b>.</li>
-                    <li>2. Tanggal rencana bayar harus beda bulan dari tanggal sebelumnya</li>
-                    <li>3. Periode bulan pada rencana bayar harus berurutan dari bulan sebelumnya</li>
-                    <li>4. Setelah simpan tanggal cicilan lakukan donwload dan upload <b>Surat Pernyataan</b></li>
-                    <li>5. Setelah Upload Dokumen akan muncul <b>Virtual Account</b> untuk pembayaran DP. Segera lakukan <b>Pembayaran DP 7x24 Jam</b> agar bisa melanjutkan ke tahap selanjutnya.</li>
-                </ul>
+                @if(count($dispensation->details) == 1)
+                    <ul class="mb-0 ps-3" style="color: #075985; font-size: 13px;">
+                        <li>1. Silahkan lakukan <b>pelunasan</b> pada tagihan ini</li>
+                        <li>2. Setelah melakukan pembayaran silahkan download dan upload <b>Surat Pernyataan</b> agar bisa melanjutkan ke tahap selanjutnya.</li>
+                    </ul>
+                @else
+                    <ul class="mb-0 ps-3" style="color: #075985; font-size: 13px;">
+                        <li>1. Silahkan tentukan rencana bayar pada <b>Cicilan ke-2 dst</b>.</li>
+                        <li>2. Tanggal rencana bayar harus beda bulan dari tanggal sebelumnya</li>
+                        <li>3. Periode bulan pada rencana bayar harus berurutan dari bulan sebelumnya</li>
+                        <li>4. Setelah simpan tanggal cicilan lakukan donwload dan upload <b>Surat Pernyataan</b></li>
+                        <li>5. Setelah Upload Dokumen akan muncul <b>Virtual Account</b> untuk pembayaran DP. Segera lakukan <b>Pembayaran DP 7x24 Jam</b> agar bisa melanjutkan ke tahap selanjutnya.</li>
+                    </ul>
+                @endif
+                
             </div>
 
         @endif
@@ -381,7 +389,9 @@
                                 <th class="py-3">Total Tagihan</th>
                                 <th class="py-3">Terbayar</th>
                                 <th class="py-3">Tanggal Bayar</th>
-                                <th class="py-3">Rencana Bayar</th>
+                                @if(count($dispensation->details) > 1)
+                                    <th class="py-3">Rencana Bayar</th>
+                                @endif
                                 <th class="py-3">Status</th>
                                 <th class="py-3">Action</th>
                             </tr>
@@ -398,7 +408,11 @@
                             @foreach ($dispensation->details as $index => $detail)
                                 <tr>
                                     <td class="font-weight-bold">
-                                        {{ $detail->installment_number == 0 ? 'Uang Muka (DP)' : 'Cicilan Ke-' . $detail->installment_number }}
+                                        @if(count($dispensation->details) > 1)
+                                            {{ $detail->installment_number == 0 ? 'Uang Muka (DP)' : 'Cicilan Ke-' . $detail->installment_number }}
+                                        @else
+                                            {{ 'Pelunasan' }}
+                                        @endif
                                     </td>
                                     <td class="font-weight-bold">Rp
                                         {{ number_format($detail['nominal'] ?? 0, 0, ',', '.') }}
@@ -416,28 +430,30 @@
                                     <td class="text-muted">
                                         {{ !empty($detail->date) ? \Carbon\Carbon::parse($detail->date)->format('d M Y') : '-' }}
                                     </td>
-                                    <td class="text-muted">
-                                        @if($detail->installment_number > 0)
-                                            @if (empty($detail->plan_date))
-                                                @php $hasEmptyDate = true; @endphp
-                                                <input type="date" name="dates[{{ $detail->id }}]" class="form-control"
-                                                    onchange="handler(this.value, {{ $installmentIndex }}, '{{ $type }}')"
-                                                    id="installment_date_{{ $installmentIndex }}"
-                                                    @if($type == 'development')
-                                                        value="{{ $detail->installment_number == 1 ? \App\Helpers\Helper::tanggalCicilan($startDateAngsuran) : '' }}"
-                                                        {{ ($detail->installment_number == 1) ? 'readonly' : '' }}
-                                                    @elseif($type == 'activity')
-                                                        value="{{ $detail->installment_number == 1 ? \Carbon\Carbon::now()->addMonth()->format('Y-m-d') : '' }}"
-                                                        {{ ($detail->installment_number == 1) ? 'readonly' : '' }}
-                                                    @endif
-                                                    required>
-                                            @else
-                                                {{ \Carbon\Carbon::parse($detail->plan_date)->format('d M Y') }}
-                                                <input type="hidden" id="installment_date_{{ $installmentIndex }}"
-                                                    value="{{ \Carbon\Carbon::parse($detail->plan_date)->format('Y-m-d') }}">
+                                    @if(count($dispensation->details) > 1)
+                                        <td class="text-muted">
+                                            @if($detail->installment_number > 0)
+                                                @if (empty($detail->plan_date))
+                                                    @php $hasEmptyDate = true; @endphp
+                                                    <input type="date" name="dates[{{ $detail->id }}]" class="form-control"
+                                                        onchange="handler(this.value, {{ $installmentIndex }}, '{{ $type }}')"
+                                                        id="installment_date_{{ $installmentIndex }}"
+                                                        @if($type == 'development')
+                                                            value="{{ $detail->installment_number == 1 ? \App\Helpers\Helper::tanggalCicilan($startDateAngsuran) : '' }}"
+                                                            {{ ($detail->installment_number == 1) ? 'readonly' : '' }}
+                                                        @elseif($type == 'activity')
+                                                            value="{{ $detail->installment_number == 1 ? \Carbon\Carbon::now()->addMonth()->format('Y-m-d') : '' }}"
+                                                            {{ ($detail->installment_number == 1) ? 'readonly' : '' }}
+                                                        @endif
+                                                        required>
+                                                @else
+                                                    {{ \Carbon\Carbon::parse($detail->plan_date)->format('d M Y') }}
+                                                    <input type="hidden" id="installment_date_{{ $installmentIndex }}"
+                                                        value="{{ \Carbon\Carbon::parse($detail->plan_date)->format('Y-m-d') }}">
+                                                @endif
                                             @endif
-                                        @endif
-                                    </td>
+                                        </td>
+                                    @endif
                                     <td>
                                         @if ($detail->status == 'paid')
                                             <span

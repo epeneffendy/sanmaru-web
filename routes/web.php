@@ -33,19 +33,19 @@ Route::group(['domain' => $routeService->getPpdbSubdomain()], function () use ($
     Route::group(['middleware' => 'web'], function () use ($prefix) {
         Route::get("/$prefix", 'RegistrasiPPDBController@index')->name('ppdb.index');
         Route::get("/$prefix/landing-page", 'RegistrasiPPDBController@indexLandingPage')->name('ppdb.index-landing-page');
-        Route::post("/$prefix/submit", 'RegistrasiPPDBController@insert')->name('ppdb.insert');
+        Route::post("/$prefix/submit", 'RegistrasiPPDBController@insert')->name('ppdb.insert')->middleware('throttle:5,10');
         Route::any("/$prefix/success", 'RegistrasiPPDBController@success')->name('ppdb.success');
         Route::get("/$prefix/register/{unitName?}", 'RegistrasiPPDBController@register')->name('ppdb.register');
         Route::get("/$prefix/profile/{unitName}", 'RegistrasiPPDBController@profile')->name('ppdb.profile');
         Route::get("/$prefix/login", 'LoginPPDBController@login')->name('ppdb.login');
         Route::post("/$prefix/login/account-select", 'LoginPPDBController@accountSelect')->name('ppdb.login.account-select');
-        Route::post("/$prefix/login/submit", 'LoginPPDBController@submit')->name('ppdb.login.submit');
+        Route::post("/$prefix/login/submit", 'LoginPPDBController@submit')->name('ppdb.login.submit')->middleware('throttle:5,1');
         Route::get("/$prefix/logout", 'LoginPPDBController@logout')->name('ppdb.logout');
         Route::get("/$prefix/verify", 'RegistrasiPPDBController@verify')->name('ppdb.verify');
-        Route::post("/$prefix/email-sended", 'LoginPPDBController@sendEmailForgotPassword')->name('ppdb.email-sended');
+        Route::post("/$prefix/email-sended", 'LoginPPDBController@sendEmailForgotPassword')->name('ppdb.email-sended')->middleware('throttle:3,5');
         Route::get('/forgot-password/verification', 'LoginPPDBController@requestPassword')->name('ppdb.request-password');
-        Route::post('/new-password', 'LoginPPDBController@newPassword')->name('ppdb.new-password');
-        Route::post("/$prefix/send-confirmation/{UserId}", 'LoginPPDBController@sendEmailConfirmation')->name('ppdb.email-confirmation');
+        Route::post('/new-password', 'LoginPPDBController@newPassword')->name('ppdb.new-password')->middleware('throttle:5,1');
+        Route::post("/$prefix/send-confirmation/{UserId}", 'LoginPPDBController@sendEmailConfirmation')->name('ppdb.email-confirmation')->middleware('throttle:3,5');
     });
 
     Route::group(['middleware' => ['web', 'register-ppdb']], function () use ($prefix) {
@@ -165,7 +165,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
 
     //SANMARU DASHBOARD
     Route::get('/', 'AuthController@landing')->name('login');
-    Route::post('/login', 'AuthController@login')->name('login.submit');
+    Route::post('/login', 'AuthController@login')->name('login.submit')->middleware('throttle:5,1');
     Route::get('/logout', 'AuthController@logout')->name('logout');
     Route::group(['middleware' => 'auth:siswa'], function () {
         Route::get('/welcome', 'DashboardController@welcome')->name('welcome');
@@ -222,7 +222,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
         })->name('root');
         Route::group(['middleware' => 'web'], function () {
             Route::get('login', 'Auth\LoginController@login')->name('login');
-            Route::post('login', 'Auth\LoginController@authenticate')->name('login.post');
+            Route::post('login', 'Auth\LoginController@authenticate')->name('login.post')->middleware('throttle:5,1');
             Route::any('logout', 'Auth\LoginController@logout')->name('logout');
         });
     });

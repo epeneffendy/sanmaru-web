@@ -17,15 +17,15 @@ $routeService = App::make('App\Services\RouteService');
 $helper = App::make('App\Helpers\Helper');
 
 Route::group(['domain' => $routeService->getPpdbSubdomain()], function() use ($routeService) {
-    Route::post('/register/{type}', 'RegistrationController@register');
+    Route::post('/register/{type}', 'RegistrationController@register')->middleware('throttle:3,10');
 });
 
 
 Route::group(['domain' => $routeService->getBackendSubdomain()], function() {
-    Route::post('/login', 'LoginController@auth');
+    Route::post('/login', 'LoginController@auth')->middleware('throttle:5,1');
     Route::get('/events', 'EventController@index');
     Route::get('/events/{id}', 'EventController@show');
-    Route::post('/forget-password', 'LoginController@forgetPassword');
+    Route::post('/forget-password', 'LoginController@forgetPassword')->middleware('throttle:3,5');
 
     Route::group(['middleware' => ['auth:api']], function () {
         Route::get('/attendance', 'AttendanceController@index');

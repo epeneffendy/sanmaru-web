@@ -3,10 +3,9 @@
         Options -MultiViews -Indexes
     </IfModule>
 
-    Header always set Access-Control-Allow-Origin "*"
-    Header always set Access-Control-Allow-Methods "POST, GET, OPTIONS, DELETE, PUT, PATCH"
-    Header always set Access-Control-Max-Age "1000"
-    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, x-requested-with, Accept, X-CSRF-TOKEN, authentication, authuser, Access-Control-Allow-Origin, CHANNEL-ID, X-EXTERNAL-ID, X-PARTNER-ID, X-SIGNATURE, X-TIMESTAMP, sec-ch-ua-mobile, sec-ch-ua-platform, User-Agent, Referer"
+    # CORS headers dihapus dari sini karena berbahaya menggunakan wildcard "*".
+    # CORS dikelola di level middleware aplikasi (app/Http/Middleware/Cors.php)
+    # dengan domain spesifik yang diizinkan.
 
     RewriteEngine On
 

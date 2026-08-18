@@ -40,7 +40,7 @@ class LoginPPDBController extends Controller
         } else {
             return redirect()
                 ->route('ppdb.login')
-                ->withErrors(['error' => 'email tidak ditemukan'])
+                ->withErrors(['error' => 'Email atau username tidak ditemukan / tidak valid'])
                 ->withInput();
         }
     }
@@ -103,7 +103,7 @@ class LoginPPDBController extends Controller
 
             return redirect()
                 ->route('ppdb.login')
-                ->withErrors(['error' => 'invalid email or password'])
+                ->withErrors(['error' => 'Username atau password salah'])
                 ->withInput();
         }
     }

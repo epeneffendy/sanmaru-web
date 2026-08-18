@@ -207,11 +207,15 @@
                             pernyataan biaya pengembangan.</span>
                     </div>
                 </div>
-                <div>
+                <div class="d-flex gap-2">
                     <a href="{{ route('ppdb.download-development-statement-letter') }}" target="_blank"
                         class="btn btn-sm btn-outline-success fw-bold px-3">
                         <i class="fa fa-eye me-1"></i> Lihat File
                     </a>
+                    <button type="button" class="btn btn-sm btn-warning text-dark fw-bold px-3 upload-statement-trigger"
+                        data-type="{{ $item['payment_term'] == 'full_payment' ? 'lunas' : 'cicilan' }}">
+                        <i class="fa fa-upload me-1"></i> Upload Ulang
+                    </button>
                 </div>
             </div>
         </div>

@@ -22,10 +22,11 @@ trait ImageHandler
         $path_upload = $path . (isset($config['prefix_filename']) ? $config['prefix_filename'] : null) . $filename;
 
         if ($storage = Storage::disk($driver)->put((isset($config['prefix']) ? $config['prefix'] .'/' : NULL) . 'images/' . $path_upload, File::get($file), isset($config['visibility']) ? $config['visibility'] : false)) {
+            $url = $this->getImageUrl($path_upload);
             return [
                 'path_upload' => $path_upload,
-                'path_url' => Storage::disk($driver)->url('images/'. $path_upload),
-                'path' => Storage::disk($driver)->url('images/'. $path_upload),
+                'path_url' => $url,
+                'path' => $url,
                 'filename' => $filename,
             ];
         }
@@ -47,11 +48,30 @@ trait ImageHandler
         return Storage::disk($driver)->delete((isset($config['prefix']) ? $config['prefix'] . '/' : NULL) . 'images/' . $path);
     }
 
-    private function getImageUrl($path)
+    private function getImageUrl($path, $expirationMinutes = 60)
     {
+        if (empty($path)) {
+            return null;
+        }
+
+        if (strpos($path, 'http://') === 0 || strpos($path, 'https://') === 0) {
+            return $path;
+        }
+
         $driver = config('filesystems.default');
 
-        return Storage::disk($driver)->url('images/'. $path);
+        try {
+            if (in_array($driver, ['s3', 'digital_ocean'])) {
+                return Storage::disk($driver)->temporaryUrl(
+                    'images/' . $path,
+                    now()->addMinutes($expirationMinutes)
+                );
+            }
+        } catch (\Throwable $e) {
+            // Fallback to standard url if temporaryUrl fails or is unsupported
+        }
+
+        return Storage::disk($driver)->url('images/' . $path);
     }
 
     private function moveImage($from, $to)

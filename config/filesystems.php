@@ -82,7 +82,7 @@ return [
             'endpoint' => env('DO_ENDPOINT'),
             'prefix' => env('DO_PREFIX'),
             'prefix_filename' => 'cdndo_',
-            'visibility' => 'public'
+            'visibility' => 'private'
         ],
     ],
 

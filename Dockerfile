@@ -5,10 +5,11 @@ ENV TZ=Asia/Jakarta
 # Install system dependencies (including curl for NodeSource)
 RUN apt-get update -y && apt-get install -y \
     openssl zip unzip git curl ca-certificates \
-    libpq-dev libzip-dev libpng-dev
+    libpq-dev libzip-dev libpng-dev libfreetype6-dev libjpeg62-turbo-dev
 
 # Install PHP extensions
-RUN docker-php-ext-install bcmath gd zip pdo pdo_pgsql mysqli pdo_mysql exif \
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install bcmath gd zip pdo pdo_pgsql mysqli pdo_mysql exif \
     && docker-php-ext-enable pdo_mysql pdo_pgsql
 
 # Install Node.js 18

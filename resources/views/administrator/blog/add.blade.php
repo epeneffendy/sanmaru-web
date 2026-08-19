@@ -82,7 +82,7 @@
                                     <select name="blog_category_id" class="form-control" id="blog_category_id" data-style="btn-primary" data-dropup-auto="false">
                                         <option data-hidden="true"></option>
                                         @foreach ($blogCategories as $key => $blogCategory)
-                                            <option value="{{ $blogCategory->id }}" {{ $blogCategory->id === old('blog_category_id', @$blog->blog_category_id) ? 'selected' : NULL }}>{{ $blogCategory->name }}</option>
+                                            <option value="{{ $blogCategory->id }}" {{ $blogCategory->id == old('blog_category_id', @$blog->blog_category_id) ? 'selected' : NULL }}>{{ $blogCategory->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -107,6 +107,18 @@
                                     <div class="preview-image {{ @$blog->featured_image !== null ? NULL : 'hide' }}">
                                         <img class="responsive" src="{{ $blog instanceof \App\Models\Blog ? $blog->getFeaturedImageUrl() : NULL }}" />
                                     </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-sm-2" for="captcha"> Keamanan (Math Captcha): <span class="text-danger">*</span></label>
+                                <div class="col-sm-10">
+                                    <div class="d-flex align-items-center mb-2" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                        <span id="captcha-wrapper">{!! captcha_img('math') !!}</span>
+                                        <button type="button" class="btn btn-sm btn-light" id="reload-captcha" title="Muat ulang captcha">
+                                            <i class="fa fa-refresh"></i> Refresh
+                                        </button>
+                                    </div>
+                                    <input type="number" class="form-control" name="captcha" id="captcha" placeholder="Masukkan hasil perhitungan matematika diatas" required style="max-width: 300px;" value="" autocomplete="off">
                                 </div>
                             </div>
                             <div class="form-group">
@@ -188,6 +200,11 @@
                     $('#unit_id').find(':selected').removeAttr('selected');
                     $('#unit_id').hide();
                 }
+            });
+
+            $('#reload-captcha').click(function () {
+                var captchaSrc = "{{ captcha_src('math') }}";
+                $('#captcha-wrapper img').attr('src', captchaSrc + '?' + Math.random());
             });
         });
 

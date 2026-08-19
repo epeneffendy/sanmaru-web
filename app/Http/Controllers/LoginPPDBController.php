@@ -110,15 +110,18 @@ class LoginPPDBController extends Controller
 
     public function logout(Request $request)
     {
-        $request->session()->forget('register-ppdb');
-        $request->session()->forget('user-ppdb');
-
         if ($request->session()->get('user')) {
             $user = User::find($request->session()->get('user')['id']);
-            $user->last_logout_date = date('Y-m-d H:i:s');
-            $user->failed_login_counts = 0;
-            $user->save();
+            if ($user) {
+                $user->last_logout_date = date('Y-m-d H:i:s');
+                $user->failed_login_counts = 0;
+                $user->save();
+            }
         }
+
+        // Invalidate the entire session to prevent session fixation attacks
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
         return redirect()->route('ppdb.login');
     }

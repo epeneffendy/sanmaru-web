@@ -38,7 +38,8 @@ class BlogStoreRequest extends FormRequest
             'publish_date' => 'date|required',
             'user_id' => 'integer|nullable',
             'featured_image' => ['nullable', 'mimes:jpeg,jpg,png'],
-            'published' => 'required'
+            'published' => 'required',
+            'captcha' => 'required|captcha'
         ];
 
         if ($this->has('is_unit') && $this->is_unit) {
@@ -46,5 +47,18 @@ class BlogStoreRequest extends FormRequest
         }
         
         return $arr;
+    }
+
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array
+     */
+    public function messages()
+    {
+        return [
+            'captcha.required' => 'Hasil perhitungan Math Captcha wajib diisi.',
+            'captcha.captcha' => 'Hasil perhitungan Math Captcha salah, silakan coba lagi.',
+        ];
     }
 }

@@ -17,6 +17,7 @@ class Kernel extends ConsoleKernel
         Commands\SendOrderConfirmationReminder::class,
         Commands\SendPaymentPeriodReminderCommand::class,
         Commands\ExpirePaymentVirtualAccounts::class,
+        Commands\UpdatePaymentExpiredStatus::class,
     ];
 
     /**
@@ -33,6 +34,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('email:installment-reminder')->dailyAt('01:00')->appendOutputTo(storage_path('logs/cron-installment.log'));
         $schedule->command('email:payment-period-reminder')->dailyAt('02:00')->appendOutputTo(storage_path('logs/cron-payment-period.log'));
         $schedule->command('payment:expire-virtual-accounts')->dailyAt('02:00')->appendOutputTo(storage_path('logs/cron-expire-virtual-accounts.log'));
+        $schedule->command('ppdb:update-payment-expired')->dailyAt('01:00')->appendOutputTo(storage_path('logs/cron-payment-expired.log'));
     }
 
     /**

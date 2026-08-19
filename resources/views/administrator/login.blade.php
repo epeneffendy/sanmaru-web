@@ -3,6 +3,7 @@
     <div class="login-form">
         <form action="{{ route('admin.login.post') }}" method="post" autocomplete="off">
             @csrf
+            @honeypot
             <div class="top">
                 <img src="{{asset('img/Sanmaru Logo.png')}}" alt="icon" class="icon">
                 <h1>@lang('pages.title')</h1>
@@ -26,7 +27,7 @@
                     <i class="fa fa-key"></i>
                 </div>
                 <div class="checkbox checkbox-primary">
-                    <input id="checkbox101" name="remember" type="checkbox" checked>
+                    <input id="checkbox101" name="remember" type="checkbox">
                     <label for="checkbox101"> @lang('pages.remember_me')</label>
                 </div>
                 <button type="submit" class="btn btn-default btn-block text-uppercase">@lang('pages.login')</button>

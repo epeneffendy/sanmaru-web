@@ -51,6 +51,7 @@
                             <div class="card-body text-center">
                                 <form action="{{ route('ppdb.login.submit') }}" method="POST">
                                     @csrf
+                                    @honeypot
                                     @method('POST')
                                     <input type="hidden" name="username" value="{{ $user->username }}">
                                     <div class="form-group row" id="show_hide_password">

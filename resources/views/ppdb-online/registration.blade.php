@@ -77,6 +77,7 @@
                     <!-- /top-wizard -->
                     <form id="wrapped" method="POST" action="{{ route('ppdb.insert') }}" autocomplete="off"
                         enctype="multipart/form-data">
+                        @honeypot
                         <input type="hidden" name="show_fieldset" value="false" />
                         <input type="hidden" name="unit_id" value="{{ $unit->id }}" />
                         <input type="hidden" name="periode" id="period" value="" />

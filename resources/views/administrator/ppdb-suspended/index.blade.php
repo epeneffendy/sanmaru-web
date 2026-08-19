@@ -21,12 +21,20 @@
                     <div class="panel panel-primary">
                         <div class="panel-body">
                             <form role="form" autocomplete="off" method="GET"
-                                action="{{ route('admin.ppdb-monitoring.index') }}">
+                                action="{{ route('admin.ppdb-suspended.index') }}">
                                 <input autocomplete="false" name="hidden" disabled type="text" style="display:none;">
                                 <div class="form-group col-md-3">
                                     <label for="name" class="form-label">Filter</label>
                                     <input type="text" name="name" placeholder="Search" value="{{ @$params['name'] }}"
                                         class="form-control input-sm" />
+                                </div>
+                                <div class="form-group col-md-3">
+                                    <label for="scope" class="form-label">Berdasarkan</label>
+                                    <select name="scope" class="form-control input-sm">
+                                        <option value="0" {{ @$params['scope'] == '0' ? 'selected' : null }}>== SEMUA ==</option>
+                                        <option value="1" {{ @$params['scope'] == '1' ? 'selected' : null }}>Register Number</option>
+                                        <option value="2" {{ @$params['scope'] == '2' ? 'selected' : null }}>Nama Siswa</option>
+                                    </select>
                                 </div>
                                 <div class="form-group col-md-3">
                                     <label for="unit" class="form-label">Unit</label>
@@ -62,7 +70,7 @@
                                         @endfor
                                     </select>
                                 </div>
-                                <a href="{{ route('admin.stage.index') }}" class="pull-right btn btn-sm btn-warning">
+                                <a href="{{ route('admin.ppdb-suspended.index') }}" class="pull-right btn btn-sm btn-warning">
                                     <i class="fa fa-refresh"></i> clear
                                 </a>
                                 <button type="submit" class="pull-right btn btn-sm btn-success">
@@ -89,6 +97,7 @@
                                     <tr>
                                         <th>No</th>
                                         <th>Name</th>
+                                        <th>Register Number</th>
                                         <th>Unit</th>
                                         <th>Period</th>
                                         <th>Tahun Ajaran</th>
@@ -103,16 +112,18 @@
                                         <tr>
                                             <td>{{ $number + 1 }}</td>
                                             <td>{{ $item->student_name }}</td>
+                                            <td>{{ $item->register_number }}</td>
                                             <td>{{ $item->unit_name }}</td>
                                             <td>{{ $item->period_name }}</td>
                                             <td>{{ $item->school_year }}</td>
-                                            <td>{{ date('d-m-Y', strtotime($item->expired_at)) }}</td>
+                                            <?php $expiredVal = !empty($item->payment_expired_at) ? $item->payment_expired_at : $item->expired_at; ?>
+                                            <td>{{ !empty($expiredVal) ? date('d-m-Y', strtotime($expiredVal)) : '-' }}</td>
                                             <td>
-                                                <span class="label label-info">{{ ($item->type == 'activity') ? 'Uang Kegiatan' : 'Uang Pengembangan' }}</span></br>
+                                                <span class="label label-info">{{ (!empty($item->type) && $item->type == 'activity') ? 'Uang Kegiatan' : 'Penangguhan Pembayaran' }}</span></br>
                                                 <?php
                                                     $lateHtml = '-';
-                                                    if (!empty($item->expired_at)) {
-                                                        $expiredDate = \Carbon\Carbon::parse($item->expired_at);
+                                                    if (!empty($expiredVal)) {
+                                                        $expiredDate = \Carbon\Carbon::parse($expiredVal);
                                                         $now = \Carbon\Carbon::now();
                                                         if ($now->greaterThan($expiredDate)) {
                                                             $diff = $expiredDate->diff($now);

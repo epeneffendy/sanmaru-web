@@ -39,6 +39,7 @@
                 </div>
                 <!-- /top-wizard -->
                 <form id="wrapped" method="POST" action="{{route('ppdb.login.account-select')}}">
+                    @honeypot
                     <input id="website" name="website" type="text" value="">
                     <!-- Leave for security protection, read docs for details -->
                     <div class="text-center">

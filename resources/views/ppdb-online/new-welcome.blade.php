@@ -160,6 +160,18 @@
 
 
 
+                    @if(!empty($user->payment_expired_at))
+                        <div class="alert mt-2 p-3" style="background-color: #f8d7da; border: 1px solid #f5c2c7; border-radius: 8px;">
+                            <h6 class="fw-bold mb-2" style="color: #842029; font-size: 13px;">
+                                <i class="fa-solid fa-circle-exclamation me-1"></i>Tagihan Kedaluwarsa
+                            </h6>
+                            <ul class="mb-0 ps-3" style="color: #842029; font-size: 13px;">
+                                <li>Anda belum menyelesaikan pembayaran dan <b>telah melewati batas waktu</b> yang ditentukan (Kedaluwarsa pada {{ \Carbon\Carbon::parse($user->payment_expired_at)->translatedFormat('d F Y H:i') }} WIB).</li>
+                                <li>Untuk saat ini Anda belum bisa melanjutkan ke tahap berikutnya. Jika Anda ingin melanjutkan, silakan hubungi <b>Admin SPMB</b> untuk proses lebih lanjut.</li>
+                            </ul>
+                        </div>
+                    @endif
+
                     @foreach($dp_notifications ?? [] as $dp_notif)
                         @if($dp_notif['is_dp_blocked'])
                             <div class="alert mt-2 p-3" style="background-color: #f8d7da; border: 1px solid #f5c2c7; border-radius: 8px;">
@@ -390,8 +402,14 @@
                                                                                     Penerimaan</a>
                                                                             @endif
                                                                         @else
-                                                                        <span style="color: #555555"><i
-                                                                                class="fa fa-file-excel-o"></i>Belum Memasuki Periode Pembayaran</span>
+                                                                            @if($user->payment_tolerance_expired_at != null)
+                                                                                <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'development']) }}"
+                                                                                    class="btn-detail"
+                                                                                    title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
+                                                                                    Penerimaan</a>
+                                                                            @else
+                                                                                <span style="color: #555555"><i class="fa fa-file-excel-o"></i>Belum Memasuki Periode Pembayaran</span>
+                                                                            @endif
                                                                         @endif
                                                                     </div>
                                                                 @endif
@@ -626,6 +644,18 @@
             @endif
         </div>
 
+        @if(!empty($user->payment_expired_at))
+            <div class="alert mt-2 p-3" style="background-color: #f8d7da; border: 1px solid #f5c2c7; border-radius: 8px;">
+                <h6 class="fw-bold mb-2" style="color: #842029; font-size: 13px;">
+                    <i class="fa-solid fa-circle-exclamation me-1"></i>Tagihan Kedaluwarsa
+                </h6>
+                <ul class="mb-0 ps-3" style="color: #842029; font-size: 13px;">
+                    <li>Anda belum menyelesaikan pembayaran dan <b>telah melewati batas waktu</b> yang ditentukan (Kedaluwarsa pada {{ \Carbon\Carbon::parse($user->payment_expired_at)->translatedFormat('d F Y H:i') }} WIB).</li>
+                    <li>Untuk saat ini Anda belum bisa melanjutkan ke tahap berikutnya. Jika Anda ingin melanjutkan, silakan hubungi <b>Admin SPMB</b> untuk proses lebih lanjut.</li>
+                </ul>
+            </div>
+        @endif
+
         @foreach($dp_notifications ?? [] as $dp_notif)
             @if($dp_notif['is_dp_blocked'])
                 <div class="alert mt-2 p-3" style="background-color: #f8d7da; border: 1px solid #f5c2c7; border-radius: 8px;">
@@ -815,8 +845,14 @@
                                                                         Penerimaan</a>
                                                                 @endif
                                                             @else
-                                                            <span style="color: #555555"><i
-                                                                    class="fa fa-file-excel-o"></i>Belum Memasuki Periode Pembayaran</span>
+                                                                @if($user->payment_tolerance_expired_at != null)
+                                                                    <a href="{{ route('ppdb.bills.choise-payment', ['type' => 'development']) }}"
+                                                                        class="btn-detail"
+                                                                        title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
+                                                                        Penerimaan</a>
+                                                                @else
+                                                                    <span style="color: #555555"><i class="fa fa-file-excel-o"></i>Belum Memasuki Periode Pembayaran</span>
+                                                                @endif
                                                             @endif
                                                         </div>
                                                     @endif
@@ -907,9 +943,16 @@
                                                                     title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
                                                                     Penerimaan</a>
                                                             @else
-                                                                <button class="btn btn-sm btn-secondary px-3" style="font-size: 0.75rem; font-weight: 600;" disabled>
-                                                                    Belum Memasuki Periode Pembayaran
-                                                                </button>
+                                                                @if ($user->payment_tolerance_expired_at != null)
+                                                                <a href="{{ route('ppdb.biaya-pengembangan') }}"
+                                                                    class="btn-detail"
+                                                                    title="Ini adalah tahap akhir penerimaan murid baru. Silahkan memilih skema pembayaran (lunas/cicilan), unduh dan unggah surat pernyataan  pengembangan yang telah diberi materai.setelah diverifikasi oleh admin maka status akhir putra/putri anda dinyatakan Diterima">Finalisasi
+                                                                    Penerimaan</a>
+                                                                @else
+                                                                    <button class="btn btn-sm btn-secondary px-3" style="font-size: 0.75rem; font-weight: 600;" disabled>
+                                                                        Belum Memasuki Periode Pembayaran
+                                                                    </button>
+                                                                @endif
                                                             @endif
                                                         </div>
                                                     @endif

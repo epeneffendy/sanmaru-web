@@ -121,7 +121,7 @@ class PPDBController extends Controller
         $stageResults = $user_ppdb->stages();
 
         $dp_notifications = [];
-        $is_dp_expired = false;
+        $is_dp_expired = !empty($user_ppdb->payment_expired_at);
         $dp_dispensations = \App\Models\PaymentDispensations::where('ppdb_user_id', $user_ppdb->id)
             ->whereIn('status', [\App\Models\PaymentDispensations::STATUS_ACTIVE, \App\Models\PaymentDispensations::STATUS_CANCELLED])
             ->whereIn('dispensation_type', ['development', 'activity'])

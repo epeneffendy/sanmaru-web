@@ -22,6 +22,7 @@
         "league/csv": "^9.6",
         "league/flysystem-aws-s3-v3": "^1.0",
         "maatwebsite/excel": "^3.1",
+        "mews/captcha": "^3.1",
         "mpociot/laravel-apidoc-generator": "^4.3",
         "phpoffice/phpspreadsheet": "^1.11",
         "phpoffice/phpword": "^0.18.2",
@@ -29,6 +30,7 @@
         "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-analytics": "3.7.0",
         "spatie/laravel-fractal": "^5.7",
+        "spatie/laravel-honeypot": "^1.0",
         "symfony/http-client": "^5.4",
         "symfony/mailgun-mailer": "^5.2",
         "taylornetwork/laravel-username-generator": "^2.3"

@@ -17,6 +17,7 @@ use App\Mail\BillPaymentConfirmed;
 use App\Mail\PeriodConfirmed;
 use App\Models\PPDBUser;
 use Illuminate\Support\Facades\Route;
+use Spatie\Honeypot\ProtectAgainstSpam;
 
 $routeService = App::make('App\Services\RouteService');
 $helper = App::make('App\Helpers\Helper');
@@ -33,13 +34,13 @@ Route::group(['domain' => $routeService->getPpdbSubdomain()], function () use ($
     Route::group(['middleware' => 'web'], function () use ($prefix) {
         Route::get("/$prefix", 'RegistrasiPPDBController@index')->name('ppdb.index');
         Route::get("/$prefix/landing-page", 'RegistrasiPPDBController@indexLandingPage')->name('ppdb.index-landing-page');
-        Route::post("/$prefix/submit", 'RegistrasiPPDBController@insert')->name('ppdb.insert')->middleware('throttle:5,10');
+        Route::post("/$prefix/submit", 'RegistrasiPPDBController@insert')->name('ppdb.insert')->middleware(['throttle:5,10', ProtectAgainstSpam::class]);
         Route::any("/$prefix/success", 'RegistrasiPPDBController@success')->name('ppdb.success');
         Route::get("/$prefix/register/{unitName?}", 'RegistrasiPPDBController@register')->name('ppdb.register');
         Route::get("/$prefix/profile/{unitName}", 'RegistrasiPPDBController@profile')->name('ppdb.profile');
         Route::get("/$prefix/login", 'LoginPPDBController@login')->name('ppdb.login');
-        Route::post("/$prefix/login/account-select", 'LoginPPDBController@accountSelect')->name('ppdb.login.account-select');
-        Route::post("/$prefix/login/submit", 'LoginPPDBController@submit')->name('ppdb.login.submit')->middleware('throttle:5,1');
+        Route::post("/$prefix/login/account-select", 'LoginPPDBController@accountSelect')->name('ppdb.login.account-select')->middleware(ProtectAgainstSpam::class);
+        Route::post("/$prefix/login/submit", 'LoginPPDBController@submit')->name('ppdb.login.submit')->middleware(['throttle:5,1', ProtectAgainstSpam::class]);
         Route::get("/$prefix/logout", 'LoginPPDBController@logout')->name('ppdb.logout');
         Route::get("/$prefix/verify", 'RegistrasiPPDBController@verify')->name('ppdb.verify');
         Route::post("/$prefix/email-sended", 'LoginPPDBController@sendEmailForgotPassword')->name('ppdb.email-sended')->middleware('throttle:3,5');
@@ -222,7 +223,7 @@ Route::group(['domain' => $routeService->getBackendSubdomain()], function () use
         })->name('root');
         Route::group(['middleware' => 'web'], function () {
             Route::get('login', 'Auth\LoginController@login')->name('login');
-            Route::post('login', 'Auth\LoginController@authenticate')->name('login.post')->middleware('throttle:5,1');
+            Route::post('login', 'Auth\LoginController@authenticate')->name('login.post')->middleware(['throttle:5,1', ProtectAgainstSpam::class]);
             Route::any('logout', 'Auth\LoginController@logout')->name('logout');
         });
     });
